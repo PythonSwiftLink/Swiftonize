@@ -1,0 +1,7 @@
+//
+//  WrapArgProtocol.swift
+//
+
+import Foundation
+
+
