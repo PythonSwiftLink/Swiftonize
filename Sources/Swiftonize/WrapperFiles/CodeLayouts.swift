@@ -407,62 +407,62 @@ func generateObjectEnums(mod: WrapModule, options: EnumGeneratorOptions) -> Stri
 
 
 
-func generateDispatchFunctions(cls: WrapClass, objc: Bool) {
-    let decoder = JSONDecoder()
-    
-    //for event in cls.dispatch_events {
-    var dispatch_args: JSON = []
-    var dis_arg_count = 0
-    if !cls.singleton {
-        dispatch_args.arrayObject!.append([
-            "name": "cls",
-            "type": "CythonClass",
-            "idx": 0
-        ])
-        dis_arg_count += 1
-    }
-    dispatch_args.arrayObject!.append(contentsOf: [
-        [
-            "name":"event",
-            "type":"object",
-            "other_type": "\(cls.title)DispatchEvent",
-            "options": ["enum_", "dispatch"],
-            "idx": dis_arg_count
-        ],
-        [
-            "name":"*largs",
-            "type":"object",
-            "options": ["data","json"],
-            "idx": dis_arg_count + 1
-        ],
-        [
-            "name":"**kwargs",
-            "type":"object",
-            "options": ["data","json"],
-            "idx": dis_arg_count + 2
-        ]])
-        
-        let dispatch_function: JSON = [
-            "name":"dispatch",
-            "args": dispatch_args,
-            //"swift_func": false,
-            "options": ["callback","dispatch"],
-            "returns": [
-                "name": "void",
-                "type": "void",
-                "idx": 0,
-                "options": ["return_"],
-            ]
-        ]
-        
-        
-        let function = try! decoder.decode(WrapFunction.self, from: dispatch_function.rawData())
-    function.wrap_class = cls
-    function.set_args_cls(cls: cls)
-        cls.functions.insert(function, at: 0)
-    //}
- 
-}
+//func generateDispatchFunctions(cls: WrapClass, objc: Bool) {
+//    let decoder = JSONDecoder()
+//    
+//    //for event in cls.dispatch_events {
+//    var dispatch_args: JSON = []
+//    var dis_arg_count = 0
+//    if !cls.singleton {
+//        dispatch_args.arrayObject!.append([
+//            "name": "cls",
+//            "type": "CythonClass",
+//            "idx": 0
+//        ])
+//        dis_arg_count += 1
+//    }
+//    dispatch_args.arrayObject!.append(contentsOf: [
+//        [
+//            "name":"event",
+//            "type":"object",
+//            "other_type": "\(cls.title)DispatchEvent",
+//            "options": ["enum_", "dispatch"],
+//            "idx": dis_arg_count
+//        ],
+//        [
+//            "name":"*largs",
+//            "type":"object",
+//            "options": ["data","json"],
+//            "idx": dis_arg_count + 1
+//        ],
+//        [
+//            "name":"**kwargs",
+//            "type":"object",
+//            "options": ["data","json"],
+//            "idx": dis_arg_count + 2
+//        ]])
+//        
+//        let dispatch_function: JSON = [
+//            "name":"dispatch",
+//            "args": dispatch_args,
+//            //"swift_func": false,
+//            "options": ["callback","dispatch"],
+//            "returns": [
+//                "name": "void",
+//                "type": "void",
+//                "idx": 0,
+//                "options": ["return_"],
+//            ]
+//        ]
+//        
+//        
+//        let function = try! decoder.decode(WrapFunction.self, from: dispatch_function.rawData())
+//    function.wrap_class = cls
+//    function.set_args_cls(cls: cls)
+//        cls.functions.insert(function, at: 0)
+//    //}
+// 
+//}
 
 
 
@@ -479,36 +479,7 @@ enum functionCodeType {
     case dispatch
 }
 
-func generateFunctionCode(title: String, function: WrapFunction, cls: WrapClass) -> String {
-    var output: [String] = []
-    if function.has_option(option: .swift_func) {
-        output.append("self._\(function.name)_(\(function.send_args.joined(separator: ", ")))")
-    } else {
-        if function.has_option(option: .callback) {
-            output.append("\(title)_\(function.name)(\(function.send_args.joined(separator: ", ")))")
-        } else { // sends
-            
-            if function.returns.type != .void {
-                //let rtn = function.returns
-                //let rname = "\(title)_\(function.name)"
-                //let code = "\(rname)(\(function.send_args_py.joined(separator: ", ")))"
-                //let code = "\(rname)(\(function._args_.map{$0.python_call_arg}.joined(separator: ", ")))"
-//                if rtn.is_data || rtn.is_list {
-//                    output.append("cdef long \(rname)_size = len(\(rname))")
-//                }
-                //output.append("cdef \(rtn.pyx_type) rtn_val = \(code)")
-                //output.append("return \(function.convertReturnSend(rname: rname, code: code))")
-                
-                output.append("return <object>\(title)_\(function.name)(\(if: cls.swift_object_mode, "self.__ptr, ")\(function._args_.map{$0.python_call_arg}.joined(separator: ", ")))")
-            } else {
-                output.append("\(title)_\(function.name)(\(if: cls.swift_object_mode, "self.__ptr, ")\(function._args_.map{$0.python_call_arg}.joined(separator: ", ")))")
-            }
-        }
-        
-    }
-    
-    return output.joined(separator: "\n\t\t")
-}
+
 
 func generateGlobalFunctionCode(title: String, function: WrapFunction) -> String {
     var output: [String] = []
@@ -546,224 +517,12 @@ func generateSwiftClassCode(module_name: String, cls: WrapClass, class_vars: Str
 }
 
 
-func generateSwiftObjectFunctionCode(title: String, function: WrapFunction) -> String {
-    var output: [String] = []
-    if function.has_option(option: .swift_func) {
-        output.append("self._\(function.name)_(self.__ptr, \(function.send_args.joined(separator: ", ")))")
-    } else {
-        if function.has_option(option: .callback) {
-            output.append("\(title)_\(function.name)(\(function.send_args.joined(separator: ", ")))")
-        } else { // sends
-            
-            if function.returns.type != .void {
-                output.append("return <object>\(title)_\(function.name)(self.__ptr, \(function._args_.map{$0.python_call_arg}.joined(separator: ", ")))")
-            } else {
-                output.append("\(title)_\(function.name)(self.__ptr, \(function._args_.map{$0.python_call_arg}.joined(separator: ", ")))")
-            }
-        }
-        
-    }
-    
-    return output.joined(separator: "\n\t\t")
-}
-
-func setCallPath(wraptitle: String, function: WrapFunction, options: [functionCodeType]) -> String {
-    let singleton = function.wrap_class!.singleton
-    if function.has_option(option: .swift_func) {
-        return "\(wraptitle)_shared.\(function.name)"
-    }
-    if function.has_option(option: .dispatch) {
-        if !singleton {
-            let first_arg = function.args.first!
-            return "(<\(wraptitle)> \(first_arg.objc_name)).\(function.name)"
-        }
-        return "\(wraptitle)_shared.\(function.name)"
-    }
-    
-    
-    if function.call_class_is_arg {
-        if let call_target = function.call_target {
-            let target = function.get_callArg(name: function.call_class)
-            return "(<object> \(target!.objc_name)).\(call_target).\(function.name)"
-        }
-        let target = function.get_callArg(name: function.call_class)
-        return "(<object> \(target!.objc_name)).\(function.name)"
-    }
-    
-    if function.call_target_is_arg {
-        if !singleton {
-            return "(<object> \(function.get_callArg(name: function.call_target)!.objc_name))"
-        }
-        return "(<object> \(function.get_callArg(name: function.call_target)!.objc_name))"
-    }
-    
-    if let call_class = function.call_class {
-        if let call_target = function.call_target {
-            return "(<object> \(call_class)_voidptr).\(call_target).\(function.name)"
-        }
-        return "(<object> \(call_class)_voidptr).\(function.name)"
-    }
-    if !singleton {
-        let first_arg = function.args.first!
-        if let call_target = function.call_target {
-            
-            return "(<\(wraptitle)> \(first_arg.objc_name).callback_class.\(call_target).\(function.name)"
-        }
-        return "(<\(wraptitle)> \(first_arg.objc_name)).callback_class.\(function.name)"
-    }
-    return "(<object> \(wraptitle)_voidptr).\(function.name)"
-}
-
-func functionGenerator(wraptitle: String, function: WrapFunction, options: [PythonTypeConvertOptions]) -> String {
-    var output: String
-    let objc = options.contains(.objc)
-    //print("functionGenerator", wraptitle, function.name, options)
-    if function.has_option(option: .callback) {
-        var call_args: [String]
-        let call_path_options: [functionCodeType] = [.cython]
-        if options.contains(.header) {call_args = function.call_args(cython_callback: true )} else {call_args = function.call_args(cython_callback: false)}
-        let func_args = function.export(options: options)
-        let call_path = setCallPath(wraptitle: wraptitle, function: function, options: call_path_options)
-        let return_type = function.returns.pythonType2pyx(options: options)
-
-        //let return_type = pythonType2pyx(type: pythonType2pyx(type: function.returns.type, options: options), options: options)
-        //print("call_args", call_args)
-        
-        output = """
-        cdef \( return_type ) \(wraptitle)_\(function.name)(\(func_args)) with gil:
-            \(call_path)(\(call_args.joined(separator: ", ")))
-        """
-    } else {
-        output = "\(function.returns.pythonType2pyx(options: options)) \("abc"))(\(function.export(options: options)))"
-        if objc { output.append(";") }
-    }
-    return output
-}
 
 
-func setCallPathSwift(wraptitle: String, function: WrapFunction, options: [functionCodeType]) -> String {
-    let singleton = function.wrap_class!.singleton
-    if function.has_option(option: .swift_func) {
-        return "\(wraptitle)_shared.\(function.name)"
-    }
-    if function.has_option(option: .dispatch) {
-        if !singleton {
-            let first_arg = function.args.first!
-            return "(<\(wraptitle)> \(first_arg.objc_name)).\(function.name)"
-        }
-        return "\(wraptitle)_shared.\(function.name)"
-    }
-    
-    
-    if function.call_class_is_arg {
-        if let call_target = function.call_target {
-            let target = function._get_callArg(name: function.call_class)
-            return "(<object> \(target!.name)).\(call_target).\(function.name)"
-        }
-        let target = function._get_callArg(name: function.call_class)
-        return "(<object> \(target!.name)).\(function.name)"
-    }
-    
-    if function.call_target_is_arg {
-        if !singleton {
-            return "(<object> \(function._get_callArg(name: function.call_target)!.name))"
-        }
-        return "(<object> \(function._get_callArg(name: function.call_target)!.name))"
-    }
-    
-    if let call_class = function.call_class {
-        if let call_target = function.call_target {
-            return "(<object> \(call_class)_voidptr).\(call_target).\(function.name)"
-        }
-        return "(<object> \(call_class)_voidptr).\(function.name)"
-    }
-    if !singleton {
-        let first_arg = function.args.first!
-        if let call_target = function.call_target {
-            
-            return "(<\(wraptitle)> \(first_arg.objc_name).callback_class.\(call_target).\(function.name)"
-        }
-        return "(<\(wraptitle)> \(first_arg.objc_name)).callback_class.\(function.name)"
-    }
-    return "(<object> \(wraptitle)_voidptr).\(function.name)"
-}
 
 
-func generateTypeDefImports(imports: [WrapArg]) -> String {
-    //let deftypes = get_typedef_types()
-    var output: [String] = ["cdef extern from \"wrapper_typedefs.h\":"]
-    if imports.count == 0 {return ""}
-    var imps = imports
-    imps.sort {
-        !$0.has_option(.list) && $1.has_option(.list)
-    }
-    for arg in imps {
-        let list = arg.has_option(.list)
-        let data = arg.type == .data
-        let jsondata = arg.type == .jsondata
-        let codable = arg.has_option(.codable)
-        let dtype = arg.pythonType2pyx(options: [.c_type])
-        //
-        if list || data || jsondata {
-            if list && (data || jsondata) && !codable {
-                output.append("""
-                    #list
-                    ctypedef struct \(arg.pyx_type):
-                        const \(arg.convertPythonType(options: [.objc]))\(if: list, "*") ptr
-                        long size;
-                
-                """)
-            } else {
-                
-                if !codable {
-                    if list && [.object,.str].contains(arg.type) {
-                        if arg.has_option(.list) {
-                            output.append("""
-                                ctypedef struct \(arg.pyx_type):
-                                    const \(arg.convertPythonType(options: [.ignore_list])) * ptr
-                                    long size;
-                            
-                            """)
-                        } else {
-                            output.append("""
-                                ctypedef struct \(arg.pyx_type):
-                                    const \(arg.convertPythonType(options: [])) * ptr
-                                    long size;
-                            
-                            """)
-                        }
-                        
-                    } else {
-                        // Normal types / lists with normal types
-                        //\(if: list, "const ")\(dtype)\(if: list, "*") ptr
-                        
-                        output.append("""
-                            #not codable
-                            ctypedef struct \(arg.pyx_type):
-                                \(if: list, "const ")\(dtype)\(if: list, " *") ptr
-                                long size;
-                        
-                        """)
-                    }
-                }
-                
-            }
-            
-            
-        } else {
-            if arg.type != .object {
-                output.append("\t"+"ctypedef \(dtype) \(arg.pyx_type)\n")
-            }
-            
-        }
-    }
-    
-    //if wrap_module_shared.classes.contains(where: { cls in !cls.singleton}) {
-        output.append("\tctypedef const void* CythonClass")
-    //}
-    
-    return output.joined(separator: "\n")
-}
+
+
 
 enum handlerFunctionCodeType {
     case normal
@@ -859,47 +618,7 @@ func generateHandlerFuncs(cls: WrapClass, options: [handlerFunctionCodeType]) ->
             }
         }
     }
-    if options.contains(.objc_m) {
-        for option in options {
-            switch option {
-            case .init_delegate:
-                output.append("""
-                void Init\(cls.title)_Delegate(id<\(cls.title)_Delegate> _Nonnull callback) {
-                    \(cls.title.lowercased()) = callback;
-                    NSLog(@"setting \(cls.title) delegate %@",\(cls.title.lowercased()));
-                }
-                """)
-            case .callback:
-                
-                output.append("""
-                void set_\(cls.title)_Callback(struct \(cls.title)Callbacks callback) {
-                    NSLog(@"setting callback %@",\(cls.title.lowercased()));
-                    [\(cls.title.lowercased()) set_\(cls.title)_Callback:callback];
-                }
-                """)
-            case .send:
-                //output.append("\(generateSendFunctions(module: self , objc: true))")
-                
-                for function in cls.functions.filter({!$0.has_option(option: .callback) && !$0.has_option(option: .swift_func)}) {
-                    let has_args = function.args.count != 0
-                    let return_type = "\(if: objc_m, function.returns.objc_type, function.returns.pyx_type)"
-//                    var func_args = function.args.map {arg in
-//                        arg.name
-//                    }
-                    //let call_args = function._args_.map{a in a.swift_send_call_arg}.joined(separator: "")
-                    output.append("""
-                    \(return_type) \(cls.title)_\(function.name)(\(function.export(options: [.use_names, .objc]))) {
-                        \(if: function.returns.name != "void", "return ")[\(cls.title.lowercased()) \(function.name)\(if: has_args, ": ")\("get rid of this")];
-                    }
-                    """)
-                }
-                
-                
-            default:
-                continue
-            }
-        }
-    }
+
     if options.contains(.swift) {
         for option in options {
             switch option {

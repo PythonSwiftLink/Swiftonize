@@ -5,28 +5,28 @@ var convertPythonListType_count = 0
 
 extension WrapArg {
     
-    func convertPythonType( options: [PythonTypeConvertOptions]) -> String {
-        let list = has_option(.list)
-        let array = has_option(.array)
-        let ignore_list = options.contains(.ignore_list)
-        if options.contains(.protocols) {
-//            if options.contains(.is_list) {
-            if list || array {
-                return "[\(pyType2Swift)]"
-            }
-            return pyType2Swift
-        }
-        if list && !ignore_list{
-            if type == .str {return "PythonList_PythonString"}
-            if type == .object {return "PythonList_PythonObject"}
-            
-            return convertPythonListType(options: options)
-        }
-        if self.options.contains(.array) {
-            return "\(arrayPtrType())"
-        }
-        return pythonType2pyx(options: options)
-    }
+//    func convertPythonType( options: [PythonTypeConvertOptions]) -> String {
+//        let list = has_option(.list)
+//        let array = has_option(.array)
+//        let ignore_list = options.contains(.ignore_list)
+//        if options.contains(.protocols) {
+////            if options.contains(.is_list) {
+//            if list || array {
+//                return "[\(pyType2Swift)]"
+//            }
+//            return pyType2Swift
+//        }
+//        if list && !ignore_list{
+//            if type == .str {return "PythonList_PythonString"}
+//            if type == .object {return "PythonList_PythonObject"}
+//
+//            return convertPythonListType(options: options)
+//        }
+//        if self.options.contains(.array) {
+//            return "\(arrayPtrType())"
+//        }
+//        return pythonType2pyx(options: options)
+//    }
 
     func convertPythonListType(options: [PythonTypeConvertOptions]) -> String {
         convertPythonListType_count += 1
@@ -140,9 +140,9 @@ extension WrapArg {
             if options.contains(.enum_) {return "\(name).rawValue"}
             return name
         default:
-            if has_option(.list) {
-                return "\(pyx_type)(ptr: \(name).unsafePointer(), size: \(name).count)"
-            }
+//            if has_option(.list) {
+//                return "\(pyx_type)(ptr: \(name).unsafePointer(), size: \(name).count)"
+//            }
             return name
         }
     }
@@ -171,30 +171,30 @@ extension WrapArg {
         
     }
     
-    func arrayPtrType() -> String {
-        var output = ""
-        switch type {
-        case .int8, .char:
-            output = "char"
-        case .uint8, .uchar:
-            output = "uchar"
-        case .int16, .short:
-            output = "short"
-        case .uint16, .ushort:
-            output = "ushort"
-        case .int32:
-            output = "int"
-        case .uint32:
-            output = "uint"
-        case .long, .int:
-            output = "long"
-        case .ulong, .uint:
-            output = "ulong"
-        default:
-            output = type.rawValue
-        }
-        return output
-    }
+//    func arrayPtrType() -> String {
+//        var output = ""
+//        switch type {
+//        case .int8, .char:
+//            output = "char"
+//        case .uint8, .uchar:
+//            output = "uchar"
+//        case .int16, .short:
+//            output = "short"
+//        case .uint16, .ushort:
+//            output = "ushort"
+//        case .int32:
+//            output = "int"
+//        case .uint32:
+//            output = "uint"
+//        case .long, .int:
+//            output = "long"
+//        case .ulong, .uint:
+//            output = "ulong"
+//        default:
+//            output = type.rawValue
+//        }
+//        return output
+//    }
     
     func pythonType2pyx(options: [PythonTypeConvertOptions]) -> String {
         var objc = false
@@ -362,91 +362,91 @@ extension WrapArg {
     }
     
     
-    func convertPythonSendArg(options: [PythonSendArgTypes]) -> String {
-        let list = has_option(.list)
-        let array = has_option(.array)
-        //let as_object = has_option(.py_object)
-        //if asObject { return "<PythonObject>\(name)" }
-        if asObject { return "<PyObject*>\(name)" }
-        switch type {
-//        case .str:
-//            //if asObject { return "<PythonObject>\(name)" }
-//            if asObject { return "<PyObject*>\(name)" }
+//    func convertPythonSendArg(options: [PythonSendArgTypes]) -> String {
+//        let list = has_option(.list)
+//        let array = has_option(.array)
+//        //let as_object = has_option(.py_object)
+//        //if asObject { return "<PythonObject>\(name)" }
+//        if asObject { return "<PyObject*>\(name)" }
+//        switch type {
+////        case .str:
+////            //if asObject { return "<PythonObject>\(name)" }
+////            if asObject { return "<PyObject*>\(name)" }
+////            if list {return "\(name)_struct"}
+////            return "\(name).encode()"
+//        case .data:
 //            if list {return "\(name)_struct"}
-//            return "\(name).encode()"
-        case .data:
-            if list {return "\(name)_struct"}
-            //return "<bytes>\(name)[0:\(name)_size]"
-            return name
-            //return "\(name), \(name)_size"
-        case .json, .jsondata:
-            //return "json.dumps(\(name)).encode()"
-            return "<PyObject*>json.dumps(\(name))"
-        //case .jsondata:
-            //return "j_\(name)"
-        case .object, .str:
-            //if list {return "\(name)_struct"}
-            //if list {return "\(name)_struct"}
-            //return "<PythonObject>\(name)"
-            return "<PyObject*>\(name)"
-        case .sequence:
-            //return "<PythonObject>\(name)"
-            return "<PyObject*>\(name)"
-        case .CythonClass:
-            if idx == 0 {
-                return "<CythonClass>self"
-            }
-            return name
-        default:
-            if list {return "\(name)_struct"}
-            if array {return "\(name).data.as_\(arrayPtrType())s"}
-            return name
-        }
-    }
+//            //return "<bytes>\(name)[0:\(name)_size]"
+//            return name
+//            //return "\(name), \(name)_size"
+//        case .json, .jsondata:
+//            //return "json.dumps(\(name)).encode()"
+//            return "<PyObject*>json.dumps(\(name))"
+//        //case .jsondata:
+//            //return "j_\(name)"
+//        case .object, .str:
+//            //if list {return "\(name)_struct"}
+//            //if list {return "\(name)_struct"}
+//            //return "<PythonObject>\(name)"
+//            return "<PyObject*>\(name)"
+//        case .sequence:
+//            //return "<PythonObject>\(name)"
+//            return "<PyObject*>\(name)"
+//        case .CythonClass:
+//            if idx == 0 {
+//                return "<CythonClass>self"
+//            }
+//            return name
+//        default:
+//            if list {return "\(name)_struct"}
+//            if array {return "\(name).data.as_\(arrayPtrType())s"}
+//            return name
+//        }
+//    }
     
     
-    var strlistFunctionLine: String {
-        //let arg_type = convertPythonType(options: [])
-        let arg_type = "char*"
-        let decode = ""
-        return """
-                \(name)_bytes = [x.encode() for x in \(name)]
-                cdef int \(name)_size = len(\(name))
-                cdef \(arg_type)* \(name)_array = <\(arg_type) *> malloc(\(name)_size  * \(size))
-                cdef int \(name)_i
-                for \(name)_i in range(\(name)_size):
-                    \(name)_array[\(name)_i] = \(decode)\(name)_bytes[\(name)_i]
-                cdef \(pyx_type) \(name)_struct = [\(name)_array, \(name)_size]
-        """}
+//    var strlistFunctionLine: String {
+//        //let arg_type = convertPythonType(options: [])
+//        let arg_type = "char*"
+//        let decode = ""
+//        return """
+//                \(name)_bytes = [x.encode() for x in \(name)]
+//                cdef int \(name)_size = len(\(name))
+//                cdef \(arg_type)* \(name)_array = <\(arg_type) *> malloc(\(name)_size  * \(size))
+//                cdef int \(name)_i
+//                for \(name)_i in range(\(name)_size):
+//                    \(name)_array[\(name)_i] = \(decode)\(name)_bytes[\(name)_i]
+//                cdef \(pyx_type) \(name)_struct = [\(name)_array, \(name)_size]
+//        """}
     
-    var dataFunctionLine: String {
-        let arg = name
-        let arg_type = convertPythonType(options: [])
-        let type_size = size
-        let decode = ""
-        return """
-                cdef int \(arg)_size = len(\(arg))
-                cdef \(arg_type)* \(arg)_array = <\(arg_type)*> malloc(\(arg)_size  * \(type_size))
-                cdef int \(arg)_i
-                for \(arg)_i in range(\(arg)_size):
-                    \(arg)_array[\(arg)_i] = \(decode)\(arg)[\(arg)_i]
-        """
-    }
+//    var dataFunctionLine: String {
+//        let arg = name
+//        let arg_type = convertPythonType(options: [])
+//        let type_size = size
+//        let decode = ""
+//        return """
+//                cdef int \(arg)_size = len(\(arg))
+//                cdef \(arg_type)* \(arg)_array = <\(arg_type)*> malloc(\(arg)_size  * \(type_size))
+//                cdef int \(arg)_i
+//                for \(arg)_i in range(\(arg)_size):
+//                    \(arg)_array[\(arg)_i] = \(decode)\(arg)[\(arg)_i]
+//        """
+//    }
     
-    var listFunctionLine: String {
-        //let arg_type = convertPythonType(options: [])
-        var malloc_type = pythonType2pyx(options: [.c_type])
-        //if type == .object { malloc_type = "PythonObject" }
-        if type == .object { malloc_type = "PyObject*" }
-        //let decode = "\(if: (type == .object) , "<PythonObject>")"
-        let decode = "\(if: (type == .object) , "<PyObject*>")"
-        return """
-                cdef int \(name)_size = len(\(name))
-                cdef \(malloc_type)* \(name)_array = <\(malloc_type)*> malloc(\(name)_size  * \(size))
-                cdef int \(name)_i
-                for \(name)_i in range(\(name)_size):
-                    \(name)_array[\(name)_i] = \(decode)\(name)[\(name)_i]
-                cdef \(pyx_type) \(name)_struct = [\(name)_array, \(name)_size]
-        """
-    }
+//    var listFunctionLine: String {
+//        //let arg_type = convertPythonType(options: [])
+//        var malloc_type = pythonType2pyx(options: [.c_type])
+//        //if type == .object { malloc_type = "PythonObject" }
+//        if type == .object { malloc_type = "PyObject*" }
+//        //let decode = "\(if: (type == .object) , "<PythonObject>")"
+//        let decode = "\(if: (type == .object) , "<PyObject*>")"
+//        return """
+//                cdef int \(name)_size = len(\(name))
+//                cdef \(malloc_type)* \(name)_array = <\(malloc_type)*> malloc(\(name)_size  * \(size))
+//                cdef int \(name)_i
+//                for \(name)_i in range(\(name)_size):
+//                    \(name)_array[\(name)_i] = \(decode)\(name)[\(name)_i]
+//                cdef \(pyx_type) \(name)_struct = [\(name)_array, \(name)_size]
+//        """
+//    }
 }

@@ -121,50 +121,50 @@ extension WrapModule {
         return protocol_strings.joined(separator: newLine)
     }
     
-    var generateSwiftCallbackWrap: String {
-        var rtn_strings: [String] = []
-        
-        for cls in classes {
-            var call_title = cls.title.titleCase()
-            call_title.removeFirst()
-            let callback_title = "\(call_title)Callback"
-            
-            let functions = cls.functions.filter{$0.has_option(option: .callback)}
-            let call_pointers = functions.map{ f -> String in
-                let direct = f.options.contains(.direct)
-                return "\(if: direct, "let ", "private let _")\(f.name): \(f.function_pointer)"
-            }.joined(separator: newLineTab)
-            let set_call_pointers = functions.map{"\(if: $0.options.contains(.direct), "", "_")\($0.name) = callback.\($0.name)"}.joined(separator: newLineTabTab)
-            let call_funcs = functions.filter(
-                {!$0.options.contains(.direct)}).map{ f -> String in
-                    let _args = f.args.map{"\($0.swiftCallbackArgs)"}.joined(separator: ", ")
-                    //let start_arg = "\(if: !cls.singleton, "cls\(if: _args.count != 0, ", ")")"
-                    let start_arg = ""
-                    return """
-                    
-                    func \(f.name)(\(f.export(options: [.use_names, .swift, .protocols]))) {
-                            _\(f.name)(\(start_arg)\(_args))
-                        }
-                    """
-            }
-            rtn_strings.append("""
-            struct \(cls.title)PyCallback {
-                public let pycall: \(cls.title)Callbacks
-                \(call_pointers)
-
-                init(callback: \(cls.title)Callbacks){
-                    pycall = callback
-                    \(set_call_pointers)
-                }
-                
-                \(call_funcs.joined(separator: newLineTab))
-            }
-
-            //var \(callback_title): \(cls.title)PyCallback!
-            """)
-        }
-        return rtn_strings.joined(separator: newLine)
-    }
+//    var generateSwiftCallbackWrap: String {
+//        var rtn_strings: [String] = []
+//
+//        for cls in classes {
+//            var call_title = cls.title.titleCase()
+//            call_title.removeFirst()
+//            let callback_title = "\(call_title)Callback"
+//
+//            let functions = cls.functions.filter{$0.has_option(option: .callback)}
+//            let call_pointers = functions.map{ f -> String in
+//                let direct = f.options.contains(.direct)
+//                return "\(if: direct, "let ", "private let _")\(f.name): \(f.function_pointer)"
+//            }.joined(separator: newLineTab)
+//            let set_call_pointers = functions.map{"\(if: $0.options.contains(.direct), "", "_")\($0.name) = callback.\($0.name)"}.joined(separator: newLineTabTab)
+//            let call_funcs = functions.filter(
+//                {!$0.options.contains(.direct)}).map{ f -> String in
+//                    let _args = f.args.map{"\($0.swiftCallbackArgs)"}.joined(separator: ", ")
+//                    //let start_arg = "\(if: !cls.singleton, "cls\(if: _args.count != 0, ", ")")"
+//                    let start_arg = ""
+//                    return """
+//
+//                    func \(f.name)(\(f.export(options: [.use_names, .swift, .protocols]))) {
+//                            _\(f.name)(\(start_arg)\(_args))
+//                        }
+//                    """
+//            }
+//            rtn_strings.append("""
+//            struct \(cls.title)PyCallback {
+//                public let pycall: \(cls.title)Callbacks
+//                \(call_pointers)
+//
+//                init(callback: \(cls.title)Callbacks){
+//                    pycall = callback
+//                    \(set_call_pointers)
+//                }
+//
+//                \(call_funcs.joined(separator: newLineTab))
+//            }
+//
+//            //var \(callback_title): \(cls.title)PyCallback!
+//            """)
+//        }
+//        return rtn_strings.joined(separator: newLine)
+//    }
     
     var generateSwiftPythonObjectCallbackWrap: String {
         var rtn_strings: [String] = []
@@ -495,159 +495,74 @@ extension WrapModule {
         
     }
     
-    func generatePyxClassFunctions(cls: WrapClass) -> String {
-        var output: [String] = []
-        
-        //for cls in classes {
-            
-            //for function in cls.functions.filter({!$0.has_option(option: .property)}) {
-        
-        for function in cls.functions.filter({!$0.has_option(option: .callback) && !$0.has_option(option: .property) && !$0.has_option(option: .cfunc)}) {
-                //if !function.has_option(option: .callback) {
-                    
-                    let return_type = function.returns.type
-                    var rtn: String
-                    if return_type == .void {rtn = "None"} else {rtn = PurePythonTypeConverter(type: return_type)}
-                    let py_return = "\(if: function.returns.has_option(.list),"list[\(rtn)]",rtn)"
-            output.append("\t"+"def \(function.name)(self, \(function.export(options: [.py_mode]))) -> \(py_return): #\(function.options.map{$0.rawValue}.joined(separator: ", "))")
-                    //handle list args
-                    let list_args = function.args.filter{$0.has_option(.list) && !$0.has_option(.codable)}
-                    
-                    for list_arg in list_args {
-                        if list_arg.type == .str {
-                            output.append(list_arg.strlistFunctionLine)
-                        } else {
-                            output.append(list_arg.listFunctionLine)
-                        }
-                        
-                    }
-                    //output.append(contentsOf: list_args.map{listFunctionLine(wrap_arg: $0)})
-                    
-                    let jsondata_args = function.args.filter{$0.type == .jsondata}
-                    for json in jsondata_args {
-                        output.append("\t\tcdef bytes j_\(json.name) = json.dumps(\(json.name)).encode()")
-                        //output.append("\t\tcdef const unsigned char* __\(json.name) = _\(json.name)")
-                        output.append("\t\tcdef long \(json.name)_size = len(j_\(json.name))")
-                    }
-                    let data_args = function.args.filter{$0.type == .data}
-                    output.append(contentsOf: data_args.map{"\t\tcdef long \($0.name)_size = len(\($0.name))"})
-                    let codable_args = function.args.filter { (arg) -> Bool in arg.has_option(.codable)}
-                    output.append(contentsOf: codable_args.map({ (arg) -> String in
-                        """
-                                cdef bytes j_\(arg.name) = json.dumps(\(arg.name).__dict__).encode()
-                                cdef long \(arg.name)_size = len(j_\(arg.name))
-                        """
-                    }))
-                    
-            output.append("\t\t" + generateFunctionCode(title: cls.title, function: function, cls: cls))
-                    for arg in list_args {
-                        if arg.type == .str {
-    //                        output.append("""
-    //                        for x in range(\(arg.name)_size)
-    //                        """)
-                        }
-                        output.append("\t\tfree(\(arg.name)_array)")
-                    }
-                    output.append("")
-                }
-            //}
-        //}
-        return output.joined(separator: newLine)
-    }
+//    func generatePyxClassFunctions(cls: WrapClass) -> String {
+//        var output: [String] = []
+//
+//        //for cls in classes {
+//
+//            //for function in cls.functions.filter({!$0.has_option(option: .property)}) {
+//
+//        for function in cls.functions.filter({!$0.has_option(option: .callback) && !$0.has_option(option: .property) && !$0.has_option(option: .cfunc)}) {
+//                //if !function.has_option(option: .callback) {
+//
+//                    let return_type = function.returns.type
+//                    var rtn: String
+//                    if return_type == .void {rtn = "None"} else {rtn = PurePythonTypeConverter(type: return_type)}
+//                    let py_return = "\(if: function.returns.has_option(.list),"list[\(rtn)]",rtn)"
+//            output.append("\t"+"def \(function.name)(self, \(function.export(options: [.py_mode]))) -> \(py_return): #\(function.options.map{$0.rawValue}.joined(separator: ", "))")
+//                    //handle list args
+//                    let list_args = function.args.filter{$0.has_option(.list) && !$0.has_option(.codable)}
+//
+//                    for list_arg in list_args {
+//                        if list_arg.type == .str {
+//                            output.append(list_arg.strlistFunctionLine)
+//                        } else {
+//                            output.append(list_arg.listFunctionLine)
+//                        }
+//
+//                    }
+//                    //output.append(contentsOf: list_args.map{listFunctionLine(wrap_arg: $0)})
+//
+//                    let jsondata_args = function.args.filter{$0.type == .jsondata}
+//                    for json in jsondata_args {
+//                        output.append("\t\tcdef bytes j_\(json.name) = json.dumps(\(json.name)).encode()")
+//                        //output.append("\t\tcdef const unsigned char* __\(json.name) = _\(json.name)")
+//                        output.append("\t\tcdef long \(json.name)_size = len(j_\(json.name))")
+//                    }
+//                    let data_args = function.args.filter{$0.type == .data}
+//                    output.append(contentsOf: data_args.map{"\t\tcdef long \($0.name)_size = len(\($0.name))"})
+//                    let codable_args = function.args.filter { (arg) -> Bool in arg.has_option(.codable)}
+//                    output.append(contentsOf: codable_args.map({ (arg) -> String in
+//                        """
+//                                cdef bytes j_\(arg.name) = json.dumps(\(arg.name).__dict__).encode()
+//                                cdef long \(arg.name)_size = len(j_\(arg.name))
+//                        """
+//                    }))
+//
+//            output.append("\t\t" + generateFunctionCode(title: cls.title, function: function, cls: cls))
+//                    for arg in list_args {
+//                        if arg.type == .str {
+//    //                        output.append("""
+//    //                        for x in range(\(arg.name)_size)
+//    //                        """)
+//                        }
+//                        output.append("\t\tfree(\(arg.name)_array)")
+//                    }
+//                    output.append("")
+//                }
+//            //}
+//        //}
+//        return output.joined(separator: newLine)
+//    }
     
     
-    func generatePyxClass(cls: WrapClass, class_vars: String, dispatch_mode: Bool) -> String {
-        """
-                    
-        ######## Cython Class: ########
-            \(generateCythonClass(module_name: filename, cls: cls, class_vars: cls.class_vars.joined(separator: newLine), dispatch_mode: cls.dispatch_mode))
-            ######## Cython Class Extensions: ########
-            
-            \(extendCythonClassTempNew(cls: cls, options: cls.class_ext_options))
-            ######## Class Functions: ########
-            \(if: cls.dispatch_mode, "def on_default(self, *args, **kwargs):...")
-            \(if: cls.dispatch_mode, cls.dispatch_events.map{"def on_\($0)(self, *args, **kwargs):..."}.joined(separator: newLineTab))
-        \(generatePyxClassFunctionsNew(cls: cls))
-        """
-    }
     
-    func generatePyxClassFunctionsNew(cls: WrapClass) -> String {
-        var output: [String] = []
-        
-        //for cls in classes {
-            
-            //for function in cls.functions.filter({!$0.has_option(option: .property)}) {
-        
-        for function in cls.functions.filter({!$0.has_option(option: .callback) && !$0.has_option(option: .property) && !$0.has_option(option: .cfunc)}) {
-                //if !function.has_option(option: .callback) {
-                    
-            let return_type = function.returns.type
-            var rtn: String
-            if return_type == .void {rtn = "None"} else {rtn = PurePythonTypeConverter(type: return_type)}
-            let py_return = "\(if: function.returns.has_option(.list),"list[\(rtn)]",rtn)"
-            let func_args = function._args_.map{$0.python_function_arg}.joined(separator: ", ")
-            output.append("\t"+"def \(function.name)(self, \(func_args)) -> \(py_return): #\(function.options.map{$0.rawValue}.joined(separator: ", "))")
+    
+    
+    
+    
+    
 
-                    
-            output.append("\t\t" + generateFunctionCode(title: cls.title, function: function, cls: cls))
-    
-                }
-            //}
-        //}
-        return output.joined(separator: newLine)
-    }
-    
-    func generatePyxGlobalFunctions() -> String {
-        var output: [String] = []
-        
-        //for cls in classes {
-            
-            //for function in cls.functions.filter({!$0.has_option(option: .property)}) {
-        
-        for function in functions.filter({ $0.has_option(option: .swift_func)}) {
-                //if !function.has_option(option: .callback) {
-                    
-            let return_type = function.returns.type
-            var rtn: String
-            if return_type == .void {rtn = "None"} else {rtn = PurePythonTypeConverter(type: return_type)}
-            let py_return = "\(if: function.returns.has_option(.list),"list[\(rtn)]",rtn)"
-            let func_args = function._args_.map{$0.python_function_arg}.joined(separator: ", ")
-            output.append("def \(function.name)(\(func_args)) -> \(py_return): #\(function.options.map{$0.rawValue}.joined(separator: ", "))")
-
-                    
-            output.append("\t" + generateGlobalFunctionCode(title: filename, function: function))
-    
-                }
-            //}
-        //}
-        return output.joined(separator: newLine)
-    }
-    
-    func generateSwiftObjectPyxFunctionsNew(cls: WrapClass) -> String {
-        var output: [String] = []
-        
-        //for cls in classes {
-            
-            //for function in cls.functions.filter({!$0.has_option(option: .property)}) {
-        
-        for function in cls.functions.filter({!$0.has_option(option: .callback) && !$0.has_option(option: .property) && !$0.has_option(option: .cfunc)}) {
-                //if !function.has_option(option: .callback) {
-                    
-            let return_type = function.returns.type
-            var rtn: String
-            if return_type == .void {rtn = "None"} else {rtn = PurePythonTypeConverter(type: return_type)}
-            let py_return = "\(if: function.returns.has_option(.list),"list[\(rtn)]",rtn)"
-            let func_args = function._args_.map{$0.python_function_arg}.joined(separator: ", ")
-            output.append("\t"+"def \(function.name)(self, \(func_args)) -> \(py_return): #\(function.options.map{$0.rawValue}.joined(separator: ", "))")
-
-                    
-                    output.append("\t\t" + generateSwiftObjectFunctionCode(title: cls.title, function: function))
-    
-                }
-            //}
-        //}
-        return output.joined(separator: newLine)
-    }
     
     
     func generateStruct(options: [StructTypeOptions]) -> String {
@@ -734,31 +649,31 @@ extension WrapModule {
         return output.joined(separator: newLineTab) + newLine
     }
 
-    func generateCallbackFunctions(options: [PythonTypeConvertOptions]) -> String {
-        var output: [String] = []
-        //let objc = options.contains(.objc)
-        //let header = options.contains(.header)
-        for cls in classes {
-            
-            for function in cls.functions {
-                
-                if function.has_option(option: .callback) {
-                    if options.contains(.objc) {
-                        output.append(functionGenerator(wraptitle: cls.title, function: function, options: options))
-    //                    output.append("""
-    //                    //\(pythonType2pyx(type: function.returns.type, options: options)) \(cls.title)_\(function.name)(\(function.export(options: options));
-    //                    """)
-                    } else {
-                        //var send_options = options
-                        //send_options.append(.header)
-                        output.append(functionGenerator(wraptitle: cls.title, function: function, options: options))
-                    }
-                    
-                }
-            }
-        }
-        return output.joined(separator: newLine + newLine)
-    }
+//    func generateCallbackFunctions(options: [PythonTypeConvertOptions]) -> String {
+//        var output: [String] = []
+//        //let objc = options.contains(.objc)
+//        //let header = options.contains(.header)
+//        for cls in classes {
+//            
+//            for function in cls.functions {
+//                
+//                if function.has_option(option: .callback) {
+//                    if options.contains(.objc) {
+//                        output.append(functionGenerator(wraptitle: cls.title, function: function, options: options))
+//    //                    output.append("""
+//    //                    //\(pythonType2pyx(type: function.returns.type, options: options)) \(cls.title)_\(function.name)(\(function.export(options: options));
+//    //                    """)
+//                    } else {
+//                        //var send_options = options
+//                        //send_options.append(.header)
+//                        output.append(functionGenerator(wraptitle: cls.title, function: function, options: options))
+//                    }
+//                    
+//                }
+//            }
+//        }
+//        return output.joined(separator: newLine + newLine)
+//    }
     
     func generateFunctionPointers(objc: Bool, options: [FunctionPointersOptions]) -> String {
         var tdef = ""
