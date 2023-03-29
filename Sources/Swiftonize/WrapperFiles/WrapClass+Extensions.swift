@@ -198,7 +198,7 @@ public extension WrapClass {
                 """.addTabs()
                 
             case .__setitem__(key: _, value: let value):
-  
+                
                 let set_var = value == .object ? "" : "let item = try \(value.swiftType)(object: item)"
                 
                 set_item = """
@@ -278,7 +278,7 @@ public extension WrapClass {
     }
     
     private var pyProtocol: String {
-    
+        
         var _init_function = ""
         
         if let _init = init_function {
@@ -363,9 +363,9 @@ public extension WrapClass {
             setValue = "\(title)PyCallback(callback: v)"
         }
         let getter_extract = optional ? "guard let v = \(target) else { return .PyNone }" : "let v = \(callValue)"
-//        if prop.arg_type_new.type == .str {
-//            callValue = "\(call).pyPointer"
-//        }
+        //        if prop.arg_type_new.type == .str {
+        //            callValue = "\(call).pyPointer"
+        //        }
         return """
         fileprivate let \(cls_title)_\(prop.name) = PyGetSetDefWrap(
             pySwift: "\(prop.name)",
@@ -493,7 +493,7 @@ public extension WrapClass {
         }
         
         let __init__ = """
-        { s, _args_, kw -> Int32 in
+            { s, _args_, kw -> Int32 in
             
             \(if: debug_mode, "print(\"Py_Init \(title)\")")
             \(if: !(init_function?._args_.isEmpty ?? true) && !ignore_init, """
@@ -525,7 +525,9 @@ public extension WrapClass {
             catch let err {
             
             }
-            """.addTabs())
+            """.addTabs(),
+            \(init_call.newLineTabbed.addTabs())
+            )
             return 1
         }
         """.addTabs()
