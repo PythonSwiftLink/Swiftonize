@@ -526,7 +526,7 @@ public extension WrapClass {
             
             }
             """.addTabs(),
-            \(init_call.newLineTabbed.addTabs())
+            init_call.newLineTabbed.addTabs()
             )
             return 1
         }
