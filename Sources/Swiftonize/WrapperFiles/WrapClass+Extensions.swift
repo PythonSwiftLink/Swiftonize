@@ -525,7 +525,7 @@ public extension WrapClass {
             catch let err {
             
             }
-            """.addTabs())
+            """.addTabs(), "hmmm")
             return 1
         }
         """.addTabs()
