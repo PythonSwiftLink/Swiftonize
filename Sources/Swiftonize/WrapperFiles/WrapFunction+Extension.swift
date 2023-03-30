@@ -27,9 +27,11 @@ public extension WrapFunction {
         let func_args = callArgs.enumerated().map{i,_ in "_arg\(i)"}.joined(separator: ", ")
         let call_args = callArgs.enumerated().map{i,_ in "_arg\(i).pyPointer"}.joined(separator: ", ")
         return """
+        
         let \(arg.name): ((\(pointer_args)) -> Void) = { \(func_args) in
             DispatchQueue.main.withGIL {
                 PyObject_Vectorcall(_\(arg.name), [\(call_args)], \(callArgs.count), nil)
+                _\(arg.name).decref()
             }
         }
         """.newLineTabbed
@@ -99,7 +101,7 @@ public extension WrapFunction {
             
             if arg.type == .callable {
                 
-                return "let _\(arg.name) = _args_[\(arg.idx)]"
+                return "let _\(arg.name) = _args_[\(arg.idx)].pyPointer.xINCREF"
             }
             if arg.type == .object {
                 return "let \(arg.name) = _args_[\(arg.idx)]"
