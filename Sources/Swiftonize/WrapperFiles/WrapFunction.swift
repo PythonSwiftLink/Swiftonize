@@ -123,7 +123,7 @@ public class WrapFunction {
             default: break
             }
         }
-        
+        print(name, _args_.map(\.swift_protocol_arg))
     }
     
     init(name: String, args: [WrapArg], rtn: WrapArg!, options: [WrapFunctionOption]) {

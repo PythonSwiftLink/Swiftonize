@@ -356,7 +356,7 @@ public extension WrapClass {
         let prop_name = optional ? "\(prop.name)?" : prop.name
         let target = "(s.getSwiftPointer() as \(cls_title)).\(prop.name)"
         let call = "\(arg.swift_property_getter(arg: target))"
-        var setValue = is_object ? "v" : "\(arg.type.swiftType)(v)"
+        var setValue = optional ? "try? \(arg.type.swiftType)(object: v)" :  (is_object ? "v" : "\(arg.type.swiftType)(v)")
         var callValue = target//is_object ? "\(call)" : call
         if prop.name == "py_callback" {
             callValue = "\(call)?.pycall.ptr"

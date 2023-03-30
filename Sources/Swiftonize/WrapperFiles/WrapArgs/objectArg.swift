@@ -27,7 +27,8 @@ class objectArg: _WrapArg, WrapArgProtocol {
     
     var c_header_arg: String { "PyObject* \(_name)" }
     
-    var swift_protocol_arg: String { "\(_name): \(handleType(T: "PythonPointer"))" }
+    //var swift_protocol_arg: String { "\(_name): \(handleType(T: "PythonPointer"))" }
+    var swift_protocol_arg: String { "\(_name): \(handleType(T: other_type != "" ? other_type : "PythonPointer"))" }
     
     var swift_send_func_arg: String { "_ \(_name): \(handleType(T: "PythonPointer"))" }
     
