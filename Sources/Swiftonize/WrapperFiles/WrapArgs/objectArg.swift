@@ -13,11 +13,15 @@ class objectArg: _WrapArg, WrapArgProtocol {
         
     var type: PythonType { _type }
     
-    var other_type: String { _other_type }
+    var other_type: String? { _other_type }
     
     var idx: Int { _idx }
     
     var options: [WrapArgOptions] { _options }
+    
+    func add_option(_ option: WrapArgOptions) {
+        _options.append(option)
+    }
 
     var python_function_arg: String { "\(_name): object" }
     
@@ -28,13 +32,18 @@ class objectArg: _WrapArg, WrapArgProtocol {
     var c_header_arg: String { "PyObject* \(_name)" }
     
     //var swift_protocol_arg: String { "\(_name): \(handleType(T: "PythonPointer"))" }
-    var swift_protocol_arg: String { "\(_name): \(handleType(T: other_type != "" ? other_type : "PythonPointer"))" }
+    var swift_protocol_arg: String {
+        //print("swift_protocol_arg - name: \(_name) type: \(type) other type: \(_other_type)  options: \(options)" )
+        return "\(optional_name ?? _name): \(handleType(T: other_type != nil ? other_type! : "PythonPointer"))"
+        
+    }
     
     var swift_send_func_arg: String { "_ \(_name): \(handleType(T: "PythonPointer"))" }
     
     var swift_send_call_arg: String { "\(_name): \(handleSendCallType(T: _name))" }
     
-    var swift_callback_func_arg: String { "\(_name): \(handleType(T: "PythonPointer"))" }
+    //var swift_callback_func_arg: String { "\(_name): \(handleType(T: "PythonPointer"))" }
+    var swift_callback_func_arg: String { "\(if: !options.contains(.alias),optional_name ?? _name,_name): \(handleType(T: other_type ?? "PythonPointer"))" }
     
     var swift_callback_call_arg: String { "\(_name)" }
     

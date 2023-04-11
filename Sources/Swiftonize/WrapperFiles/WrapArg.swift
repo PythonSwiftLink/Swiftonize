@@ -27,6 +27,8 @@ enum WrapArgOptions: String, CaseIterable, Codable {
     case object_str_enum
     case callable
     case optional
+    case alias
+    case _protocol
 }
 
 private func WrapArgHasOption(arg: WrapArg,option: WrapArgOptions) -> Bool {
@@ -36,7 +38,7 @@ private func WrapArgHasOption(arg: WrapArg,option: WrapArgOptions) -> Bool {
 class WrapArg: Equatable {
     var name: String
     var type: PythonType
-    var other_type: String
+    var other_type: String?
     var idx: Int
     
     let asObject: Bool
@@ -70,7 +72,7 @@ class WrapArg: Equatable {
         case options
         }
     
-    init(name: String, type: PythonType, other_type: String, idx: Int, arg_options: [WrapArgOptions]) {
+    init(name: String, type: PythonType, other_type: String?, idx: Int, arg_options: [WrapArgOptions]) {
         self.name = name
         self.type = type
         self.other_type = other_type
@@ -96,9 +98,9 @@ class WrapArg: Equatable {
             size = 8
             //pyx_type = other_type
             //objc_type = other_type
-            swift_type = other_type
+            swift_type = other_type ?? ""
         } else {
-            size = TYPE_SIZES[type.rawValue]!
+            size = TYPE_SIZES[type.rawValue] ?? 8
             //pyx_type = ""
             //objc_type = ""
             swift_type = SWIFT_TYPES[type.rawValue] ?? ""

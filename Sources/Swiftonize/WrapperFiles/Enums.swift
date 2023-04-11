@@ -77,8 +77,10 @@ enum PythonType: String, CaseIterable,Codable {
         
         switch self {
         case .object:
-            return "PyPointer"
+            return "PyPointer?"
         case .url, .error:
+            return rawValue
+        case .other:
             return rawValue
         default:
             return SWIFT_TYPES[self.rawValue] ?? "PyPointer"
@@ -190,4 +192,5 @@ enum WrapperClassOptions: String {
     case type
     case target
     case service_mode
+    case new
 }

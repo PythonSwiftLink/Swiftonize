@@ -33,7 +33,7 @@ enum PyClassFunctions: String, CaseIterable {
         case .__set_name__:
             return "func __set_name__() -> String"
         case .__buffer__:
-            return "func __buffer__(s: PyPointer, buffer: UnsafeMutablePointer<Py_buffer>) -> Int32"
+            return "func __buffer__(s: PyPointer?, buffer: UnsafeMutablePointer<Py_buffer>) -> Int32"
         default: return ""
         }
     }
@@ -331,7 +331,7 @@ extension WrapModule {
     var module_functions: String {
         //if functions.isEmpty { return "fileprivate let \(filename)_PyMethods = nil"}
         if functions.isEmpty { return ""}
-        let funcs = functions.map { f in
+        let funcs = functions.map({ f in
             switch f._args_.count {
             case 0:
                 return f.generate(PyMethod_noArgs: nil)
@@ -341,8 +341,8 @@ extension WrapModule {
                 return f.generate(PyMethod_withArgs: nil)
                 
             }
-        }
-            .map({$0.replacingOccurrences(of: newLine, with: newLineTab)}).joined(separator: ",\n\t")
+        }).map({$0.replacingOccurrences(of: newLine, with: newLineTab)}).joined(separator: ",\n\t")
+        
         return """
         public let \(filename)_PyMethods = PyMethodDefHandler(
             \(funcs)
@@ -489,7 +489,7 @@ let seq = PySequenceMethodsHandler(methods: .init(
         return """
         \(pyModuleDef)
         
-        func PyInit_\(filename)() -> PyPointer {
+        func PyInit_\(filename)() -> PyPointer? {
         
             if let m = PyModule_Create2(\(filename)_module.module, 3) {
             

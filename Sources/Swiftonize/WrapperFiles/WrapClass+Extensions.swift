@@ -12,7 +12,8 @@ import Foundation
 public extension WrapClass {
     
     
-    var getSwiftPointer: String { "(s.getSwiftPointer() as \(title))" }
+    //var getSwiftPointer: String { "(s.getSwiftPointer() as \(title))" }
+    var getSwiftPointer: String { "s?.get\(title)Pointer()" }
     
     var swift_string: String {
         """
@@ -23,12 +24,17 @@ public extension WrapClass {
         \(if: wrapper_target_type == ._class,
         """
         
-        fileprivate func setSwiftPointer(_ self: PyPointer  ,_ target: \(title)) {
+        fileprivate func set\(title)Pointer(_ self: PyPointer?  ,_ target: \(title)) {
             PySwiftObject_Cast(self).pointee.swift_ptr = Unmanaged.passRetained(target).toOpaque()
         }
         
         extension PySwiftObjectPointer {
-            fileprivate func getSwiftPointer() -> \(title) {
+            //            fileprivate func getSwiftPointer() -> \(title) {
+            //                return Unmanaged.fromOpaque(
+            //                    self!.pointee.swift_ptr
+            //                ).takeUnretainedValue()
+            //            }
+            fileprivate func get\(title)Pointer() -> \(title) {
                 return Unmanaged.fromOpaque(
                     self!.pointee.swift_ptr
                 ).takeUnretainedValue()
@@ -36,16 +42,27 @@ public extension WrapClass {
         }
         
         extension PythonPointer {
-            fileprivate func getSwiftPointer() -> \(title) {
+            //fileprivate func getSwiftPointer() -> \(title) {
+            //    return Unmanaged.fromOpaque(
+            //        PySwiftObject_Cast(self).pointee.swift_ptr
+            //    ).takeUnretainedValue()
+            //}
+            fileprivate func get\(title)Pointer() -> \(title) {
+                //return Unmanaged.fromOpaque(
+                //    PySwiftObject_Cast(self).pointee.swift_ptr
+                //).takeUnretainedValue()
+                guard
+                    let cast = unsafeBitCast(self, to: PySwiftObjectPointer.self), let swift_ptr = cast.pointee.swift_ptr
+                else { fatalError() }
                 return Unmanaged.fromOpaque(
-                    PySwiftObject_Cast(self).pointee.swift_ptr
+                    swift_ptr
                 ).takeUnretainedValue()
             }
         }
         
         """,
         """
-        fileprivate func setSwiftPointer(_ self: PyPointer  ,_ target: \(title)) {
+        fileprivate func set\(title)Pointer(_ self: PyPointer?  ,_ target: \(title)) {
             let ptr: UnsafeMutablePointer<\(title)> = .allocate(capacity: 1)
             ptr.pointee = target
             PySwiftObject_Cast(self).pointee.swift_ptr = .init(ptr)
@@ -70,7 +87,7 @@ public extension WrapClass {
         
         
         let \(title)PyType = SwiftPyType(
-            name: "\(title)",
+            name: "\(_title)",
             functions: \(title)_PyFunctions,
             methods: \(if: functions.filter({!$0.has_option(option: .callback)}).isEmpty, "nil", "\(title)_PyMethods"),
             getsets: \(if: properties.isEmpty && functions.first(where: {$0.has_option(option: .callback)}) == nil, "nil", "\(title)_PyGetSets"),
@@ -83,15 +100,17 @@ public extension WrapClass {
         // Swift Init
         func _create_py\(title)(_ data: \(title)) -> PythonObject {
             let new = PySwiftObject_New(\(title)PyType.pytype)
-            setSwiftPointer(new, data)
+            //setSwiftPointer(new, data)
+            set\(title)Pointer(new, data)
             return .init(ptr: new, from_getter: true)
         }
         func create_py\(title)(_ data: \(title)) -> PyPointer {
             let new = PySwiftObject_New(\(title)PyType.pytype)
-            setSwiftPointer(new, data)
-            return new
+            //setSwiftPointer(new, data)
+            set\(title)Pointer(new, data)
+            return new!
         }
-        
+        \(if: callbacks_count != 0, pyCallbackClass)
         \(pyProtocol)
         """
     }
@@ -140,26 +159,7 @@ public extension WrapClass {
         """
     }
     
-    private var PyMethodDef_Output: String {
-        let funcs = functions.filter { !$0.has_option(option: .callback) }
-        if funcs.isEmpty { return ""}
-        let _funcs = funcs.map { f in
-            switch f._args_.count {
-            case 0:
-                return f.generate(PyMethod_noArgs: title)
-            case 1:
-                return f.generate(PyMethod_oneArg: title)
-            default:
-                return f.generate(PyMethod_withArgs: title)
-                
-            }
-        }.map({$0.replacingOccurrences(of: newLine, with: newLineTab)}).joined(separator: ",\n\t")
-        return """
-        fileprivate let \(title)_PyMethods = PyMethodDefHandler(
-            \(_funcs)
-        )
-        """
-    }
+    
     
     private var PySequenceMethods_Output: String {
         if pySequenceMethods.isEmpty { return "" }
@@ -182,7 +182,7 @@ public extension WrapClass {
                 get_item = """
                 get_item: { s, idx in
                     do {
-                        return try (s.getSwiftPointer() as \(title)).__getitem__(idx: idx )\(if: rtn != .object, ".pyPointer")
+                        return try \(getSwiftPointer).__getitem__(idx: idx )\(if: rtn != .object, ".pyPointer")
                     }
                     catch let err as PythonError {
                         switch err {
@@ -205,7 +205,7 @@ public extension WrapClass {
                 set_item: { s, idx, item in
                     do {
                         \(set_var)
-                        try (s.getSwiftPointer() as \(title)).__setitem__(idx: idx, newValue: item )
+                        try \(getSwiftPointer).__setitem__(idx: idx, newValue: item )
                         return 0
                     }
                 
@@ -286,12 +286,12 @@ public extension WrapClass {
             _init_function = "init(\(init_args))"
         }
         
-        let user_functions = functions.filter({!$0.has_option(option: .callback)}).map { function -> String in
+        let user_functions = functions.filter({!$0.has_option(option: .callback) && !$0.has_option(option: .no_protocol)}).map { function -> String in
             
             let swift_return = "\(if: function._return_.type != .void, "-> \(function._return_.swift_send_return_type)", "")"
             let protocol_args = function._args_.map{$0.swift_protocol_arg}.joined(separator: ", ")
             return """
-            func \(function.name)(\(protocol_args )) \(swift_return)
+            func \(function.name)(\(protocol_args )) \(swift_return) // func 
             """
         }.joined(separator: newLineTab)
         
@@ -301,7 +301,7 @@ public extension WrapClass {
             wrapper_target_type == ._class ? f.protocol_string : "mutating \(f.protocol_string)"
         }.joined(separator: newLineTab)
         
-        let callbacks = callbacks_count > 0 ? "var py_callback: \(title)PyCallback? { get set }" : ""
+        let callbacks = callbacks_count > 0 && !new_class ? "var py_callback: \(title)PyCallback? { get set }" : ""
         
         return """
         // Protocol to make target class match the functions in wrapper file
@@ -316,91 +316,9 @@ public extension WrapClass {
         """
     }
     
-    private var PyGetSets: String {
-        var _properties = properties.filter { p in
-            p.property_type == .GetSet || p.property_type == .Getter
-        }
-        let cls_callbacks = functions.first(where: {$0.has_option(option: .callback)}) != nil
-        if _properties.isEmpty && !cls_callbacks {
-            //return "fileprivate let \(cls.title)_PyGetSets = nil"
-            return ""
-        }
-        if cls_callbacks {
-            _properties.insert(.init(name: "py_callback", property_type: .GetSet, arg_type: .init(name: "", type: .object, other_type: "", idx: 0, arg_options: [])), at: 0)
-        }
-        
-        let properties = _properties.map { p -> String in
-            switch p.property_type {
-            case .Getter:
-                return generate(Getter: p, cls_title: title)
-            case .GetSet:
-                return generate(GetSet: p, cls_title: title)
-            default:
-                return ""
-            }
-        }.joined(separator: newLine)
-        
-        return """
-        \(properties)
-        
-        fileprivate let \(title)_PyGetSets = PyGetSetDefHandler(
-            \(_properties.map { "\(title)_\($0.name)"}.joined(separator: ",\n\t") )
-        )
-        """
-    }
     
-    private func generate(GetSet prop: WrapClassProperty, cls_title: String) -> String {
-        let arg = prop.arg_type_new
-        let is_object = arg.type == .object
-        let optional = arg.options.contains(.optional)
-        let prop_name = optional ? "\(prop.name)?" : prop.name
-        let target = "(s.getSwiftPointer() as \(cls_title)).\(prop.name)"
-        let call = "\(arg.swift_property_getter(arg: target))"
-        var setValue = optional ? "try? \(arg.type.swiftType)(object: v)" :  (is_object ? "v" : "\(arg.type.swiftType)(v)")
-        var callValue = target//is_object ? "\(call)" : call
-        if prop.name == "py_callback" {
-            callValue = "\(call)?.pycall.ptr"
-            setValue = "\(title)PyCallback(callback: v)"
-        }
-        let getter_extract = optional ? "guard let v = \(target) else { return .PyNone }" : "let v = \(callValue)"
-        //        if prop.arg_type_new.type == .str {
-        //            callValue = "\(call).pyPointer"
-        //        }
-        return """
-        fileprivate let \(cls_title)_\(prop.name) = PyGetSetDefWrap(
-            pySwift: "\(prop.name)",
-            getter: {s,clossure in
-                \(getter_extract)
-                return v.pyPointer
-            },
-            setter: { s,v,clossure in
-                guard let newValue = \(setValue) else { return 1 }
-                (s.getSwiftPointer() as \(cls_title)).\(prop.name) = newValue
-                return 0
-            }
-        )
-        """.replacingOccurrences(of: newLine, with: newLineTab)
-    }
     
-    private func generate(Getter prop: WrapClassProperty, cls_title: String) -> String {
-        let arg = prop.arg_type_new
-        let is_object = arg.type == .object
-        let optional = arg.options.contains(.optional)
-        let target = "(s.getSwiftPointer() as \(cls_title)).\(prop.name)"
-        let call = "\(arg.swift_property_getter(arg: "(s.getSwiftPointer() as \(cls_title)).\(prop.name)"))"
-        let callValue = target//is_object ? "PyPointer(\(call))" : call
-        
-        let getter_extract = optional ? "guard let v = \(target) else { return .PyNone }" : "let v = \(callValue)"
-        return """
-        fileprivate let \(cls_title)_\(prop.name) = PyGetSetDefWrap(
-            pySwift: "\(prop.name)",
-            getter: { s,clossure in
-                \(getter_extract)
-                return v.pyPointer
-            }
-        )
-        """.replacingOccurrences(of: newLine, with: newLineTab)
-    }
+    
     
     private var MainFunctions: String {
         var __repr__ = "nil"
@@ -413,25 +331,16 @@ public extension WrapClass {
             switch f {
             case .__repr__:
                 __repr__ = """
-                { s in
-                    \(getSwiftPointer).__repr__().withCString(PyUnicode_FromString)
-                }
+                { s in \(getSwiftPointer).__repr__().withCString(PyUnicode_FromString) }
                 """.newLineTabbed
             case .__str__:
                 __str__ = """
-                { s in
-                    \(getSwiftPointer).__str__().withCString(PyUnicode_FromString)
-                }
+                { s in \(getSwiftPointer).__str__().withCString(PyUnicode_FromString) }
                 """.newLineTabbed
             case .__hash__:
                 __hash__ = """
-                { s in
-                    \(getSwiftPointer).__hash__()
-                }
+                { s in \(getSwiftPointer).__hash__() }
                 """.newLineTabbed
-            case .__set_name__:
-                ""
-                
             default: continue
             }
         }
@@ -466,10 +375,10 @@ public extension WrapClass {
                 //                return "let \(a.name): \(a.type.swiftType) = \(is_object ? extract : "init(\(extract)")"
                 return """
                 if nargs > \(a.idx) {
-                    \(a.name) = try \(a.swiftType)(object: PyTuple_GetItem(_args_, 0))
+                    \(if: a.type == .object, "\(a.name) = PyTuple_GetItem(_args_, \(a.idx))", "\(a.name) = try \(a.swiftType)(object: PyTuple_GetItem(_args_, \(a.idx)))")
                 } else {
                     if let _\(a.name) = PyDict_GetItem(kw, "\(a.name)") {
-                        \(a.name) = try \(a.swiftType)(object: _\(a.name))
+                        \(if: a.type == .object, "\(a.name) = _\(a.name)", "\(a.name) = try \(a.swiftType)(object: _\(a.name))")
                     } else { throw PythonError.attribute }
                 }
                 """.newLineTabbed.addTabs()
@@ -484,11 +393,15 @@ public extension WrapClass {
             return -1
             """
         } else {
+            let init_call_args = (init_function?._args_ ?? []).filter({
+                $0.options.contains(.optional) || $0.type == .object
+            })
+            let call_args = init_call_args.count > 0 ? ", \(init_call_args.map { "let \($0.name) = \($0.name)" }.joined(separator: ", "))" : ""
             init_call = """
-            setSwiftPointer(s,
-                \(title)(\(init_args.joined(separator: ", ")))
-            )
-            return 0
+            if let this = s\(call_args) {
+                set\(title)Pointer(this, \(title)(\(init_args.joined(separator: ", "))) )
+                return 0
+            }
             """
         }
         
@@ -497,7 +410,6 @@ public extension WrapClass {
             
             \(if: debug_mode, "print(\"Py_Init \(title)\")")
             \(if: !(init_function?._args_.isEmpty ?? true) && !ignore_init, """
-            
             
             do {
                 \(init_vars)
@@ -520,7 +432,7 @@ public extension WrapClass {
                     }
                     \(init_lines.joined(separator: newLineTabTab))
                 }
-                \(init_call.newLineTabbed.addTabs())
+                \(init_call.newLineTabbed)
             }
             catch let err {
             
@@ -552,15 +464,15 @@ public extension WrapClass {
         """.newLineTabbed
         
         let __new__ = """
-        { type, args, kw -> PyPointer in
+        { type, args, kw -> PyPointer? in
             \(if: debug_mode, "print(\"\(title) New\")")
             return PySwiftObject_New(type)
         }
         """.newLineTabbed
         
         return """
-        fileprivate func \(title)_Py_Call(self: PythonPointer, args: PythonPointer, keys: PythonPointer) -> PythonPointer {
-            print("\(title) call self", self.printString)
+        fileprivate func \(title)_Py_Call(self: PythonPointer?, args: PythonPointer?, keys: PythonPointer?) -> PythonPointer? {
+            print("\(title) call self", self?.printString)
             return .PyNone
         }
         

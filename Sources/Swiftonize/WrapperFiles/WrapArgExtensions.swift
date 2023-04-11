@@ -106,9 +106,9 @@ extension WrapArg {
             return "\(name).data"
         case .other:
             if codable {
-                return other_type.titleCase()
+                return (other_type ?? "").titleCase()
             }
-            if wrap_module_shared.enumNames.contains(other_type) {return "\(other_type)(rawValue: \(name))!" }
+            if wrap_module_shared.enumNames.contains(other_type ?? "") {return "\(other_type ?? "")(rawValue: \(name))!" }
             return name
 //        case .bytes:
 //            return "pointer2array(data: \(name).ptr, count: \(name).size)"
@@ -158,12 +158,12 @@ extension WrapArg {
         case .CythonClass:
             return type.rawValue
         case .other:
-            return other_type
+            return other_type ?? ""
         default:
             if let value = SWIFT_TYPES[type.rawValue] {
                 return value
             } else {
-                print(type.rawValue,"missing")
+                //print(type.rawValue,"missing")
                 fatalError()
             }
             
@@ -205,7 +205,7 @@ extension WrapArg {
             if let value = SWIFT_TYPES[type.rawValue] {
                 return value
             }
-            return other_type
+            return other_type ?? ""
         }
         var export: String
         var nonnull = false
@@ -311,7 +311,7 @@ extension WrapArg {
         case .CythonClass:
             export = type.rawValue
         case .other:
-            if wrap_module_shared.enumNames.contains(other_type) {
+            if wrap_module_shared.enumNames.contains(other_type ?? "") {
                 return "long"
             }
             export = type.rawValue

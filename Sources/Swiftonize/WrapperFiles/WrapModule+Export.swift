@@ -29,7 +29,7 @@ extension WrapModule {
         
         \(classes.map(\.swift_string).joined(separator: newLine))
 
-        \(generateSwiftPythonObjectCallbackWrap)
+        \(if: false, generateSwiftPythonObjectCallbackWrap)
         
         \(generatePyModule)
         """

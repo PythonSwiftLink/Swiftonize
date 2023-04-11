@@ -18,11 +18,15 @@ class callableArg: _WrapArg, WrapArgProtocol {
     
     var type: PythonType { _type }
     
-    var other_type: String { _other_type }
+    var other_type: String? { _other_type }
     
     var idx: Int { _idx }
     
     var options: [WrapArgOptions] { _options }
+    
+    func add_option(_ option: WrapArgOptions) {
+        _options.append(option)
+    }
     
     var python_function_arg: String { "\(_name): object" }
     

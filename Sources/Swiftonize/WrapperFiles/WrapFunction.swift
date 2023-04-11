@@ -20,12 +20,17 @@ enum WrapFunctionOption: String, CaseIterable,Codable {
     case property
     case cfunc
     case send_self
+    case no_protocol
 }
 
 enum WrapFunctionDecoratorType: String, Codable {
     case direct_arg
     case args_rename
+    case args_alias
     case no_labels
+    case no_protocol
+    case call_target
+    case func_options
 }
 
 class WrapFunctionDecorator: Codable {
@@ -42,7 +47,7 @@ public class WrapFunction {
     //let swift_func: Bool
     //let direct: Bool
     let call_class: String!
-    let call_target: String!
+    var call_target: String!
     
     var options: [WrapFunctionOption]
     
@@ -83,16 +88,92 @@ public class WrapFunction {
         options = callback ? [.callback] : []
         
         call_class = nil
-        call_target = nil
+        //call_target = nil
         
         ast_func.decorator_list.forEach { deco in
             switch WrapFunctionDecoratorType(rawValue: deco.name) {
+            
+            case .func_options:
+                guard
+                    let call = deco as? PyAst_Call
+                else { break }
+                call.keywords.enumerated().forEach { i, key in
+                    switch WrapFunctionDecoratorType(rawValue: key.name) {
+                    case .call_target:
+                        print(key.value)
+//                        guard
+//                            let dict = key.value as? PyAst_Dict,
+//                            let _name = dict.values.first?.name
+//                        else { break }
+                        call_target = key.value.name
+                    case .no_labels:
+                        if let call = key.value as? PyAst_Dict {
+                            
+                            call.keys.enumerated().forEach { i, dkey in
+                                if let index = _args_.firstIndex(where: { a in a.name == dkey.name}) {
+                                    if let bool = Bool(call.values[i].name) {
+                                        let _arg = _args_[index]
+                                        _args_[index].optional_name = bool ? "_ \(_arg.name)" : nil
+                                        return
+                                    }
+                                    
+                                    
+                                }
+                            }
+                        } else {
+                            for (i, _arg) in _args_.enumerated() {
+                                
+                                _args_[i].optional_name = "_ \(_arg.name)"
+                            }
+                        }
+                    case .args_alias:
+                        switch key.value {
+                        case let d as PyAst_Dict:
+                            d.keys.enumerated().forEach {i, dkey in
+                                if let index = _args_.firstIndex(where: { a in a.name == dkey.name}) {
+                                    _args_[index].optional_name = d.values[i].name
+                                    _args_[index].add_option(.alias)
+                                    return
+                                }
+                            }
+                        default: fatalError()
+                        }
+                        guard let call = deco as? PyAst_Call else { break }
+                        call.keywords.forEach { key in
+                            if let index = _args_.firstIndex(where: { a in a.name == key.name}) {
+                                _args_[index].optional_name = key.value.name
+                                _args_[index].add_option(.alias)
+                                return
+                            }
+                        }
+                    default:
+                        fatalError("[Error] func_option key <\(key.name)> is not supported")
+                    }
+                }
+                print(deco)
+                //fatalError()
+            
+            case .call_target:
+                guard
+                    let call = deco as? PyAst_Call,
+                    let _name = call.args.first?.name
+                else { break }
+                call_target = _name
                 
             case .args_rename:
                 guard let call = deco as? PyAst_Call else { break }
                 call.keywords.forEach { key in
                     if let index = _args_.firstIndex(where: { a in a.name == key.name}) {
                         _args_[index].optional_name = key.value.name
+                        return
+                    }
+                }
+            case .args_alias:
+                guard let call = deco as? PyAst_Call else { break }
+                call.keywords.forEach { key in
+                    if let index = _args_.firstIndex(where: { a in a.name == key.name}) {
+                        _args_[index].optional_name = key.value.name
+                        _args_[index].add_option(.alias)
                         return
                     }
                 }
@@ -120,10 +201,13 @@ public class WrapFunction {
                 break
                 
                 //fatalError()
+            case .no_protocol:
+                options.append(.no_protocol)
+                
             default: break
             }
         }
-        print(name, _args_.map(\.swift_protocol_arg))
+        //print(name, _args_.map(\.swift_protocol_arg))
     }
     
     init(name: String, args: [WrapArg], rtn: WrapArg!, options: [WrapFunctionOption]) {

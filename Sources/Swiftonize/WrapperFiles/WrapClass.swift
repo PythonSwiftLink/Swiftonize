@@ -45,13 +45,17 @@ public extension PyAst_Assign {
 public class WrapClass {
     
 
-    
-    var title: String
+    var _title: String
+    var title: String {
+        alternate_title ?? _title
+    }
     var alternate_title: String?
     var functions: [WrapFunction]
     var decorators: [WrapClassDecorator]
     var properties: [WrapClassProperty]
     let singleton: Bool
+    
+    var new_class = false
     
     var wrapper_target_type: WrapperTargetType = ._class
     
@@ -83,7 +87,7 @@ public class WrapClass {
     var debug_mode = false
     
     init(_ name: String) {
-        title = name
+        _title = name
         functions = []
         decorators = []
         properties = []
@@ -93,7 +97,7 @@ public class WrapClass {
     }
     
     init(fromAst cls: PyAst_Class) {
-        title = cls.name
+        _title = cls.name
         functions = []
         decorators = []
         properties = []
@@ -114,9 +118,12 @@ public class WrapClass {
                         case .type:
                             wrapper_target_type = .init(rawValue: kw.value.name) ?? ._class
                         case .target:
-                            title = kw.value.name
+                            alternate_title = kw.value.name
                         case .service_mode:
                             break
+                        case .new:
+                            new_class = (Bool(kw.value.name) ?? false)
+                            
                         default: break
                         }
                         
@@ -164,6 +171,12 @@ public class WrapClass {
                     init_function = init_f
                 case .__buffer__:
                     pyClassMehthods.append(.__buffer__)
+                    
+                case .__str__:
+                    pyClassMehthods.append(.__str__)
+                    
+                case .__repr__:
+                    pyClassMehthods.append(.__repr__)
                 
                 default:
                     functions.append(.init(fromAst: element as! PyAst_Function))
@@ -181,29 +194,69 @@ public class WrapClass {
           
                         if ["Property", "property"].contains(call.name) {
                             var setter = true
+                            var _protocol = false
                             var prop_type: ClassPropertyType = .GetSet
+                            var other_type: String? = nil
                             
-                            if let kw = call.keywords.first(where: {$0.name == "setter"}) {
-                                if let bool = Bool(kw.value.name) {
-                                    setter = bool
+                            for keyword in call.keywords {
+                                switch keyword.name {
+                                case "setter":
+                                    if let bool = Bool(keyword.value.name) {
+                                        setter = bool
+                                    }
+                                case "protocol":
+                                    if let bool = Bool(keyword.value.name) {
+                                        _protocol = bool
+                                    }
+                                    
+                                default: continue
                                 }
+                            
                             }
+                            
+//                            if let kw = call.keywords.first(where: {$0.name == "setter"}) {
+//                                if let bool = Bool(kw.value.name) {
+//                                    setter = bool
+//                                }
+//                            }
                             prop_type = setter ? .GetSet : .Getter
                             
                  
-                            var arg_type: PythonType = .init(rawValue: "") ?? .object
+                            var arg_type: PythonType = .object
+                            
+                            if let tname = call.args.first?.name {
+                                print("tname",target.name,tname, _protocol)
+                                if let ptype = PythonType(rawValue: tname) {
+                                    arg_type = ptype
+                                } else {
+                                    arg_type = .other
+                                    other_type = tname
+                                }
+                            }
+                            
+                            
                             var arg_options = [WrapArgOptions]()
+                            if _protocol {
+                                print(title)
+                                arg_options.append(._protocol)
+                            }
                             if let first = call.args.first, let t = PythonType(rawValue: first.name) {
                                 
                                 switch t {
                                 case .list:
                                     if let list = first as? PyAst_Subscript {
-                                        arg_type = .init(rawValue: list.slice.name)!
+                                        arg_type = .init(rawValue: list.slice.name) ?? .object
                                     }
                                     arg_options.append(.list)
                                 case .optional:
                                     if let optional = first as? PyAst_Subscript {
-                                        arg_type = .init(rawValue: optional.slice.name)!
+                                        if let opt_type = PythonType(rawValue: optional.slice.name) {
+                                            arg_type = opt_type
+                                        } else {
+                                            arg_type = .other
+                                            other_type = optional.slice.name
+                                        }
+                                        //arg_type = .init(rawValue: optional.slice.name) ?? .other
                                     }
                                     arg_options.append(.optional)
                                 default: arg_type = t
@@ -217,7 +270,7 @@ public class WrapClass {
                                     arg_type: .init(
                                         name: target.name,
                                         type: arg_type,
-                                        other_type: "",
+                                        other_type: other_type,
                                         idx: 0,
                                         arg_options: arg_options
                                     )
@@ -252,6 +305,8 @@ public class WrapClass {
 //        for function in self.functions {if function.has_option(option: .swift_func) {self.has_swift_functions = true; break}}
 //
 //    }
+    
+    var callback_functions: [WrapFunction] { functions.filter {$0.has_option(option: .callback)}  }
     
 }
 

@@ -182,7 +182,8 @@ extension WrapModule {
             }.joined(separator: newLineTab)
             let set_call_pointers = functions.compactMap{ f->String? in
                 if f.call_class_is_arg {
-                    return "\(if: f.options.contains(.direct), "", "_")\(f.name) = PyUnicode_FromString(\"\(f.name)\")"
+                    //return "\(if: f.options.contains(.direct), "", "_")\(f.name) = PyUnicode_FromString(\"\(f.name)\")"
+                    return "\(if: f.options.contains(.direct), "", "_")\(f.name) = PyUnicode_FromString(\" name)\")"
                 }
                 if f.call_target_is_arg {
                     return nil
@@ -199,8 +200,8 @@ extension WrapModule {
             let call_funcs = functions.filter(
                 {!$0.options.contains(.direct)}).map{ f -> String in
                     let _args_ = f._args_.filter{ a -> Bool in
-                        if f.call_class_is_arg { if a.name == f.call_class! { return false } }
-                        if f.call_target_is_arg { if a.name == f.call_target! { return false } }
+                        if f.call_class_is_arg { if a.name == f.call_class { return false } }
+                        if f.call_target_is_arg { if a.name == f.call_target { return false } }
                         return true
                     }.map{a -> String in
                         //TODO: if a.asObjectEnum != nil { return "\(a.name).rawValue" }
@@ -270,6 +271,7 @@ extension WrapModule {
 //                            return nil
 //                        }
 //                    }.compactMap({$0})
+                    
                     let use_rtn = f.returns.type != .void
                     var return_string = ""
                     
@@ -288,7 +290,7 @@ extension WrapModule {
                         case 0: pycall = "\(return_string)PyObject_CallMethodCallNoArgs(\(target), _\(f.name))"
                         case 1: pycall = "\(return_string)PyObject_CallMethodOneArg(\(target), _\(f.name), \(_args))"
                         default: pycall = """
-                                        let vector_callargs: [PythonPointer] = [\(target), \(_args)]
+                                        let vector_callargs: [PythonPointer?] = [\(target), \(_args)]
                                         \(return_string)PyObject_VectorcallMethod(_\(f.name), vector_callargs, \(arg_count), nil)
                                         """.replacingOccurrences(of: newLine, with: newLineTabTab)
                         }
@@ -299,7 +301,7 @@ extension WrapModule {
                         case 0: pycall = "\(return_string)PyObject_CallNoArgs(\(target))"
                         case 1: pycall = "\(return_string)PyObject_CallOneArg(\(target), \(_args))"
                         default: pycall = """
-                                        let vector_callargs: [PythonPointer] = [\(_args)]
+                                        let vector_callargs: [PythonPointer?] = [\(_args)]
                                         \(return_string)PyObject_Vectorcall(\(target), vector_callargs, \(arg_count), nil)
                                         """.replacingOccurrences(of: newLine, with: newLineTabTab)
                         }

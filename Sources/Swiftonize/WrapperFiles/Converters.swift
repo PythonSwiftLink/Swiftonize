@@ -249,7 +249,7 @@ func PythonObjectAsSwiftType(arg: WrapArg, option: PythonObjectAsSwiftTypeOption
         otherT = "Error"
     case .optional: break
     case .other:
-        otherT = arg.other_type
+        otherT = arg.other_type!
     }
     
     if option == .callback {
@@ -257,8 +257,8 @@ func PythonObjectAsSwiftType(arg: WrapArg, option: PythonObjectAsSwiftTypeOption
         if arg.has_option(.memoryview) { return "inout [\(String(describing: T))]" }
     }
     if arg.type == .other {
-        if sequence { return "[\(arg.other_type)]" }
-        return arg.other_type
+        if sequence { return "[\(arg.other_type!)]" }
+        return arg.other_type!
     }
     if sequence { return "[\(String(describing: T))]" }
     if list { return "[\(String(describing: T))]" }

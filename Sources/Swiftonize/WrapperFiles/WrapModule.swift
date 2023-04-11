@@ -15,7 +15,26 @@ import PyAstParser
 //    var classes: [WrapClass]
 //
 //}
+fileprivate extension PyPointer {
 
+    func callAsFunction(method: String, args: [PyConvertible]) throws -> PyPointer {
+        //PyObject_Vectorcall(self, args, arg_count, nil)
+        var _args: [PyPointer?] = [self.xINCREF]
+        for arg in args {
+            _args.append(arg.pyPointer)
+        }
+        let name = method.pyPointer
+        guard let rtn = _args.withUnsafeBufferPointer({ buffer in
+            PyObject_VectorcallMethod(name, buffer.baseAddress, _args.count, nil)
+        }) else {
+            PyErr_Print()
+            throw PythonError.call
+        }
+        _args.forEach(Py_DecRef)
+        
+        return rtn
+    }
+}
 
 public class WrapModule {
     
@@ -48,7 +67,7 @@ public class WrapModule {
         swiftui_mode = swiftui
         filename = name
         let pyString = string.pyPointer
-        guard let _parsed: PythonPointerU = Ast.py_cls(method: "parse", args: [pyString]) else { PyErr_Print(); pyString.decref(); return }
+        guard let _parsed = try? Ast.py_cls?(method: "parse", args: [pyString]) else { PyErr_Print(); pyString.decref(); return }
         #if DEBUG
         //Py_IncRef(_parsed)
         //print(String(Ast.py_cls?.pyObject.dump(node: _parsed, indent: 4 ).pyPointer) ?? "no dump")
@@ -72,11 +91,13 @@ public class WrapModule {
                 }
                 
             case .Expr:
-
+                print(element.name)
                 if element.name.contains("import") {
                     swift_import_list.append(element.name)
                 }
+                print(swift_import_list)
                 
+                print()
             case .ImportFrom: continue
                 
             default:

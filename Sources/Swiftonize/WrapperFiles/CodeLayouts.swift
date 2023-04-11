@@ -558,7 +558,7 @@ func generateGlobalSwiftFunctions(mod: WrapModule) -> String {
        }
        for arg in function.args {
            if arg.has_option(.codable) {
-               codelines.append("let \(arg.other_type.titleCase()) = try! decoder.decode(\(if: arg.has_option(.list), "[\(arg.other_type)]", arg.other_type).self, from: \(arg.name).data)")
+               codelines.append("let \(arg.other_type!.titleCase()) = try! decoder.decode(\(if: arg.has_option(.list), "[\(arg.other_type!)]", arg.other_type!).self, from: \(arg.name).data)")
            }
        }
        if codelines.count != 0 {codelines.append("")}
@@ -712,7 +712,7 @@ func generateHandlerFuncs(cls: WrapClass, options: [handlerFunctionCodeType]) ->
                     }
                     for arg in function.args {
                         if arg.has_option(.codable) {
-                            codelines.append("let \(arg.other_type.titleCase()) = try! decoder.decode(\(if: arg.has_option(.list), "[\(arg.other_type)]", arg.other_type).self, from: \(arg.name).data)")
+                            codelines.append("let \(arg.other_type!.titleCase()) = try! decoder.decode(\(if: arg.has_option(.list), "[\(arg.other_type!)]", arg.other_type!).self, from: \(arg.name).data)")
                         }
                     }
                     if codelines.count != 0 {codelines.append("")}
