@@ -59,3 +59,63 @@ class intArg: _WrapArg, WrapArgProtocol {
     
 }
 
+extension intArg: PySendExtactable {
+    
+    var extract_needed: Bool { false }
+    
+    func function_input(many: Bool) -> String {
+        let _name = many ? "_args_[\(idx)]" : name
+        return """
+        try pyCast(from: \(_name) )
+        """
+    }
+    
+    func extractLine(many: Bool, with t: (String?)->String?, for class_pointer: String) -> String? {
+        //guard let wrapped = wrapped as? PySendExtactable else { return nil }
+        let _t = t(argType) ?? argType
+        let target = many ? "_args_[\(idx)]" : "\(name)"
+        if options.contains(.optional) {
+            return "let _\(name): \(_t) = try optionalPyCast(from: \(target) )"
+        }
+        return "let _\(name): \(argType) = try pyCast(from: \(target) )"
+    }
+    
+    var function_call_name: String? {
+        "\(name): _\(name)"
+    }
+}
+
+extension intArg: PyCallbackExtactable {
+    func cb_extractLine(many: Bool, for class_pointer: String) -> String? {
+        "\(name).pyPointer"
+    }
+    
+    var function_arg_name: String {
+        if let optional_name = optional_name {
+            if options.contains(.alias) {
+                return "\(optional_name) \(name)"
+            }
+            return optional_name
+        }
+        return name
+    }
+    
+    var call_arg_name: String {
+        "_\(name)"
+    }
+    
+    var callback_name: String? {
+        nil
+    }
+    
+    var argType: String {
+        type.__swiftType__ ?? "Int"
+    }
+}
+
+
+extension intArg: CustomStringConvertible {
+    var description: String {
+        argType
+    }
+}

@@ -80,6 +80,38 @@ let PYCALL_TYPES = [
     "str": "PythonString"
 ]
 
+let __SWIFT_TYPES__: [PythonType:String] = [
+    .int: "Int",
+    .long: "Int",
+    .ulong: "UInt",
+    .uint: "UInt",
+    .int32: "Int32",
+    .uint32: "UInt32",
+    .int8: "Int8",
+    .char: "Int8",
+    .short: "Int16",
+    .uint8: "UInt8",
+    .uchar: "UInt8",
+    .ushort: "UInt16",
+    .int16: "Int16",
+    .uint16: "UInt16",
+    .longlong: "Int64",
+    .ulonglong: "UInt64",
+    .float: "Double",
+    .double: "Double",
+    .float32: "Float",
+    //"object": "PythonObject",
+    .object: "PyPointer",
+    .data: "Data",
+    .jsondata: "PythonPointer",
+    .json: "PythonPointer",
+    .bytes: "PythonPointer",
+    .str: "String",
+    .bool: "Bool",
+    .void: "Void",
+    
+]
+
 let SWIFT_TYPES = [
     "PythonCallback": "PythonCallback",
     "int": "Int",
@@ -220,6 +252,8 @@ func PythonObjectAsSwiftType(arg: WrapArg, option: PythonObjectAsSwiftTypeOption
         T = Array<Any>.self
     case .sequence:
         T = Array<Any>.self
+    case .Array, .array:
+        T = Array<Any>.self
     case .memoryview:
         T = PythonPointer.self
     case .tuple:
@@ -320,7 +354,7 @@ func PurePythonTypeConverter(type: PythonType) -> String{
     case .CythonClass:
         return type.rawValue
 
-    case .bool, .tuple, .list, .None, .other, .sequence, .memoryview:
+    case .bool, .tuple, .list, .None, .other, .sequence, .memoryview, .array, .Array:
         return type.rawValue
     
     case .url, .error:

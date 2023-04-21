@@ -17,7 +17,7 @@ enum ClassPropertyType: String, Codable, CaseIterable {
     case StringProperty
 }
 
-class WrapClassProperty {
+class WrapClassPropertyOld {
     
     
     let name: String
@@ -31,6 +31,26 @@ class WrapClassProperty {
         self.property_type = property_type
         self.arg_type = arg_type
         self.arg_type_new = handleWrapArgTypes(args: [arg_type]).first!
+    }
+    
+    
+}
+
+class WrapClassProperty {
+    
+    
+    let name: String
+    let property_type: ClassPropertyType
+    //let arg_type: WrapArg
+    let arg_type: WrapArgProtocol
+    
+    
+    init(name: String, property_type: ClassPropertyType, arg_type: WrapArgProtocol) {
+        self.name = name
+        self.property_type = property_type
+        self.arg_type = arg_type
+        
+        //self.arg_type_new = handleWrapArgTypes(args: [arg_type]).first!
     }
     
     
@@ -97,6 +117,7 @@ public class WrapClass {
     }
     
     init(fromAst cls: PyAst_Class) {
+        print("############ \(cls) - \(cls.name) ############")
         _title = cls.name
         functions = []
         decorators = []
@@ -141,6 +162,7 @@ public class WrapClass {
                     
                     for cb in callback_cls.body.compactMap({$0 as? PyAst_Function}) {
                         let f = WrapFunction(fromAst: cb, callback: true)
+                        f.wrap_class = self
                         functions.append(f)
                         callbacks_count += 1
                     }
@@ -222,60 +244,69 @@ public class WrapClass {
                             prop_type = setter ? .GetSet : .Getter
                             
                  
-                            var arg_type: PythonType = .object
+                            //var arg_type: PythonType = .object
                             
-                            if let tname = call.args.first?.name {
-                                print("tname",target.name,tname, _protocol)
-                                if let ptype = PythonType(rawValue: tname) {
-                                    arg_type = ptype
-                                } else {
-                                    arg_type = .other
-                                    other_type = tname
-                                }
-                            }
-                            
-                            
-                            var arg_options = [WrapArgOptions]()
-                            if _protocol {
-                                print(title)
-                                arg_options.append(._protocol)
-                            }
-                            if let first = call.args.first, let t = PythonType(rawValue: first.name) {
-                                
-                                switch t {
-                                case .list:
-                                    if let list = first as? PyAst_Subscript {
-                                        arg_type = .init(rawValue: list.slice.name) ?? .object
-                                    }
-                                    arg_options.append(.list)
-                                case .optional:
-                                    if let optional = first as? PyAst_Subscript {
-                                        if let opt_type = PythonType(rawValue: optional.slice.name) {
-                                            arg_type = opt_type
-                                        } else {
-                                            arg_type = .other
-                                            other_type = optional.slice.name
-                                        }
-                                        //arg_type = .init(rawValue: optional.slice.name) ?? .other
-                                    }
-                                    arg_options.append(.optional)
-                                default: arg_type = t
-                                }
-                                
-                            }
-                            
-                            
-                            properties.append(
-                                .init(name: target.name, property_type: prop_type,
-                                    arg_type: .init(
-                                        name: target.name,
-                                        type: arg_type,
-                                        other_type: other_type,
-                                        idx: 0,
-                                        arg_options: arg_options
-                                    )
+                            if let _t = call.args.first {
+                                let arg_type = _WrapArg.fromAst(index: 0, _t)
+                                if _protocol { arg_type.add_option(._protocol) }
+                                properties.append(
+                                    .init(name: target.name, property_type: prop_type, arg_type: _WrapArg.fromAst(index: 0, _t))
                                 )
-                            )
+                            }
+                            
+//                            
+//                            if let tname = call.args.first?.name {
+//                                print("tname",target.name,tname, _protocol)
+//                                if let ptype = PythonType(rawValue: tname) {
+//                                    arg_type = ptype
+//                                } else {
+//                                    arg_type = .other
+//                                    other_type = tname
+//                                }
+//                            }
+//                            
+//                            
+//                            var arg_options = [WrapArgOptions]()
+//                            if _protocol {
+//                                print(title)
+//                                arg_options.append(._protocol)
+//                            }
+//                            if let first = call.args.first, let t = PythonType(rawValue: first.name) {
+//                                
+//                                switch t {
+//                                case .list:
+//                                    if let list = first as? PyAst_Subscript {
+//                                        arg_type = .init(rawValue: list.slice.name) ?? .object
+//                                    }
+//                                    arg_options.append(.list)
+//                                case .optional:
+//                                    if let optional = first as? PyAst_Subscript {
+//                                        if let opt_type = PythonType(rawValue: optional.slice.name) {
+//                                            arg_type = opt_type
+//                                        } else {
+//                                            arg_type = .other
+//                                            other_type = optional.slice.name
+//                                        }
+//                                        //arg_type = .init(rawValue: optional.slice.name) ?? .other
+//                                    }
+//                                    arg_options.append(.optional)
+//                                default: arg_type = t
+//                                }
+//                                
+//                            }
+//                            
+//                            
+//                            properties.append(
+//                                .init(name: target.name, property_type: prop_type,
+//                                    arg_type: .init(
+//                                        name: target.name,
+//                                        type: arg_type,
+//                                        other_type: other_type,
+//                                        idx: 0,
+//                                        arg_options: arg_options
+//                                    )
+//                                )
+//                            )
                         }
                     case let _name as PyAst_Name:
                         fatalError()
@@ -290,6 +321,7 @@ public class WrapClass {
         
         }
         callbacks_count = functions.filter({$0.has_option(option: .callback)}).count
+        
     }
     
     

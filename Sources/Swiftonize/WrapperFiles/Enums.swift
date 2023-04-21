@@ -30,6 +30,11 @@ enum PythonSendArgTypes {
     case data
 }
 
+enum OtherType {
+    case error
+    case url
+    case swift_type(name: String, delegate: Bool)
+}
 
 enum PythonType: String, CaseIterable,Codable {
     case int
@@ -58,6 +63,8 @@ enum PythonType: String, CaseIterable,Codable {
     case jsondata
     case list
     case sequence
+    case array
+    case Array
     case memoryview
     case tuple
     case byte_tuple
@@ -72,18 +79,29 @@ enum PythonType: String, CaseIterable,Codable {
     case error = "Error"
     case url = "URL"
     
+    var __swiftType__: String? {
+        switch self {
+        case .url, .error:
+            return rawValue
+        case .other:
+            return nil
+        //case .callable:
+        
+        default:
+            return __SWIFT_TYPES__[self]
+        }
+    }
+    
     var swiftType: String {
         //swiftTypeFromPythonType(T: self) ?? "PyPointer"
         
         switch self {
-        case .object:
-            return "PyPointer?"
         case .url, .error:
             return rawValue
         case .other:
             return rawValue
         default:
-            return SWIFT_TYPES[self.rawValue] ?? "PyPointer"
+            return __SWIFT_TYPES__[self] ?? "PyPointer"
         }
 //        if self == .object {
 //            return "PyPointer"

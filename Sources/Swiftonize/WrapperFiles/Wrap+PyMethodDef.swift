@@ -25,7 +25,7 @@ fileprivate extension WrapArgProtocol {
                 //    \(arg.other_type)(object: $0)
                 
                 return """
-                let _\(name) = try \(name).sequence.map {
+                let _\(name) = try \(name).map {
                     guard let this = $0, PythonObject_TypeCheck(this, \(other_type ?? "other_Type_missing")PyType.pytype) else { throw PythonError.attribute }
                     return this.\(class_pointer)
                 
@@ -45,6 +45,10 @@ fileprivate extension WrapArgProtocol {
     }
     
     func extractLine(many class_pointer: String) -> String {
+        
+        
+        
+        
         if type == .callable {
             
             return "let _\(name) = _args_[\(idx)]?.xINCREF"
@@ -57,14 +61,13 @@ fileprivate extension WrapArgProtocol {
                 //let _arg = arg.options.contains(where: {o in o == .list || o == .tuple}) ? "[\(arg.other_type)]" : arg.type.swiftType
                 //    \(arg.other_type)(object: $0)
                 return """
-                    let _\(name) = try _args_[\(idx)]?.sequence.map {
+                    let _\(name) = try _args_[\(idx)]?.map {
                         guard let this = $0, PythonObject_TypeCheck(this, \(other_type!)PyType.pytype) else { throw PythonError.attribute }
                         return this.\(class_pointer)
                     }
                     """.newLineTabbed.newLineTabbed
             }
             return """
-                
                 guard let \(name): PyPointer = _args_[\(idx)], PythonObject_TypeCheck(\(name), \(other_type!)PyType.pytype) else { throw PythonError.attribute }
                 let _\(name) = \(name).\(class_pointer)
                 """.replacingOccurrences(of: newLine, with: newLineTabTab)
@@ -108,7 +111,6 @@ fileprivate extension WrapFunction {
         let func_args = callArgs.enumerated().map{i,_ in "_arg\(i)"}.joined(separator: ", ")
         let call_args = callArgs.enumerated().map{i,_ in "_arg\(i).pyPointer"}.joined(separator: ", ")
         return """
-        
         let \(arg.name): ((\(pointer_args)) -> Void) = { \(func_args) in
             DispatchQueue.main.withGIL {
                 PyObject_Vectorcall(_\(arg.name), [\(call_args)], \(callArgs.count), nil)
@@ -116,7 +118,7 @@ fileprivate extension WrapFunction {
         
             }
         }
-        """.newLineTabbed
+        """.newLineTabbed.newLineTabbed
     }
     
     private func funcCallArgHandler( _ a: WrapArgProtocol) -> String {
@@ -137,14 +139,45 @@ fileprivate extension WrapFunction {
         if a.type == .other {
             return "\(a.name): _\(a.name)"
         }
+        if a.type == .object {
+            if _args_.count == 1 {
+                return "\(a.name): \(a.name)"
+            }
+        }
         
         
-        return "\(a.name): _\(a.name)"
+        //return "\(a.name): _\(a.name)"
+        return "\(a.name): try pyCast(from: \(a.name) )"
+        
     }
     
     
     
     private func generate(extractLine arg: WrapArgProtocol, many: Bool = false) -> String {
+        
+        switch arg {
+        case let extract as PySendExtactable:
+            return extract.extractLine(many: many, with: {_ in nil}, for: getClassPointer(arg.other_type)) ?? "// error in extract"
+        default: //return arg.extractLine(many: getClassPointer(arg.other_type))
+            if many {
+                return arg.extractLine(many: getClassPointer(arg.other_type))
+            }
+            return arg.extractLine(getClassPointer(arg.other_type))
+        }
+        
+        if arg.type == .other {
+            
+            switch arg {
+            case let extract as PySendExtactable:
+                let handler: (String?)->String? = { _t in
+                    
+                    return nil
+                }
+                return extract.extractLine(many: many, with: handler, for: getClassPointer(arg.other_type)) ?? "// error in extract"
+                
+            default: return arg.extractLine(many: getClassPointer(arg.other_type))
+            }
+        }
         if many {
             return arg.extractLine(many: getClassPointer(arg.other_type))
         }
@@ -162,9 +195,10 @@ extension WrapFunction {
             cls_call = "s.\(getClassPointer(cls_title))."
         }
         let rtn_type = _return_.type
-        let use_rtn = !(rtn_type == .void || rtn_type == .None)
+        let use_rtn = (rtn_type != .void && rtn_type != .None)
         let result = use_rtn ? "let __result__ = " : ""
         let rtn = use_rtn ? "__result__.pyPointer" : ".PyNone"
+        print("generate(PyMethod_noArgs)",name, use_rtn, rtn_type)
         return """
         .init(noArgs: "\(name)") { s, arg in
             guard let s = s else { return nil }
@@ -179,24 +213,32 @@ extension WrapFunction {
         let arg = _args_[0]
         let is_object = arg.type == .object
         let is_other = arg.type == .other
-        var _arg = funcCallArgHandler(arg)
-        let arg_extract = arg.type != .object ? generate(extractLine: arg) : ""
+        var _arg: String {
+//            let cast = arg is optionalArg ? "optionalPyCast" : "pyCast"
+//            if arg is optionalArg {
+//                return "try \(cast)(from: \(arg.name))"
+//            }
+//
+//            return funcCallArgHandler(arg)
+            generate(callArg: false, arg: arg)
+        }
+        //let arg_extract = arg.type != .object ? generate(extractLine: arg) : ""
         // let arg_extract = generate(extractLine: arg, many: false)
-        
+        let arg_extract = _args_.filter({($0 as? PySendExtactable)?.extract_needed ?? false}).map { generate(extractLine: $0, many: false) }.joined(separator: "\n\t\t")
         
         var cls_call = ""
         if let cls_title = cls_title {
-            cls_call = "s?.\(getClassPointer(cls_title))."
+            cls_call = "s.\(getClassPointer(cls_title))."
         }
         let fname = call_target ?? name
         let rtn_type = _return_.type
-        let use_rtn = (rtn_type != .void || rtn_type != .None )
+        let use_rtn = (rtn_type != .void && rtn_type != .None )
         let result = use_rtn ? "let __result__ = " : ""
-        let rtn = !use_rtn ? "__result__" : ".PyNone"
+        let rtn = use_rtn ? (_return_ is optionalArg ? "optionalPyPointer(__result__)" : "__result__.pyPointer") : ".PyNone"
         return """
         .init(oneArg: "\(name)") { s, \(arg.name) in
             do {
-                guard let \(arg.name) = \(arg.name) else { return .PyNone }
+                guard let s = s, let \(arg.name) = \(arg.name) else { return .PyNone }
                 \(arg_extract)
                 \(result)\(cls_call)\(fname)(\(_arg))
                 return \(rtn)
@@ -212,18 +254,111 @@ extension WrapFunction {
         """
     }
     
+    func generate(callArg many: Bool, arg: WrapArgProtocol) -> String {
+        
+        let cast = arg is optionalArg ? "optionalPyCast" : "pyCast"
+        //if arg is optionalArg {
+        let _name = (arg.optional_name ?? arg.name)
+        let arg_name = many ? "_args_[\(arg.idx)]" : "\(_name)"
+        
+        
+        
+        if arg.optional_name?.first == "_" {
+            if let send_arg = arg as? PySendExtactable {
+                return "\(send_arg.function_input(many: many))"
+            }
+            if arg.type == .callable {
+                return "\(arg.name)"
+            }
+            if (arg.type == .other) {
+                return " _\(arg.name)"
+            }
+            
+            
+            return "try \(cast)(from: \(arg_name) )"
+        }
+        
+        if let send_arg = arg as? PySendExtactable {
+            return "\(_name): \(send_arg.function_input(many: many))"
+            
+        }
+        
+        if (arg.type == .other) {
+            return "\(_name): _\(arg.name)"
+        }
+        if (arg.type == .callable) {
+            return "\(_name): \(arg.name)"
+        }
+        
+        return "\(_name): try \(cast)(from: \(arg_name) )"
+        //}
+        
+       
+    }
+    
     func generate(PyMethod_withArgs cls_title: String?) -> String {
         
-        let arg_extract = _args_.map { generate(extractLine: $0, many: true) }.joined(separator: "\n\t\t")
+//        let arg_extract = _args_.filter({$0 is callableArg || $0 is otherArg}).map { generate(extractLine: $0, many: true) }.joined(separator: "\n\t\t")
+        let arg_extract = _args_
+            .filter({(($0 as? PySendExtactable)?.extract_needed ?? true)})
+            .compactMap({ generate(extractLine: $0, many: true) }).joined(separator: "\n\t\t")
+        //let arg_extracts = _args_.compactMap({$0 as? PySendExtactable}).map {$0.extractLine(many: true, with: {_ in nil}, for: <#T##String#>)}
+        let completion_handlers = _args_.compactMap({ ($0 as? callableArg)?.cb_extractLine(many: true, for: "") }).joined(separator: newLineTab)
+//        let completion_handlers = _args_.compactMap { a in
+//            //if a.type == .callable {
+//                //return generate(callable: a)
+//
+//            //}
+//            if let callable = a as? callableArg {
+//                return callable.cb_extractLine(many: true, for: "")
+//            }
+//            return nil
+//        }.joined(separator: newLineTab)
         
-        let completion_handlers = _args_.compactMap { a in
-            if a.type == .callable {
-                return generate(callable: a)
-            }
-            return nil
-        }.joined(separator: newLineTab)
-        
-        let args = _args_.map(funcCallArgHandler).joined(separator: ", ")
+//        let args = _args_.map({ arg in
+//
+//
+//
+//            let cast = arg is optionalArg ? "optionalPyCast" : "pyCast"
+//            //if arg is optionalArg {
+//            let _name = (arg.optional_name ?? arg.name)
+//
+//
+//
+//
+//            if arg.optional_name?.first == "_" {
+//                if let send_arg = arg as? PySendExtactable {
+//                    return "\(send_arg.function_input(many: true))"
+//                }
+//                if arg.type == .callable {
+//                    return "\(arg.name)"
+//                }
+//                if (arg.type == .other) {
+//                    return " _\(arg.name)"
+//                }
+//
+//
+//                return "try \(cast)(from: _args_[\(arg.idx)] )"
+//            }
+//
+//            if let send_arg = arg as? PySendExtactable {
+//                return "\(_name): \(send_arg.function_input(many: true))"
+//
+//            }
+//
+//            if (arg.type == .other) {
+//                return "\(_name): _\(arg.name)"
+//            }
+//            if (arg.type == .callable) {
+//                return "\(_name): \(arg.name)"
+//            }
+//
+//            return "\(_name): try \(cast)(from: _args_[\(arg.idx)] )"
+//            //}
+//
+//            return funcCallArgHandler(arg)
+//        }).joined(separator: ", ")
+        let args = _args_.map { generate(callArg: true, arg: $0) }.joined(separator: ", ")
         var cls_call = ""
         if let cls_title = cls_title {
             cls_call = "s.\(getClassPointer(cls_title))."

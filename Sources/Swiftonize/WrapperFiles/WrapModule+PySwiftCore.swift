@@ -62,7 +62,7 @@ enum PySequenceFunctions_ {
         case .__len__:
             return "func __len__() -> Int"
         case .__getitem__(_, let returns):
-            return "func __getitem__(idx: Int) throws -> \(returns.swiftType)"
+            return "func __getitem__(idx: Int) throws -> \(returns.swiftType)?"
         case .__setitem__(_, let value):
             return "func __setitem__(idx: Int, newValue: \(value.swiftType)) throws"
         case .__delitem__(_):

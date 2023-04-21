@@ -64,3 +64,69 @@ class strArg: _WrapArg, WrapArgProtocol {
     
     
 }
+
+extension strArg: PySendExtactable {
+    
+    var extract_needed: Bool { false }
+    
+    func function_input(many: Bool) -> String {
+        let _name = many ? "_args_[\(idx)]" : name
+        return """
+        try pyCast(from: \(_name) )
+        """
+    }
+    
+    func extractLine(many: Bool, with t: (String?)->String?, for class_pointer: String) -> String? {
+        _ = t(argType)
+        let target = many ? "_args_[\(idx)]!" : "\(name)"
+        return "let _\(name): \(argType) = try pyCast(from: \(target) )"
+    }
+    
+    var function_call_name: String? {
+        "\(name): _\(name)"
+    }
+
+}
+
+extension strArg: PyCallbackExtactable {
+    func cb_extractLine(many: Bool, for class_pointer: String) -> String? {
+        let optional = options.contains(.optional)
+        switch type {
+        case .error:
+            if optional { return "\(name)?.localizedDescription"}
+            return "\(name).localizedDescription.pyPointer"
+//        case .url:
+//            if optional { return "\(name)?.path"}
+//            return "\(name).path.pyPointer"
+        default:
+            if optional { return "\(name)"}
+            return "\(name).pyPointer"
+        }
+    }
+    
+    var function_arg_name: String {
+        if let optional_name = optional_name {
+            if options.contains(.alias) {
+                return "\(optional_name) \(name)"
+            }
+            return optional_name
+        }
+        return name
+    }
+    
+    var call_arg_name: String {
+        "_\(name)"
+    }
+    
+    var callback_name: String? {
+        nil
+    }
+    
+    var argType: String {
+        type.__swiftType__ ?? "String"
+    }
+}
+
+extension strArg: CustomStringConvertible {
+    var description: String { argType }
+}

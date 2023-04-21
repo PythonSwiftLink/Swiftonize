@@ -41,7 +41,7 @@ public class WrapFunction {
     let name: String
     var args: [WrapArg]
     var _args_: [WrapArgProtocol]
-    let returns: WrapArg
+    //let returns: WrapArg
     let _return_: WrapArgProtocol
     //let is_callback: Bool
     //let swift_func: Bool
@@ -73,17 +73,26 @@ public class WrapFunction {
     
     
     public init(fromAst ast_func: PyAst_Function, callback: Bool = false) {
+        
         name = ast_func.name
         args = []
-        _args_ = ast_func.args.filter({$0.name != "self"}).enumerated().map(_buildWrapArg)
+        print(ast_func,ast_func.name)
+        //_args_ = ast_func.args.filter({$0.name != "self"}).enumerated().map(_buildWrapArg)
+        _args_ = ast_func.args.filter({$0.name != "self"}).enumerated().map(_WrapArg.fromAst)
+        
         //_args_ = ast_func.args.enumerated().c
         
-        returns = .init(name: "", type: .void, other_type: "", idx: 0, arg_options: [.return_])
+        //returns = .init(name: "", type: .void, other_type: "", idx: 0, arg_options: [.return_])
         
         //buildWrapArg(idx: 0, ast_func.r)
         
         //_return_ = objectArg(_name: "", _type: .void, _other_type: "", _idx: 0, _options: [.return_])
-        _return_ = buildWrapArgReturn( ast_func.returns )
+        //_return_ = buildWrapArgReturn( ast_func.returns )
+        if let rtn = ast_func.returns {
+            _return_ = _WrapArg.fromAst(index: 0, rtn)
+        } else {
+            _return_ = objectArg(_name: "", _type: .void, _other_type: nil, _idx: 0, _options: [.return_])
+        }
         
         options = callback ? [.callback] : []
         
@@ -208,18 +217,23 @@ public class WrapFunction {
             }
         }
         //print(name, _args_.map(\.swift_protocol_arg))
+        print(tab, self, "\(name)(\(_args_.map({"\($0.name): \($0)"}).joined(separator: ", ")))")
+        print(tab, _return_)
+        if let r = _return_ as? collectionArg {
+            print("\t\t element", r.element, r.element.type)
+        }
     }
     
     init(name: String, args: [WrapArg], rtn: WrapArg!, options: [WrapFunctionOption]) {
         self.name = name
         self.args = args
         self._args_ = handleWrapArgTypes(args: args)
-        if rtn != nil {
-            self.returns = rtn
-        } else {
-            self.returns = WrapArg(name: "", type: .void, other_type: "", idx: 0, arg_options: [.return_])
-        }
-        _return_ = handleWrapArgTypes(args: [returns]).first!
+//        if rtn != nil {
+//            self.returns = rtn
+//        } else {
+//            self.returns = WrapArg(name: "", type: .void, other_type: "", idx: 0, arg_options: [.return_])
+//        }
+        _return_ = handleWrapArgTypes(args: []).first!
         self.options = options
         self.call_class = nil
         self.call_target = nil

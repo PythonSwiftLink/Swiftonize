@@ -481,18 +481,18 @@ enum functionCodeType {
 
 
 
-func generateGlobalFunctionCode(title: String, function: WrapFunction) -> String {
-    var output: [String] = []
- 
-            if function.returns.type != .void {
- 
-                output.append("return <object>\(title)_\(function.name)(\(function._args_.map{$0.python_call_arg}.joined(separator: ", ")))")
-            } else {
-                output.append("\(title)_\(function.name)(\(function._args_.map{$0.python_call_arg}.joined(separator: ", ")))")
-            }
-
-    return output.joined(separator: "\n\t")
-}
+//func generateGlobalFunctionCode(title: String, function: WrapFunction) -> String {
+//    var output: [String] = []
+// 
+//            if function.returns.type != .void {
+// 
+//                output.append("return <object>\(title)_\(function.name)(\(function._args_.map{$0.python_call_arg}.joined(separator: ", ")))")
+//            } else {
+//                output.append("\(title)_\(function.name)(\(function._args_.map{$0.python_call_arg}.joined(separator: ", ")))")
+//            }
+//
+//    return output.joined(separator: "\n\t")
+//}
 
 func generateSwiftClassCode(module_name: String, cls: WrapClass, class_vars: String, dispatch_mode: Bool) -> String {
     let _class = cls.title
@@ -543,7 +543,7 @@ func generateGlobalSwiftFunctions(mod: WrapModule) -> String {
     for function in mod.functions {
        //let send_self = function.has_option(option: .send_self)
 //                    let swift_return = "\(if: function.returns.type != .void, "-> \(function.returns.swift_type)", "")"
-       let swift_return = "\(if: function.returns.type != .void, "-> PythonPointer", "")"
+       let swift_return = "\(if: function._return_.type != .void, "-> PythonPointer", "")"
 //                    var func_args = function.args.map{ arg -> String in
 //                        let as_object = arg.has_option(.py_object)
 //                        //if as_object {return "\(arg.name): PythonObject"}
@@ -579,7 +579,7 @@ func generateGlobalSwiftFunctions(mod: WrapModule) -> String {
            //\(function.name)
            @_silgen_name(\"\(mod.filename)_\(function.name)\")
            func \(mod.filename)_\(function.name)(\(header_args)) \(swift_return) {
-               \(codelines.joined(separator: newLineTab))\(if: function.returns.type != .void, "return ")\(function._return_.convert_return_send(arg: "\(function.name)(\(_func_args))"))
+               \(codelines.joined(separator: newLineTab))\(if: function._return_.type != .void, "return ")\(function._return_.convert_return_send(arg: "\(function.name)(\(_func_args))"))
            }
            """)
                    
@@ -697,7 +697,7 @@ func generateHandlerFuncs(cls: WrapClass, options: [handlerFunctionCodeType]) ->
                 for function in cls.functions.filter({!$0.has_option(option: .callback) && !$0.has_option(option: .swift_func)}) {
                     //let send_self = function.has_option(option: .send_self)
 //                    let swift_return = "\(if: function.returns.type != .void, "-> \(function.returns.swift_type)", "")"
-                    let swift_return = "\(if: function.returns.type != .void, "-> PythonPointer", "")"
+                    let swift_return = "\(if: function._return_.type != .void, "-> PythonPointer", "")"
 //                    var func_args = function.args.map{ arg -> String in
 //                        let as_object = arg.has_option(.py_object)
 //                        //if as_object {return "\(arg.name): PythonObject"}
@@ -734,7 +734,7 @@ func generateHandlerFuncs(cls: WrapClass, options: [handlerFunctionCodeType]) ->
                         @_silgen_name(\"\(cls.title)_\(function.name)\")
                         func \(cls.title)_\(function.name)(_ __ptr: UnsafeMutableRawPointer\(if: h_args_count > 0, ", \(header_args)")) \(swift_return) {
                             let \(cls.title.lowercased()) = Unmanaged<\(cls.title)>.fromOpaque(__ptr).takeUnretainedValue()
-                            \(codelines.joined(separator: newLineTab))\(if: function.returns.type != .void, "return ")\(function._return_.convert_return_send(arg: "\(cls.title.lowercased()).\(function.name)(\(_func_args))"))
+                            \(codelines.joined(separator: newLineTab))\(if: function._return_.type != .void, "return ")\(function._return_.convert_return_send(arg: "\(cls.title.lowercased()).\(function.name)(\(_func_args))"))
                         }
                         """)
                     } else {
@@ -742,7 +742,7 @@ func generateHandlerFuncs(cls: WrapClass, options: [handlerFunctionCodeType]) ->
                         //\(function.name)
                         @_silgen_name(\"\(cls.title)_\(function.name)\")
                         func \(cls.title)_\(function.name)(\(header_args)) \(swift_return) {
-                            \(codelines.joined(separator: newLineTab))\(if: function.returns.type != .void, "return ")\(function._return_.convert_return_send(arg: "\(cls.title.lowercased()).\(function.name)(\(_func_args))"))
+                            \(codelines.joined(separator: newLineTab))\(if: function._return_.type != .void, "return ")\(function._return_.convert_return_send(arg: "\(cls.title.lowercased()).\(function.name)(\(_func_args))"))
                         }
                         """)
                     }

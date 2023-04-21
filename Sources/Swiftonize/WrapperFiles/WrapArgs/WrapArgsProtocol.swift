@@ -20,12 +20,12 @@ protocol WrapArgProtocol: Decodable {
     
     func add_option(_ option: WrapArgOptions)
     
-    var python_function_arg: String { get }
-    var python_call_arg: String { get }
+    //var python_function_arg: String { get }
+    //var python_call_arg: String { get }
     
-    var cython_header_arg: String { get }
+    //var cython_header_arg: String { get }
     
-    var c_header_arg: String { get }
+    //var c_header_arg: String { get }
     
     var swift_protocol_arg: String { get }
     var swift_send_func_arg: String { get }
@@ -51,18 +51,107 @@ protocol WrapArgProtocol: Decodable {
     
 }
 
+protocol PyCallbackExtactable {
+    
+    
+    
+    var other_type: String? { get }
+    
+    var options: [WrapArgOptions] { get }
+    
+    
+    func cb_extractLine(many: Bool, for class_pointer: String) -> String?
+    
+    var function_arg_name: String { get }
+    
+    var call_arg_name: String { get }
+    
+    var callback_name: String? { get }
+    
+    var type: PythonType { get }
+    
+    var argType: String { get }
+}
+
+protocol PySendExtactable {
+    
+    func extractLine(many: Bool,with t: (String?) -> String?, for class_pointer: String) -> String?
+    
+    var function_call_name: String? { get }
+    
+    func function_input(many: Bool) -> String
+    
+    var extract_needed: Bool { get }
+    
+}
+
+extension PyCallbackExtactable {
+    
+    
+    var __SwiftType__: String {
+        type.__swiftType__ ?? (other_type ?? "TypeNotMatched")
+    }
+    
+    var function_arg: String {
+        
+        
+        return "\(function_arg_name): \(argType)"
+    }
+    
+    
+}
+
+
+
+
+
 extension WrapArgProtocol {
     
-    var swiftType: String {
-        if options.contains(.optional) {
-            
-            if type == .other { return "\(other_type ?? "#WRONG_TYPE#")?" }
-            
-            return "\(type.swiftType)?"
-            
+    
+    var __swiftType__: String {
+        if type == .callable {
+            let call = self as! callableArg
+            var call_result: String {
+                let cargs = call.callArgs.map(\.__swiftType__).joined(separator: ", ")
+                return "(\(cargs))->\(call._return?.swiftType ?? "Void")"
+            }
+            return options.contains(.optional) ? "\(call_result)?" : call_result
         }
-        if type == .other { return "\(other_type ?? "#WRONG_TYPE#")" }
-        return type.swiftType
+        return type.__swiftType__ ?? (other_type ?? "TypeNotMatched")
+    }
+    
+    var swiftType: String {
+        let optional = options.contains(.optional)
+        let list_tuple = options.contains(.list) || options.contains(.tuple)
+        
+        var typeString: String {
+            if type == .other { return "\(other_type ?? "#WRONG_TYPE#")" }
+            if type == .None { return "Void"}
+            return type.swiftType
+        }
+        var typeExport: String {
+            
+            //for option in options {
+                switch type {
+                case .list, .tuple, .sequence:
+                    return "[\(typeString)]\(if: optional, "?")"
+                default: break
+                }
+            //}
+            return typeString
+        }
+        return typeExport
+//        if options.contains(.optional) {
+//
+//
+//
+//            if type == .other { return "\(other_type ?? "#WRONG_TYPE#")?" }
+//
+//            return "\(type.swiftType)?"
+//
+//        }
+//        if type == .other { return "\(other_type ?? "#WRONG_TYPE#")" }
+//        return type.swiftType
     }
 }
 
@@ -117,7 +206,7 @@ func wrapArgFromType(name: String, type: PythonType, _other_type: String, idx: I
         //return strArg(_name: name, _type: .other, _other_type: _other_type, _idx: idx, _options: options)
         return objectArg(_name: name, _type: .other, _other_type: type.rawValue, _idx: idx, _options: options)
     case .other:
-        return objectArg(_name: name, _type: .other, _other_type: _other_type, _idx: idx, _options: options)
+        return otherArg(_name: name, _type: .other, _other_type: _other_type, _idx: idx, _options: options)
         //fatalError()
 //    case .callable:
 //        return callableArg(_name: name, _type: type, _other_type: "", _idx: idx, _options: options)
@@ -217,6 +306,65 @@ private func handleSubscript(v: PyAst_Subscript, type: inout PythonType, other_t
     //fatalError()
 }
 
+fileprivate extension PyAst_Subscript {
+    
+    
+    func __buildWrapArg(idx: Int, _ v: PyAst_Arg) -> WrapArgProtocol? {
+        if v.name == "self" { return nil }
+        return buildWrapArg(idx: idx, v)
+    }
+    
+    func newWrapArg(idx: Int, name: String) -> WrapArgProtocol {
+        var options: [WrapArgOptions] = []
+        var type: PythonType = .object
+        var other_type = ""
+        if let _type = PythonType(rawValue: value.name) {
+            switch _type {
+            case .optional:
+                handleOptional(slice, type: &type, other_type: &other_type, options: &options)
+            case .tuple:
+                options.append(.tuple)
+            case .list:
+                options.append(.list)
+                let collection_arg = collectionArg(
+                    name: name,
+                    type: .list,
+                    other_type: nil,
+                    idx: idx,
+                    options: options,
+                    element: _buildWrapArg(idx: 0, slice)
+                )
+                return collection_arg
+                //return collectionArg(name: <#T##String#>, type: .list, other_type: <#T##String?#>, idx: <#T##Int#>, options: <#T##[WrapArgOptions]#>, element: <#T##WrapArgProtocol#>)
+                
+            case .sequence:
+                options.append(.sequence)
+            case .memoryview:
+                options.append(.memoryview)
+ 
+            case .callable:
+                //options.append(.callable)
+                type = .callable
+                switch slice.type {
+                case .List:
+                    let list = slice as! PyAst_List
+                    let args = list.elts.enumerated().compactMap(_buildWrapArg)
+                    return callableArg(_name: name,  _idx: idx, _options: options, args: args)
+                default:
+                    return callableArg(_name: name,  _idx: idx, _options: options, args: [])
+                }
+                
+            default:
+                type = _type
+                other_type = value.name
+                fatalError("other: \(self)")
+            }
+        }
+        return wrapArgFromType(name: name, type: type, _other_type: other_type, idx: idx, options: options)
+    }
+}
+
+
 func _buildWrapArg(idx: Int, _ v: PyAst_Subscript, name: String) -> WrapArgProtocol {
     var options: [WrapArgOptions] = []
     var type: PythonType = .object
@@ -226,70 +374,13 @@ func _buildWrapArg(idx: Int, _ v: PyAst_Subscript, name: String) -> WrapArgProto
         case .optional:
             
             handleOptional(v.slice, type: &type, other_type: &other_type, options: &options)
-//            if let _type: PythonType = .init(rawValue: v.slice.name) {
-//                switch _type {
-//                case .list:
-//                    options.append(.list)
-//                    switch v.slice.type {
-//                    case .Subscript:
-//                        print("Subscript",v.slice.name)
-//                        if let sub = v.slice as? PyAst_Subscript {
-//                            print(sub.value.name, sub.slice.name)
-//                            if let sub_type: PythonType = .init(rawValue: sub.value.name) {
-//                                switch sub_type {
-//                                case .tuple:
-//                                    options.append(.tuple)
-//                                case .list:
-//
-//                                    options.append(.list)
-//                                case .sequence:
-//                                    options.append(.sequence)
-//                                case .memoryview:
-//                                    options.append(.memoryview)
-////                                case .object:
-////                                    type = _type
-//                                default: break
-//
-//
-//                                }
-//                            }
-//                            if let _type: PythonType = .init(rawValue: sub.slice.name) {
-//
-//
-//                                fatalError(_type.rawValue)
-//                            } else {
-//                                type = .other
-//                                other_type = sub.slice.name
-//                                //fatalError(sub.slice.name)
-//                            }
-//                        }
-//
-//                        //fatalError()
-//                    default:
-//                        print(v.slice)
-//                        fatalError()
-//                    }
-//                    //fatalError(v.slice.name)
-//                default:
-//                    type = _type
-//                }
-//
-//            } else {
-//                //
-//                let otype = v.slice.name
-//                if let opt_type = PythonType(rawValue: otype) {
-//
-//                }
-//                type = _type
-//
-//                other_type = v.slice.name
-//                fatalError()
-//            }
             
+        
         case .tuple:
             options.append(.tuple)
-        case .list:
             
+        case .list:
+            //return collectionArg(name: <#T##String#>, type: .list, other_type: <#T##String?#>, idx: <#T##Int#>, options: <#T##[WrapArgOptions]#>, element: <#T##WrapArgProtocol#>)
             options.append(.list)
         case .sequence:
             options.append(.sequence)
@@ -337,6 +428,7 @@ func _buildWrapArg(idx: Int, _ v: PyAstObject) -> WrapArgProtocol {
     case let arg as PyAst_Arg:
         return buildWrapArg(idx: idx, arg)
     case let sub as PyAst_Subscript:
+        //return sub.newWrapArg(idx: idx, name: sub.name)
         return _buildWrapArg(idx: idx, sub, name: sub.name)
     case let n as PyAst_Name:
         return wrapArgFromType(name: n.name, type: .init(rawValue: v.name) ?? .other, _other_type: v.name, idx: idx, options: [])

@@ -66,7 +66,7 @@ extension WrapModule {
                 if !function.has_option(option: .callback) && !function.has_option(option: .swift_func) {
                     //cls_protocols.append("- (\(pythonType2pyx(type: function.returns.type, options: [.objc])))\(function.name)\(function.export(options: [.objc, .header]));")
                     //cls_protocols.append("- (\(function.returns.objc_type))\(function.name)\(function.export(options: [.objc, .header]));")
-                    let swift_return = "\(if: function.returns.type != .void, "-> \(function._return_.swift_send_return_type)", "")"
+                    let swift_return = "\(if: function._return_.type != .void, "-> \(function._return_.swift_send_return_type)", "")"
                     //let func_args = function.args.map{"\($0.name): \($0.name)"}.joined(separator: ", ")
 //                    cls_protocols.append("""
 //                        func \(function.name)(\(function.export(options: [.use_names, .swift, .protocols]))) \(swift_return)
@@ -272,7 +272,7 @@ extension WrapModule {
 //                        }
 //                    }.compactMap({$0})
                     
-                    let use_rtn = f.returns.type != .void
+                    let use_rtn = f._return_.type != .void || f._return_.type != .None
                     var return_string = ""
                     
                     if use_rtn {
@@ -400,103 +400,103 @@ extension WrapModule {
         return enum_names
     }
     
-    func generateSendFunctions(cls: WrapClass, objc: Bool, header: Bool) -> String {
-        var send_strings: [String] = []
-        var send_options: [PythonTypeConvertOptions] = [.use_names]
-        var return_options: [PythonTypeConvertOptions] = []
-        if header {send_options.append(.header); send_options.append(.pyx_extern)}
-        if objc {
-            send_options.append(.objc)
-            return_options.append(.objc)
-        }
-//        else {
-//            send_options.append(.py_mode)
+//    func generateSendFunctions(cls: WrapClass, objc: Bool, header: Bool) -> String {
+//        var send_strings: [String] = []
+//        var send_options: [PythonTypeConvertOptions] = [.use_names]
+//        var return_options: [PythonTypeConvertOptions] = []
+//        if header {send_options.append(.header); send_options.append(.pyx_extern)}
+//        if objc {
+//            send_options.append(.objc)
+//            return_options.append(.objc)
 //        }
-        
-        
-        //for cls in classes {
-            
-            for function in cls.functions {
-                if !function.has_option(option: .callback) && !function.has_option(option: .swift_func) {
-                    //let func_return_options = return_options
-//                    if function.returns.has_option(.list) {
-//                        func_return_options.append(.is_list)
-//                    }
-                    //let return_type = "\(pythonType2pyx(type: function.returns.type, options: return_options))"
-
-//                    let send_args = function.args.map{ arg -> String in
-//                        //if arg.asObject { return "PythonObject \(arg.name)" }
-//                        if arg.asObject { return "PythonPointer \(arg.name)" }
-//                        return arg.export(options: send_options)
-//                    }.joined(separator: ", ")
-                    let send_args = function._args_.map{ $0.c_header_arg }.joined(separator: ", ")
-                    //let return_type2 = function.returns.convertPythonType(options: func_return_options)
-                    let return_type2 = function._return_.type != .void ? "PyObject*" : "void"
-                    var func_string: String
-                    if cls.swift_object_mode {
-                        func_string = "\(return_type2) \(cls.title)_\(function.name)(void* __ptr\(if: function._args_.count > 0, ", \(send_args)"))"
-                    } else {
-                        func_string = "\(return_type2) \(cls.title)_\(function.name)(\(send_args))"
-                    }
-                    
-                    if objc { func_string.append(";") }
-                    
-                    send_strings.append(func_string)
-                }
-            }
-        //}
-        if objc {
-            return send_strings.joined(separator: newLine)
-        } else {
-            return send_strings.joined(separator: "\n\t")
-        }
-        
-    }
-    
-    
-    func generateGlobalSendFunctions(mod: WrapModule, objc: Bool, header: Bool) -> String {
-        var send_strings: [String] = []
-        var send_options: [PythonTypeConvertOptions] = [.use_names]
-        var return_options: [PythonTypeConvertOptions] = []
-        if header {send_options.append(.header); send_options.append(.pyx_extern)}
-        if objc {
-            send_options.append(.objc)
-            return_options.append(.objc)
-        }
-//        else {
-//            send_options.append(.py_mode)
-//        }
-        
-        
-        //for cls in classes {
-            
-            for function in mod.functions {
-                if function.has_option(option: .swift_func) {
-      
-                    let send_args = function._args_.map{ $0.c_header_arg }.joined(separator: ", ")
-                    //let return_type2 = function.returns.convertPythonType(options: func_return_options)
-                    let return_type2 = function._return_.type != .void ? "PyObject*" : "void"
-                    var func_string: String
+////        else {
+////            send_options.append(.py_mode)
+////        }
+//
+//
+//        //for cls in classes {
+//
+//            for function in cls.functions {
+//                if !function.has_option(option: .callback) && !function.has_option(option: .swift_func) {
+//                    //let func_return_options = return_options
+////                    if function.returns.has_option(.list) {
+////                        func_return_options.append(.is_list)
+////                    }
+//                    //let return_type = "\(pythonType2pyx(type: function.returns.type, options: return_options))"
+//
+////                    let send_args = function.args.map{ arg -> String in
+////                        //if arg.asObject { return "PythonObject \(arg.name)" }
+////                        if arg.asObject { return "PythonPointer \(arg.name)" }
+////                        return arg.export(options: send_options)
+////                    }.joined(separator: ", ")
+//                    let send_args = function._args_.map{ $0.swiftType }.joined(separator: ", ")
+//                    //let return_type2 = function.returns.convertPythonType(options: func_return_options)
+//                    let return_type2 = function._return_.type != .void ? "PyObject*" : "void"
+//                    var func_string: String
 //                    if cls.swift_object_mode {
 //                        func_string = "\(return_type2) \(cls.title)_\(function.name)(void* __ptr\(if: function._args_.count > 0, ", \(send_args)"))"
 //                    } else {
-                        func_string = "\(return_type2) \(mod.filename)_\(function.name)(\(send_args))"
+//                        func_string = "\(return_type2) \(cls.title)_\(function.name)(\(send_args))"
 //                    }
-                    
-                    if objc { func_string.append(";") }
-                    
-                    send_strings.append(func_string)
-                }
-            }
-        //}
-        if objc {
-            return send_strings.joined(separator: newLine)
-        } else {
-            return send_strings.joined(separator: "\n\t")
-        }
-        
-    }
+//
+//                    if objc { func_string.append(";") }
+//
+//                    send_strings.append(func_string)
+//                }
+//            }
+//        //}
+//        if objc {
+//            return send_strings.joined(separator: newLine)
+//        } else {
+//            return send_strings.joined(separator: "\n\t")
+//        }
+//
+//    }
+//
     
+//    func generateGlobalSendFunctions(mod: WrapModule, objc: Bool, header: Bool) -> String {
+//        var send_strings: [String] = []
+//        var send_options: [PythonTypeConvertOptions] = [.use_names]
+//        var return_options: [PythonTypeConvertOptions] = []
+//        if header {send_options.append(.header); send_options.append(.pyx_extern)}
+//        if objc {
+//            send_options.append(.objc)
+//            return_options.append(.objc)
+//        }
+////        else {
+////            send_options.append(.py_mode)
+////        }
+//        
+//        
+//        //for cls in classes {
+//            
+//            for function in mod.functions {
+//                if function.has_option(option: .swift_func) {
+//      
+//                    let send_args = function._args_.map{ $0.c_header_arg }.joined(separator: ", ")
+//                    //let return_type2 = function.returns.convertPythonType(options: func_return_options)
+//                    let return_type2 = function._return_.type != .void ? "PyObject*" : "void"
+//                    var func_string: String
+////                    if cls.swift_object_mode {
+////                        func_string = "\(return_type2) \(cls.title)_\(function.name)(void* __ptr\(if: function._args_.count > 0, ", \(send_args)"))"
+////                    } else {
+//                        func_string = "\(return_type2) \(mod.filename)_\(function.name)(\(send_args))"
+////                    }
+//                    
+//                    if objc { func_string.append(";") }
+//                    
+//                    send_strings.append(func_string)
+//                }
+//            }
+//        //}
+//        if objc {
+//            return send_strings.joined(separator: newLine)
+//        } else {
+//            return send_strings.joined(separator: "\n\t")
+//        }
+//        
+//    }
+//    
 //    func generatePyxClassFunctions(cls: WrapClass) -> String {
 //        var output: [String] = []
 //

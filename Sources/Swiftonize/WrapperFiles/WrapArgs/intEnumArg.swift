@@ -22,21 +22,15 @@ class intEnumArg: _WrapArg, WrapArgProtocol {
         _options.append(option)
     }
     
-    var python_function_arg: String { "\(_name): \(_other_type)" }
+
     
-    var python_call_arg: String { "<PyObject*>(\(_name).value)" }
-    
-    var cython_header_arg: String { "PyObject* \(_name)" }
-    
-    var c_header_arg: String { "PyObject* \(_name)" }
-    
-    var swift_protocol_arg: String { "\(_name): \(_other_type)" }
+    var swift_protocol_arg: String { "\(_name): \(_other_type!)" }
     
     var swift_send_func_arg: String { "_ \(_name): PythonPointer" }
     
-    var swift_send_call_arg: String { "\(_name): \(_other_type)(rawValue: PyLong_AsLong(\(_name)))!" }
+    var swift_send_call_arg: String { "\(_name): \(_other_type!)(rawValue: PyLong_AsLong(\(_name)))!" }
     
-    var swift_callback_func_arg: String { "\(_name): \(_other_type)" }
+    var swift_callback_func_arg: String { "\(_name): \(_other_type!)" }
     
     var swift_callback_call_arg: String { "\(_name).rawValue" }
     
