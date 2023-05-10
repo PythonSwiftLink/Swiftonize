@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import SwiftSyntax
+import SwiftSyntaxBuilder
 
 class strArg: _WrapArg, WrapArgProtocol {
     
@@ -62,7 +64,28 @@ class strArg: _WrapArg, WrapArgProtocol {
     
     func swift_property_setter(arg: String) -> String { handleSendCallType2(T: arg) }
     
+    override init(_name: String, _type: PythonType, _other_type: String?, _idx: Int, _options: [WrapArgOptions]) {
+        super.init(_name: _name, _type: _type, _other_type: _other_type, _idx: _idx, _options: [])
+    }
     
+    required init?<S>(_ node: S) where S : SyntaxProtocol {
+        let n = node.description
+        super.init(_name: n, _type: .str, _other_type: nil, _idx: 0, _options: [])
+    }
+    
+    required init(from decoder: Decoder) throws {
+        fatalError("init(from:) has not been implemented")
+    }
+    
+    var typeSyntax: TypeSyntax { type.syntaxType }
+    
+    var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+    
+    var typeAnnotation: TypeAnnotation { type.annotation }
+    
+    func callTupleElement(many: Bool) -> TupleExprElement {
+        return .pyCast(arg: self, many: many)
+    }
 }
 
 extension strArg: PySendExtactable {
@@ -130,3 +153,29 @@ extension strArg: PyCallbackExtactable {
 extension strArg: CustomStringConvertible {
     var description: String { argType }
 }
+
+extension strArg: IdentifiedDeclSyntax {
+
+    var identifier: SwiftSyntax.TokenSyntax {
+        .identifier(argType)
+    }
+    
+    func withIdentifier(_ newChild: SwiftSyntax.TokenSyntax?) -> Self {
+        self
+    }
+    
+    var _syntaxNode: SwiftSyntax.Syntax {
+        .init(identifier)
+    }
+    
+    static var structure: SwiftSyntax.SyntaxNodeStructure {
+        .choices([])
+    }
+    
+    func childNameForDiagnostics(_ index: SwiftSyntax.SyntaxChildrenIndex) -> String? {
+        nil
+    }
+}
+
+
+

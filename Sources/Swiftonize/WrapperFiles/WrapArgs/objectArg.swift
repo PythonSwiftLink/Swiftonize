@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import SwiftSyntax
+import SwiftSyntaxBuilder
 
 class objectArg: _WrapArg, WrapArgProtocol {
 
@@ -57,6 +59,16 @@ class objectArg: _WrapArg, WrapArgProtocol {
     
     
     static var _new_: objectArg { .init(_name: "", _type: .object, _other_type: nil, _idx: 0, _options: [])}
+    
+    var typeSyntax: TypeSyntax { type.syntaxType }
+    
+    var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+    
+    var typeAnnotation: TypeAnnotation { type.annotation }
+    
+    func callTupleElement(many: Bool) -> TupleExprElement {
+        return .init(label: label, expression: .init(stringLiteral: many ? "_args_[\(idx)]!" : name))
+    }
 }
 
 extension objectArg: PySendExtactable {

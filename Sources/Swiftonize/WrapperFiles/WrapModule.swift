@@ -40,7 +40,7 @@ public class WrapModule {
     
     
     var filename: String
-    var classes: [WrapClass] = []
+    public var classes: [WrapClass] = []
     //var custom_structs: [CustomStruct] = []
     var custom_enums: [CustomEnum] = []
     var python_classes: [String] = []
@@ -91,13 +91,10 @@ public class WrapModule {
                 }
                 
             case .Expr:
-                print(element.name)
                 if element.name.contains("import") {
-                    swift_import_list.append(element.name)
+                    swift_import_list.append(element.name.replacingOccurrences(of: "import ", with: ""))
                 }
-                print(swift_import_list)
-                
-                print()
+          
             case .ImportFrom: continue
                 
             default:

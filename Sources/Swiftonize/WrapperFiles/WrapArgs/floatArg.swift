@@ -1,6 +1,25 @@
 import Foundation
+import SwiftSyntaxBuilder
 
 class floatArg: _WrapArg, WrapArgProtocol {
+    
+    override init(_ arg: WrapArg) {
+        super.init(arg)
+    }
+    
+    override init(_name: String, _type: PythonType, _other_type: String?, _idx: Int, _options: [WrapArgOptions]) {
+        super.init(_name: _name, _type: _type, _other_type: _other_type, _idx: _idx, _options: _options)
+    }
+    
+    required init?<S>(_ node: S) where S : SyntaxProtocol {
+        super.init(_name: "", _type: .double, _other_type: nil, _idx: 0, _options: [])
+    }
+    
+    required init(from decoder: Decoder) throws {
+        fatalError("init(from:) has not been implemented")
+    }
+    
+    
     
     var name: String { _name }
         
@@ -50,7 +69,17 @@ class floatArg: _WrapArg, WrapArgProtocol {
     
     func swift_property_setter(arg: String) -> String { handleSendCallType2(T: arg) }
     
+    var typeSyntax: TypeSyntax { type.syntaxType }
+    
+    var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+    
+    var typeAnnotation: TypeAnnotation { type.annotation }
+    
+    func callTupleElement(many: Bool) -> TupleExprElement {
+        return .pyCast(arg: self, many: many)
+    }
 }
+
 
 extension floatArg: PySendExtactable {
     var extract_needed: Bool { false }
@@ -109,5 +138,22 @@ extension floatArg: CustomStringConvertible {
     var description: String {
         argType
     }
+    
+}
+import SwiftSyntax
+extension floatArg: DeclSyntaxProtocol {
+    var _syntaxNode: SwiftSyntax.Syntax {
+
+        return TypeSyntax(stringLiteral: argType)._syntaxNode
+    }
+    
+    static var structure: SwiftSyntax.SyntaxNodeStructure {
+        .choices([.node(TypeSyntax.self)])
+    }
+    
+    func childNameForDiagnostics(_ index: SwiftSyntax.SyntaxChildrenIndex) -> String? {
+        nil
+    }
+    
     
 }

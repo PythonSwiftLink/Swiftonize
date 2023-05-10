@@ -8,17 +8,46 @@
 import Foundation
 import PythonSwiftCore
 import PythonLib
+import SwiftSyntax
+import SwiftParser
+import SwiftSyntaxBuilder 
 
 class PythonCall {
     
     weak var _function: WrapFunction?
     var function: WrapFunction { _function! }
-    var wrap_class: WrapClass { (_function?.wrap_class)! }
-    var _return_: WrapArgProtocol { function._return_ }
+    
+    private weak var wrap_cls : WrapClass?
+    
+    private var callable_name: String?
+    
+    var callable_args: [WrapArgProtocol]?
+    var callable_rtn: WrapArgProtocol?
+    var args: [WrapArgProtocol] {
+        if let _function = _function {
+            return _function._args_
+        }
+        return callable_args ?? []
+    }
+    
+    var _return_: WrapArgProtocol {
+        if let _function = _function { return _function._return_ }
+        if let callable_rtn = callable_rtn { return callable_rtn }
+        fatalError()
+    }
+    
+    var wrap_class: WrapClass {
+        if let wrap_cls = _function?.wrap_class { return wrap_cls }
+        if let wrap_cls = wrap_cls { return wrap_cls }
+        fatalError()
+    }
     
     var name: String {
         if let function = _function {
-            return function.name
+            return function.call_target ?? function.name
+        }
+        if let callable_name = callable_name {
+            return callable_name
         }
         return "py_function"
     }
@@ -27,31 +56,39 @@ class PythonCall {
     init(function: WrapFunction) {
         _function = function
     }
+    init(callable name: String, args: [WrapArgProtocol], rtn: WrapArgProtocol, cls: WrapClass? = nil) {
+        callable_name = name
+        callable_args = args
+        callable_rtn = rtn
+        wrap_cls = cls
+    }
     
-    var converted_args: [WrapArgProtocol] { function._args_.filter {!($0 is objectArg)} }
+    var converted_args: [WrapArgProtocol] { args.filter {!($0 is objectArg)} }
     
     private var pre_converted_args: String {
         converted_args.map({ a in
             guard let arg = a as? PyCallbackExtactable else { fatalError("\(a.name): \( a.type.rawValue)")}
-            return "let _\(a.name): PyPointer? = " + (arg.cb_extractLine(many: converted_args.count > 1, for: wrap_class.getSwiftPointer) ?? "")
+            return "let _\(a.name): PyPointer? = " + (arg.cb_extractLine(many: converted_args.count > 1, for: " wrap_class.getSwiftPointer") ?? "")
         }).joined(separator: newLine)
     }
     
     var convert_result: String {
-        switch function._return_.type {
+        switch _return_.type {
         case .void, .None:
             return ""
-        default: return """
-            """
+        default: return ""
         }
     }
     
     var filtered_cb_arg_names: [String] {
-        function._args_.filter{ a -> Bool in
-            if function.call_class_is_arg { if a.name == function.call_class { return false } }
-            if function.call_target_is_arg { if a.name == function.call_target { return false } }
+        args.filter{ a -> Bool in
+            if let function = _function {
+                if function.call_class_is_arg { if a.name == function.call_class { return false } }
+                if function.call_target_is_arg { if a.name == function.call_target { return false } }
+            }
             return true
         }.map{a -> String in
+            //if let optional_name = a.optional_name { return optional_name }
             if a.other_type == "Error" { return "_\(a.name)"}
             if a.type == .object { return a.name }
             return "_\(a.name)"
@@ -59,7 +96,7 @@ class PythonCall {
     }
     
     private var callback_func_args: String {
-        function._args_.map({ a in
+        args.map({ a in
             if let extract = a as? PyCallbackExtactable {
                 return extract.function_arg
             }
@@ -72,10 +109,10 @@ class PythonCall {
     
     var decref_converted_args: String {
         """
-        \(function._args_
+        \(args
         .filter({$0.decref_needed})
         .map({"Py_DecRef( _\($0.name) )"})
-        .joined(separator: newLineTab))
+        .joined(separator: newLine))
         """
     }
     
@@ -88,7 +125,6 @@ class PythonCall {
         case 0: return  "\(return_string)\(_return_.convert_return(arg: "PyObject_CallNoArgs(_\(name))"))"
         case 1: return  """
                         \(pre_converted_args)
-                        
                         \(return_string)PyObject_CallOneArg(_\(name), \(_args))
                         //\(return_string)try? _\(name)( \(_args))
                         \(decref_converted_args)
@@ -97,12 +133,16 @@ class PythonCall {
                         \(pre_converted_args)
                         
                         //let vector_callargs: [PythonPointer?] = [\(_args)]
-                        \(return_string)[\(_args)].withUnsafeBufferPointer({ PyObject_Vectorcall(_\(name), $0.baseAddress, \(arg_count), nil) })
+                        \(return_string)[\(_args)].withUnsafeBufferPointer { PyObject_Vectorcall(_\(name), $0.baseAddress, \(arg_count), nil) }
                         if \(name)_result == nil { PyErr_Print() }
                         \(decref_converted_args)
                         
-                        """.replacingOccurrences(of: newLine, with: newLineTab)
+                        """
         }
+    }
+    
+    private var py_call_lines: [String] {
+        py_call.split(whereSeparator: \.isNewline).map(\.description)
     }
     
     var return_result: String {
@@ -114,26 +154,114 @@ class PythonCall {
         }
     }
     
-    var function_string: String {
-   
-        let func_name = function.call_target ?? function.name
-        let callback_func_args = function.callback_func_args
-        let use_rtn = function.use_rtn
-        return """
-        //@inlinable
-        //\(name)
-        func \(func_name)(\(callback_func_args)) \(if: use_rtn, " -> \(_return_.swiftType) "){
-            
-            var gil: PyGILState_STATE?
-            if PyGILState_Check() == 0 { gil = PyGILState_Ensure() }
-            \(py_call)
-            \(convert_result)
-            defer { Py_DecRef( \(name)_result ) }
-            if let gil = gil { PyGILState_Release(gil) }
-            \(return_result)
+    var returnClause: ReturnClauseSyntax? {
+        switch _return_.type {
+        case .None, .void:
+            return nil
+        default:
+            return ReturnClause(arrow: .arrow, returnType: _return_.typeSyntax)
         }
-        """.newLineTabbed
+    }
+    
+    private func withCodeLines(_ lines: [String]) -> ClosureExpr {
+        var header = ClosureExpr(signature: .init(input: .simpleInput(args.map(\.name).closureInputList), output: returnClause, inTok: .in)) {
+            lines.codeBlockList//.withoutTrivia()
+        }
+//        header.statements = lines.codeBlockList.map({ line in
+//            var l = line
+//            l.leadingTrivia = .tab
+//            return l
+//        })
+        return header
+    }
+    
+
+    
+    var closureDecl: ClosureExpr {
+        var func_lines: [String] = []
         
+        func_lines.append("var gil: PyGILState_STATE?")
+        func_lines.append("if PyGILState_Check() == 0 { gil = PyGILState_Ensure() }")
+        func_lines.append(contentsOf: py_call_lines)
+        func_lines.append(convert_result)
+        func_lines.append("Py_DecRef(\(name)_result)")
+        func_lines.append("if let gil = gil { PyGILState_Release(gil) }")
+        func_lines.append(return_result)
+        return withCodeLines(func_lines).withRightBrace(.rightBrace.withLeadingTrivia(.newline))
+    }
+    
+    var signature: FunctionSignatureSyntax {
+        
+        func functionParameter(_ a: WrapArgProtocol) -> FunctionParameterSyntax {
+            var secondName: TokenSyntax? {
+                if let optional_name = a.optional_name {
+                    return .init(.identifier(optional_name))?.withTrailingTrivia(.space)
+                }
+                return nil
+            }
+            if a.useLabel {
+                return .init(
+                    firstName: secondName,
+                    secondName: .identifier(a.name),
+                    colon: .colon,
+                    type: a.typeSyntax
+                )
+            }
+            return .init(
+                type: a.typeSyntax
+            )
+        }
+        var parameterList: FunctionParameterList {
+            return .init {
+                for par in args {
+                    par.functionParameter
+                }
+            }
+        }
+        
+        var parameterClause: ParameterClauseSyntax {
+            .init(parameterList: parameterList)
+        }
+        
+        
+        return .init(input: args.parameterClause, output: returnClause)
+    }
+    
+    var function_header: FunctionDeclSyntax {
+        .init(identifier: .identifier(name), signature: signature)
+    }
+    
+    func withCodeLines(_ lines: [String]) -> FunctionDecl {
+        var header = function_header
+        header.body = lines.codeBlock
+        return header
+    }
+    
+    var functionDecl: FunctionDecl {
+        var func_lines: [String] = []
+        
+        func_lines.append("var gil: PyGILState_STATE?")
+        func_lines.append("if PyGILState_Check() == 0 { gil = PyGILState_Ensure() }")
+        func_lines.append(contentsOf: py_call_lines)
+        func_lines.append(convert_result)
+        func_lines.append("Py_DecRef(\(name)_result)")
+        func_lines.append("if let gil = gil { PyGILState_Release(gil) }")
+        func_lines.append(return_result)
+        return withCodeLines(func_lines)
+    }
+    
+    var function_string: String {
+
+        var func_lines: [String] = []
+        
+        func_lines.append("var gil: PyGILState_STATE?")
+        func_lines.append("if PyGILState_Check() == 0 { gil = PyGILState_Ensure() }")
+        func_lines.append(contentsOf: py_call_lines)
+        func_lines.append(convert_result)
+        func_lines.append("Py_DecRef(\(name)_result)")
+        func_lines.append("if let gil = gil { PyGILState_Release(gil) }")
+        func_lines.append(return_result)
+        return function.withCodeLines(func_lines)
     }
     
     
@@ -242,7 +370,7 @@ fileprivate extension WrapFunction {
                             //let rtn_ptr: PyPointer? = try? _\(name)._callAsFunction_(call_args)
                             }
                             \(decref_converted_args)
-                            """.replacingOccurrences(of: newLine, with: newLineTab)
+                            """//.replacingOccurrences(of: newLine, with: newLineTab)
         }
         
         return """
@@ -257,7 +385,7 @@ fileprivate extension WrapFunction {
                 if let gil = gil { PyGILState_Release(gil) }
                 \(if: use_rtn, "return try ")
             }
-            """.newLineTabbed
+            """//.newLineTabbed
     }
     
     var callback_function: String {
@@ -296,15 +424,11 @@ fileprivate extension WrapFunction {
         case 0: pycall = "\(return_string)\(_return_.convert_return(arg: "PyObject_CallNoArgs(_\(name))"))"
         case 1: pycall =    """
                             \(pre_converted_args)
-                            
                             \(return_string)PyObject_CallOneArg(_\(name), \(_args))
-                            //\(return_string)try? _\(name)( \(_args))
                             \(decref_converted_args)
                             """
         default: pycall =   """
                             \(pre_converted_args)
-                            
-                            //let vector_callargs: [PythonPointer?] = [\(_args)]
                             \(return_string)[\(_args)].withUnsafeBufferPointer({ PyObject_Vectorcall(_\(name), $0.baseAddress, \(arg_count), nil) })
                             if \(name)_result == nil { PyErr_Print() }
                             \(decref_converted_args)
@@ -335,15 +459,25 @@ extension WrapClass {
     
     var pyCallbackClass: String {
         
-        let is_nsobject = new_class
+        let is_nsobject = bases.contains(.NSObject)
         
         let class_title = new_class ? title : "\(title)PyCallback"
         
         let cb_funcs = callback_functions
-        let cls_attributes = cb_funcs.map({f in "private let _\(f.name): PythonPointer"}).joined(separator: newLineTab)
-        let init_attributes = cb_funcs.map({f in "_\(f.name) = PyObject_GetAttr(callback, \"\(f.name)\")"}).joined(separator: newLineTabTab)
+        let cls_attributes = cb_funcs.map({f in "private let _\(f.name): PyPointer"}).joined(separator: newLineTab)
+        let init_attributes = cb_funcs.map({f in "_\(f.name) = PyObject_GetAttr(callback, \"\(f.name)\").xDECREF"}).joined(separator: newLineTabTab)
+        
+        let dict_attributes = cb_funcs.map { f in
+            """
+            _\(f.name) = PyDict_GetItem(callback, "\(f.name)")
+            """
+        }.joined(separator: newLineTabTab)
         
         let call_funcs = cb_funcs.map(\.pythonCall.function_string).joined(separator: newLineTab)
+        
+        let extensions: String = callback_protocols.count > 0 ? "\nextension \(class_title): \(callback_protocols.joined(separator: ", ")) {}" : ""
+        
+        
         
         return """
         class \(class_title)\(if: is_nsobject, ": NSObject") {
@@ -352,13 +486,19 @@ extension WrapClass {
             \(cls_attributes)
         
             init(callback: PyPointer) {
-                _pycall = .init(ptr: callback)
-                \(init_attributes)
+                if PythonDict_Check(callback) {
+                    _pycall = .init(ptr: callback, keep_alive: true)
+                    \(dict_attributes.addTabs())
+                } else {
+                    _pycall = .init(ptr: callback)
+                    \(init_attributes.addTabs())
+                }
                 \(if: is_nsobject, "super.init()")
             }
             
             \(call_funcs)
         }
+        \(extensions)
         """
     }
     

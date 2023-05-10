@@ -1,6 +1,8 @@
 
 import Foundation
 import PyAstParser
+import SwiftSyntax
+import SwiftSyntaxBuilder
 
 class callableArg: _WrapArg, WrapArgProtocol {
     
@@ -46,7 +48,6 @@ class callableArg: _WrapArg, WrapArgProtocol {
             default:
                 
                 let wrong_ast = telts[0]
-                print(wrong_ast.name, wrong_ast)
                 fatalError("callable: wrong layout!!")
             }
             
@@ -111,6 +112,49 @@ class callableArg: _WrapArg, WrapArgProtocol {
     
     func swift_property_setter(arg: String) -> String { handleSendCallType2(T: arg) }
     
+    var typeSyntax: TypeSyntax {
+        
+        let args: TupleTypeElementListSyntax = .init {
+            for arg in callArgs {
+                TupleTypeElementSyntax(type: arg.typeSyntax)
+            }
+        }
+        
+        var r: TypeSyntaxProtocol
+        if let _return = _return {
+            r = _return.typeSyntax
+        } else {
+            r = SimpleTypeIdentifierSyntax(stringLiteral: "Void")
+        }
+        let t = FunctionTypeSyntax(
+            leftParen: .leftParen,
+            arguments: args,
+            rightParen: .rightParen,
+            returnType: r
+        )
+        
+        return .init(t)
+    }
+    
+    var typeExpr: TypeExprSyntax {
+        .init(type: typeSyntax)
+        
+    }
+    
+    var typeAnnotation: TypeAnnotation { type.annotation }
+    
+    func callTupleElement(many: Bool) -> TupleExprElement {
+        return .init(
+            label: label,
+            expression: ExprSyntax(stringLiteral: PythonCall(
+                callable: name,
+                args: callArgs,
+                rtn: _return!).closureDecl
+                        .formatted().description
+                        //.replacingOccurrences(of: newLine, with: newLineTab)
+                )
+        )
+    }
 }
 
 
@@ -131,7 +175,7 @@ extension callableArg: PyCallbackExtactable {
             DispatchQueue.main.async {
                 let gil = PyGILState_Ensure()
                 \(extracts)
-                let \(name)_result = [\(call_args)].withUnsafeBufferPointer({ PyObject_Vectorcall(_\(name) ,$0.baseAddress ,\(callArgs.count) ,nil) })
+                let \(name)_result = [\(call_args)].withUnsafeBufferPointer { PyObject_Vectorcall(_\(name) ,$0.baseAddress ,\(callArgs.count) ,nil) }
                 Py_DecRef(_\(name))
                 \(decrefs)
                 \(rtn_convert)
@@ -140,7 +184,7 @@ extension callableArg: PyCallbackExtactable {
                 \(if: _return?.type != .None, "return \(name)_result")
             }
         }
-        """.newLineTabbed.newLineTabbed
+        """//.newLineTabbed.newLineTabbed
     }
     
     var function_arg_name: String {

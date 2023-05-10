@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import SwiftSyntax
+import SwiftSyntaxBuilder
 
 enum PyClassFunctions: String, CaseIterable {
     case __init__
@@ -66,7 +68,7 @@ enum PySequenceFunctions_ {
         case .__setitem__(_, let value):
             return "func __setitem__(idx: Int, newValue: \(value.swiftType)) throws"
         case .__delitem__(_):
-            return "func __detitem__(idx: Int) throws"
+            return "func __delitem__(idx: Int) throws"
         case .__missing__:
             return ""
         case .__reversed__:
@@ -74,6 +76,94 @@ enum PySequenceFunctions_ {
         case .__contains__:
             return ""
         }
+    }
+    
+    var name: String {
+        switch self {
+        case .__len__:
+            return "__len__"
+        case .__getitem__(_,_):
+            return "__getitem__"
+        case .__setitem__(_,_):
+            return "__setitem__"
+        case .__delitem__(_):
+            return "__delitem__"
+        case .__missing__:
+            return "__missing__"
+        case .__reversed__:
+            return "__reversed__"
+        case .__contains__:
+            return "__contains__"
+        }
+    }
+    
+    var callExpr: ClosureExpr {
+        
+        return .init(signature: nil, statements: .init {
+            switch self {
+            case .__len__:
+                CodeBlockItemList {
+                    
+                }
+            case .__getitem__(let key, let returns):
+                CodeBlockItemList {
+                    
+                }
+            case .__setitem__(let key, let value):
+                CodeBlockItemList {
+                    
+                }
+            case .__delitem__(let key):
+                CodeBlockItemList {
+                    
+                }
+            case .__missing__:
+                CodeBlockItemList {
+                    
+                }
+            case .__reversed__:
+                CodeBlockItemList {
+                    
+                }
+            case .__contains__:
+                CodeBlockItemList {
+                    
+                }
+            }
+        })
+    }
+    
+    var function_header: FunctionDeclSyntax {
+        
+        var sig: FunctionSignatureSyntax {
+            var args: [String] = []
+            var rtn: ReturnClauseSyntax? = nil
+            switch self {
+            case .__len__:
+                args = .init([])
+                rtn = "Int".returnClause
+            case .__getitem__(_, _):
+                args = ["idx: Int"]
+                rtn = "PyPointer?".returnClause
+            case .__setitem__(_, _):
+                args = ["idx: Int", "newValue: PyPointer"]
+                rtn = "Bool".returnClause
+            case .__delitem__(_):
+                args = ["idx: Int"]
+                rtn = "Bool".returnClause
+            case .__missing__:
+                break
+            case .__reversed__:
+                break
+            case .__contains__:
+                break
+            }
+            
+            return .init(input: args.parameterClause, output: rtn)
+        }
+        
+        
+        return .init(identifier: .identifier(name), signature: sig)
     }
 }
     // numeric
@@ -395,13 +485,14 @@ extension WrapModule {
                 set_item = """
                 set_item: { s, idx, item in
                     do {
+                        guard let item = item else { throw PythonError.call }
                         (s.getSwiftPointer() as \(cls.title)).__setitem__(idx: idx, newValue: item )
                         return 0
                     }
                 
                     catch let err as PythonError {
                         switch err {
-                        case .call: err.triggerError("__getitem__")
+                        case .call: err.triggerError("__setitem__")
                         default: err.triggerError("note")
                         }
                     }

@@ -42,7 +42,7 @@ public class WrapFunction {
     var args: [WrapArg]
     var _args_: [WrapArgProtocol]
     //let returns: WrapArg
-    let _return_: WrapArgProtocol
+    var _return_: WrapArgProtocol
     //let is_callback: Bool
     //let swift_func: Bool
     //let direct: Bool
@@ -76,7 +76,7 @@ public class WrapFunction {
         
         name = ast_func.name
         args = []
-        print(ast_func,ast_func.name)
+        //print(ast_func,ast_func.name)
         //_args_ = ast_func.args.filter({$0.name != "self"}).enumerated().map(_buildWrapArg)
         _args_ = ast_func.args.filter({$0.name != "self"}).enumerated().map(_WrapArg.fromAst)
         
@@ -109,7 +109,7 @@ public class WrapFunction {
                 call.keywords.enumerated().forEach { i, key in
                     switch WrapFunctionDecoratorType(rawValue: key.name) {
                     case .call_target:
-                        print(key.value)
+                        //print(key.value)
 //                        guard
 //                            let dict = key.value as? PyAst_Dict,
 //                            let _name = dict.values.first?.name
@@ -122,7 +122,11 @@ public class WrapFunction {
                                 if let index = _args_.firstIndex(where: { a in a.name == dkey.name}) {
                                     if let bool = Bool(call.values[i].name) {
                                         let _arg = _args_[index]
-                                        _args_[index].optional_name = bool ? "_ \(_arg.name)" : nil
+//                                        _args_[index].optional_name = bool ? "_ \(_arg.name)" : nil
+                                        if bool {
+                                            _args_[index].add_option(.no_label)
+                                        }
+                                        //_args_[index].optional_name = bool ? "_" : nil
                                         return
                                     }
                                     
@@ -132,7 +136,7 @@ public class WrapFunction {
                         } else {
                             for (i, _arg) in _args_.enumerated() {
                                 
-                                _args_[i].optional_name = "_ \(_arg.name)"
+                                _args_[i].add_option(.no_label)
                             }
                         }
                     case .args_alias:
@@ -159,7 +163,6 @@ public class WrapFunction {
                         fatalError("[Error] func_option key <\(key.name)> is not supported")
                     }
                 }
-                print(deco)
                 //fatalError()
             
             case .call_target:
@@ -192,8 +195,11 @@ public class WrapFunction {
                     call.keywords.forEach { key in
                         if let index = _args_.firstIndex(where: { a in a.name == key.name}) {
                             if let bool = Bool(key.value.name) {
-                                let _arg = _args_[index]
-                                _args_[index].optional_name = bool ? "_ \(_arg.name)" : nil
+                                //let _arg = _args_[index]
+                                if bool {
+                                    _args_[index].add_option(.no_label)
+                                }
+                                //_args_[index].optional_name = bool ? "_" : nil
                                 return
                             }
                             
@@ -203,7 +209,7 @@ public class WrapFunction {
                 } else {
                     for (i, _arg) in _args_.enumerated() {
                         
-                        _args_[i].optional_name = "_ \(_arg.name)"
+                        _args_[i].add_option(.no_label)
                     }
                 }
                 
@@ -216,24 +222,24 @@ public class WrapFunction {
             default: break
             }
         }
-        //print(name, _args_.map(\.swift_protocol_arg))
-        print(tab, self, "\(name)(\(_args_.map({"\($0.name): \($0)"}).joined(separator: ", ")))")
-        print(tab, _return_)
-        if let r = _return_ as? collectionArg {
-            print("\t\t element", r.element, r.element.type)
-        }
+
+//        print(withCodeLines([
+//            "let a: PyPointer? = PyObject_CallOneArg(_bannerViewDidReceiveAd, _bannerView)",
+//            "let b = a + 1",
+//            "let c = a + b"
+//        ]))
     }
     
     init(name: String, args: [WrapArg], rtn: WrapArg!, options: [WrapFunctionOption]) {
         self.name = name
         self.args = args
-        self._args_ = handleWrapArgTypes(args: args)
+        self._args_ = []//handleWrapArgTypes(args: args)
 //        if rtn != nil {
 //            self.returns = rtn
 //        } else {
 //            self.returns = WrapArg(name: "", type: .void, other_type: "", idx: 0, arg_options: [.return_])
 //        }
-        _return_ = handleWrapArgTypes(args: []).first!
+        _return_ = objectArg()
         self.options = options
         self.call_class = nil
         self.call_target = nil

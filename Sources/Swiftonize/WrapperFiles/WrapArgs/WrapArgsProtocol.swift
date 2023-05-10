@@ -8,6 +8,8 @@
 import Foundation
 import PythonSwiftCore
 import PyAstParser
+import SwiftSyntax
+import SwiftSyntaxBuilder
 
 protocol WrapArgProtocol: Decodable {
     
@@ -49,6 +51,13 @@ protocol WrapArgProtocol: Decodable {
     
     func swift_property_setter(arg: String) -> String
     
+    var typeExpr: TypeExprSyntax { get }
+    
+    var typeSyntax: TypeSyntax { get }
+    
+    var typeAnnotation: TypeAnnotation { get }
+    
+    func callTupleElement(many: Bool) -> TupleExprElement 
 }
 
 protocol PyCallbackExtactable {
@@ -71,6 +80,10 @@ protocol PyCallbackExtactable {
     var type: PythonType { get }
     
     var argType: String { get }
+    
+    var typeAnnotation: TypeAnnotation { get }
+    
+    var typeSyntax: TypeSyntax { get }
 }
 
 protocol PySendExtactable {
@@ -107,6 +120,9 @@ extension PyCallbackExtactable {
 
 extension WrapArgProtocol {
     
+    var __argType__: String {
+        (self as? PyCallbackExtactable)?.argType ?? __swiftType__
+    }
     
     var __swiftType__: String {
         if type == .callable {
@@ -515,52 +531,52 @@ func handleWrapArgType(_name: String, _type: PythonType, _other_type: String, _i
 }
 
 
-func handleWrapArgTypes(args: [WrapArg]) -> [WrapArgProtocol]{
-    var out = [WrapArgProtocol]()
-    
-    for arg in args {
-         switch arg.type {
-            
-        case .int, .int32, .int16, .int8, .uint, .uint32, .uint16, .uint8, .long, .ulong, .short, .ushort:
-            out.append(intArg(arg))
-        case .float, .float32, .double:
-            out.append(floatArg(arg))
-        case .str:
-            out.append(strArg(arg))
-        case .data:
-            out.append(dataArg(arg))
-         case .jsondata:
-             out.append(jsonDataArg(arg))
-        case .bool:
-            out.append(boolArg(arg))
-        case .other:
-             //print(arg.name, arg.type, arg.other_type)
-             out.append(objectArg(arg))
-             //fatalError()
-//            guard let mod = wrap_module_shared else { fatalError("WrapModule shared was nil")}
-//            mod.objectEnums(has: arg.other_type) { e  -> Void in
-//                switch e.type {
-//                case .str:
-//                    break
-//                case .int:
-//                    out.append(intEnumArg(arg))
-//                case .object:
-//                    switch e.subtype {
-//                    case .str:
-//                        out.append(objectStrEnumArg(arg))
-//                    default: break
-//                    }
-//                }
-//            }
-        default:
-            
-            out.append(objectArg(arg))
-        }
-        
-    }
-    
-    return out
-}
+//func handleWrapArgTypes(args: [WrapArg]) -> [WrapArgProtocol]{
+//    var out = [WrapArgProtocol]()
+//
+//    for arg in args {
+//         switch arg.type {
+//
+//        case .int, .int32, .int16, .int8, .uint, .uint32, .uint16, .uint8, .long, .ulong, .short, .ushort:
+//            out.append(intArg(arg))
+//        case .float, .float32, .double:
+//            out.append(floatArg(arg))
+//        case .str:
+//             out.append(strArg(arg)!)
+//        case .data:
+//            out.append(dataArg(arg))
+//         case .jsondata:
+//             out.append(jsonDataArg(arg))
+//        case .bool:
+//            out.append(boolArg(arg))
+//        case .other:
+//             //print(arg.name, arg.type, arg.other_type)
+//             out.append(objectArg(arg))
+//             //fatalError()
+////            guard let mod = wrap_module_shared else { fatalError("WrapModule shared was nil")}
+////            mod.objectEnums(has: arg.other_type) { e  -> Void in
+////                switch e.type {
+////                case .str:
+////                    break
+////                case .int:
+////                    out.append(intEnumArg(arg))
+////                case .object:
+////                    switch e.subtype {
+////                    case .str:
+////                        out.append(objectStrEnumArg(arg))
+////                    default: break
+////                    }
+////                }
+////            }
+//        default:
+//
+//            out.append(objectArg(arg))
+//        }
+//
+//    }
+//
+//    return out
+//}
 
 
 

@@ -197,11 +197,11 @@ extension WrapFunction {
         let rtn_type = _return_.type
         let use_rtn = (rtn_type != .void && rtn_type != .None)
         let result = use_rtn ? "let __result__ = " : ""
-        let rtn = use_rtn ? "__result__.pyPointer" : ".PyNone"
-        print("generate(PyMethod_noArgs)",name, use_rtn, rtn_type)
+        let rtn = use_rtn ? "__result__.pyPointer" : "PythonNone"
+        //print("generate(PyMethod_noArgs)",name, use_rtn, rtn_type)
         return """
         .init(noArgs: "\(name)") { s, arg in
-            guard let s = s else { return nil }
+            guard let s = s else { return PythonNone }
             \(result)\(cls_call)\(name)()
             return \(rtn)
         }
@@ -234,11 +234,11 @@ extension WrapFunction {
         let rtn_type = _return_.type
         let use_rtn = (rtn_type != .void && rtn_type != .None )
         let result = use_rtn ? "let __result__ = " : ""
-        let rtn = use_rtn ? (_return_ is optionalArg ? "optionalPyPointer(__result__)" : "__result__.pyPointer") : ".PyNone"
+        let rtn = use_rtn ? (_return_ is optionalArg ? "optionalPyPointer(__result__)" : "__result__.pyPointer") : "PythonNone"
         return """
         .init(oneArg: "\(name)") { s, \(arg.name) in
             do {
-                guard let s = s, let \(arg.name) = \(arg.name) else { return .PyNone }
+                guard let s = s, let \(arg.name) = \(arg.name) else { return PythonNone }
                 \(arg_extract)
                 \(result)\(cls_call)\(fname)(\(_arg))
                 return \(rtn)
@@ -366,7 +366,7 @@ extension WrapFunction {
         let rtn_type = _return_.type
         let use_rtn = !(rtn_type == .void || rtn_type == .None)
         let result = use_rtn ? "let __result__ = " : ""
-        let rtn = use_rtn ? "__result__.pyPointer" : ".PyNone"
+        let rtn = use_rtn ? "__result__.pyPointer" : "PythonNone"
         
         return """
         .init(withArgs: "\(name)") { s, _args_, nargs in

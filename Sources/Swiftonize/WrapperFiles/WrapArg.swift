@@ -29,6 +29,7 @@ enum WrapArgOptions: String, CaseIterable, Codable {
     case optional
     case alias
     case _protocol
+    case no_label
 }
 
 private func WrapArgHasOption(arg: WrapArg,option: WrapArgOptions) -> Bool {

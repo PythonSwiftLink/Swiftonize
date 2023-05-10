@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import SwiftSyntax
+import SwiftSyntaxBuilder
 
 class objectStrEnumArg: _WrapArg, WrapArgProtocol {
     var name: String { _name }
@@ -56,4 +58,13 @@ class objectStrEnumArg: _WrapArg, WrapArgProtocol {
     
     func swift_property_setter(arg: String) -> String { handleSendCallType2(T: arg) }
     
+    var typeSyntax: TypeSyntax { type.syntaxType }
+    
+    var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+    
+    var typeAnnotation: TypeAnnotation { type.annotation }
+    
+    func callTupleElement(many: Bool) -> TupleExprElement {
+        return .pyCast(arg: self, many: many)
+    }
 }

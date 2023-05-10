@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import SwiftSyntax
+import SwiftSyntaxBuilder
 
 class boolArg: _WrapArg, WrapArgProtocol {
     
@@ -48,6 +50,16 @@ class boolArg: _WrapArg, WrapArgProtocol {
     func swift_property_getter(arg: String) -> String { handleCallbackCallType2(T: arg) }
     
     func swift_property_setter(arg: String) -> String { handleSendCallType2(T: arg) }
+    
+    var typeAnnotation: TypeAnnotation { type.annotation }
+    
+    var typeSyntax: TypeSyntax { type.syntaxType }
+    
+    var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+    
+    func callTupleElement(many: Bool) -> TupleExprElement {
+        return .pyCast(arg: self, many: many)
+    }
 }
 
 extension boolArg: PySendExtactable {

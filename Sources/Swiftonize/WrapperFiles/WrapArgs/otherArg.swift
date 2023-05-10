@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import SwiftSyntax
+import SwiftSyntaxBuilder
 
 class otherArg: _WrapArg, WrapArgProtocol {
 
@@ -55,6 +57,15 @@ class otherArg: _WrapArg, WrapArgProtocol {
     
     func swift_property_setter(arg: String) -> String { handleSendCallType2(T: arg) }
     
+    var typeSyntax: TypeSyntax { .init(stringLiteral: other_type! ) }
+    
+    var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+    
+    var typeAnnotation: TypeAnnotation { .init(type: typeSyntax) }
+    
+    func callTupleElement(many: Bool) -> TupleExprElement {
+        return .pyUnpack(with: self, many: many)
+    }
 }
 
 extension otherArg: PySendExtactable {

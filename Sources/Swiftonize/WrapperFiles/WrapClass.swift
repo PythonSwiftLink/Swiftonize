@@ -8,6 +8,7 @@
 import Foundation
 import SwiftyJSON
 import PyAstParser
+import SwiftSyntax
 
 enum ClassPropertyType: String, Codable, CaseIterable {
     case Getter
@@ -30,7 +31,7 @@ class WrapClassPropertyOld {
         self.name = name
         self.property_type = property_type
         self.arg_type = arg_type
-        self.arg_type_new = handleWrapArgTypes(args: [arg_type]).first!
+        self.arg_type_new = otherArg()//handleWrapArgTypes(args: [arg_type]).first!
     }
     
     
@@ -75,7 +76,9 @@ public class WrapClass {
     var properties: [WrapClassProperty]
     let singleton: Bool
     
-    var new_class = false
+    public var new_class = false
+    
+    var bases: [WrapClassBase] = []
     
     var wrapper_target_type: WrapperTargetType = ._class
     
@@ -98,6 +101,8 @@ public class WrapClass {
     
     var pyAsyncMethods: [PyAsyncFunctions] = []
     
+    var callback_protocols: [String] = []
+    
     var swift_object_mode = false
     
     var init_function: WrapFunction?
@@ -105,6 +110,9 @@ public class WrapClass {
     var ignore_init = false
     
     var debug_mode = false
+    
+    var callbacks: [WrapFunction] { functions.filter({$0.has_option(option: .callback)}) }
+    var send_functions: [WrapFunction] { functions.filter({!$0.has_option(option: .callback)}) }
     
     init(_ name: String) {
         _title = name
@@ -114,6 +122,15 @@ public class WrapClass {
         singleton = false
         swift_object_mode = true
         
+    }
+    
+    public required init?<S>(_ node: S) where S : SyntaxProtocol {
+        _title = ""
+        functions = []
+        decorators = []
+        properties = []
+        singleton = false
+        swift_object_mode = true
     }
     
     init(fromAst cls: PyAst_Class) {
@@ -154,165 +171,26 @@ public class WrapClass {
             }
         }
         
+        bases = cls.bases.compactMap({.init(rawValue: $0.name)})
+        
         for element in cls.body {
             switch element.type {
             case .ClassDef:
                 guard element.name == "Callbacks" else { continue }
                 if let callback_cls = element as? PyAst_Class {
-                    
-                    for cb in callback_cls.body.compactMap({$0 as? PyAst_Function}) {
-                        let f = WrapFunction(fromAst: cb, callback: true)
-                        f.wrap_class = self
-                        functions.append(f)
-                        callbacks_count += 1
-                    }
-                    
+                    handleClassDef(callback_cls)
                 }
                 
             case .FunctionDef:
-                let f = element as! PyAst_Function
-                switch PySequenceFunctions(rawValue: element.name) {
-                case .__getitem__:
-                    let return_type: PythonType =  .init(rawValue: f.returns?.name ?? "" ) ?? .object
-                    pySequenceMethods.append(.__getitem__(key: .int, returns: return_type))
-                    continue
-                case .__setitem__:
-             
-                    let args = f.args.filter({$0.name != "self"})
-                    let value_type: PythonType = .init(rawValue: args.first?.annotation?.name ?? "" ) ?? .object
-                    pySequenceMethods.append(.__setitem__(key: .int, value: value_type ))
-                    continue
-                default: break
-                }
-                let t = PyClassFunctions(rawValue: element.name)
-                switch t {
-                case .__call__:
-                    pyClassMehthods.append(.__call__)
-                case .__init__:
-                    let init_f = WrapFunction(fromAst: element as! PyAst_Function)
-                    init_function = init_f
-                case .__buffer__:
-                    pyClassMehthods.append(.__buffer__)
-                    
-                case .__str__:
-                    pyClassMehthods.append(.__str__)
-                    
-                case .__repr__:
-                    pyClassMehthods.append(.__repr__)
-                
-                default:
-                    functions.append(.init(fromAst: element as! PyAst_Function))
-                }
+                //let f = element as! PyAst_Function
+                handleFunctionDefs(element as! PyAst_Function)
                 
             case .Assign:
-                // handle property
                 guard
                     let assign = element as? PyAst_Assign,
                     let target = assign.targets.first
                 else { fatalError() }
-                if let value = assign.value {
-                    switch value {
-                    case let call as PyAst_Call:
-          
-                        if ["Property", "property"].contains(call.name) {
-                            var setter = true
-                            var _protocol = false
-                            var prop_type: ClassPropertyType = .GetSet
-                            var other_type: String? = nil
-                            
-                            for keyword in call.keywords {
-                                switch keyword.name {
-                                case "setter":
-                                    if let bool = Bool(keyword.value.name) {
-                                        setter = bool
-                                    }
-                                case "protocol":
-                                    if let bool = Bool(keyword.value.name) {
-                                        _protocol = bool
-                                    }
-                                    
-                                default: continue
-                                }
-                            
-                            }
-                            
-//                            if let kw = call.keywords.first(where: {$0.name == "setter"}) {
-//                                if let bool = Bool(kw.value.name) {
-//                                    setter = bool
-//                                }
-//                            }
-                            prop_type = setter ? .GetSet : .Getter
-                            
-                 
-                            //var arg_type: PythonType = .object
-                            
-                            if let _t = call.args.first {
-                                let arg_type = _WrapArg.fromAst(index: 0, _t)
-                                if _protocol { arg_type.add_option(._protocol) }
-                                properties.append(
-                                    .init(name: target.name, property_type: prop_type, arg_type: _WrapArg.fromAst(index: 0, _t))
-                                )
-                            }
-                            
-//                            
-//                            if let tname = call.args.first?.name {
-//                                print("tname",target.name,tname, _protocol)
-//                                if let ptype = PythonType(rawValue: tname) {
-//                                    arg_type = ptype
-//                                } else {
-//                                    arg_type = .other
-//                                    other_type = tname
-//                                }
-//                            }
-//                            
-//                            
-//                            var arg_options = [WrapArgOptions]()
-//                            if _protocol {
-//                                print(title)
-//                                arg_options.append(._protocol)
-//                            }
-//                            if let first = call.args.first, let t = PythonType(rawValue: first.name) {
-//                                
-//                                switch t {
-//                                case .list:
-//                                    if let list = first as? PyAst_Subscript {
-//                                        arg_type = .init(rawValue: list.slice.name) ?? .object
-//                                    }
-//                                    arg_options.append(.list)
-//                                case .optional:
-//                                    if let optional = first as? PyAst_Subscript {
-//                                        if let opt_type = PythonType(rawValue: optional.slice.name) {
-//                                            arg_type = opt_type
-//                                        } else {
-//                                            arg_type = .other
-//                                            other_type = optional.slice.name
-//                                        }
-//                                        //arg_type = .init(rawValue: optional.slice.name) ?? .other
-//                                    }
-//                                    arg_options.append(.optional)
-//                                default: arg_type = t
-//                                }
-//                                
-//                            }
-//                            
-//                            
-//                            properties.append(
-//                                .init(name: target.name, property_type: prop_type,
-//                                    arg_type: .init(
-//                                        name: target.name,
-//                                        type: arg_type,
-//                                        other_type: other_type,
-//                                        idx: 0,
-//                                        arg_options: arg_options
-//                                    )
-//                                )
-//                            )
-                        }
-                    case let _name as PyAst_Name:
-                        fatalError()
-                    default: fatalError()
-                    }
-                }
+                handleProperties(assign: assign, target: target)
         
             default:
                 //fatalError()
@@ -321,7 +199,7 @@ public class WrapClass {
         
         }
         callbacks_count = functions.filter({$0.has_option(option: .callback)}).count
-        
+        functions.forEach{[weak self] in $0.wrap_class = self}
     }
     
     
@@ -340,6 +218,74 @@ public class WrapClass {
     
     var callback_functions: [WrapFunction] { functions.filter {$0.has_option(option: .callback)}  }
     
+    func handleClassDef(_ callback_cls: PyAst_Class) {
+        for deco in callback_cls.decorator_list {
+            switch deco.name {
+            case "protocols":
+                if let pcall = deco as? PyAst_Call {
+                    callback_protocols.append(contentsOf: pcall.args.map(\.name))
+                }
+            default: continue
+            }
+        }
+        for cb in callback_cls.body.compactMap({$0 as? PyAst_Function}) {
+            let f = WrapFunction(fromAst: cb, callback: true)
+            f.wrap_class = self
+            functions.append(f)
+            callbacks_count += 1
+        }
+    }
+    
+    func handleFunctionDefs(_ element: PyAst_Function) {
+        let f = element
+        switch PySequenceFunctions(rawValue: element.name) {
+        case .__getitem__:
+            let return_type: PythonType =  .init(rawValue: f.returns?.name ?? "" ) ?? .object
+            pySequenceMethods.append(.__getitem__(key: .int, returns: return_type))
+            return
+        case .__setitem__:
+            
+            let args = f.args.filter({$0.name != "self"})
+            let value_type: PythonType = .init(rawValue: args.first?.annotation?.name ?? "" ) ?? .object
+            pySequenceMethods.append(.__setitem__(key: .int, value: value_type ))
+            return
+        default: break
+        }
+        let t = PyClassFunctions(rawValue: element.name)
+        switch t {
+        case .__call__:
+            pyClassMehthods.append(.__call__)
+        case .__init__:
+            let init_f = WrapFunction(fromAst: element)
+            init_function = init_f
+        case .__buffer__:
+            pyClassMehthods.append(.__buffer__)
+            
+        case .__str__:
+            pyClassMehthods.append(.__str__)
+            
+        case .__repr__:
+            pyClassMehthods.append(.__repr__)
+            
+        default:
+            functions.append(.init(fromAst: element))
+        }
+    }
+    
+    func handleProperties(assign: PyAst_Assign, target: PyAstObject) {
+        if let value = assign.value {
+            switch value {
+            case let call as PyAst_Call:
+                
+                if ["Property", "property"].contains(call.name) {
+                    handleProperties(call: call, target: target)
+                }
+            case _ as PyAst_Name:
+                fatalError()
+            default: fatalError()
+            }
+        }
+    }
 }
 
 

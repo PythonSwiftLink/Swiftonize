@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import SwiftSyntax
+import SwiftSyntaxBuilder
 
 class optionalArg: _WrapArg, WrapArgProtocol {
     
@@ -66,6 +68,32 @@ class optionalArg: _WrapArg, WrapArgProtocol {
     required init(from decoder: Decoder) throws {
         fatalError("init(from:) has not been implemented")
     }
+    
+    var typeSyntax: TypeSyntax { .init( OptionalTypeSyntax(wrappedType: wrapped.typeSyntax) ) }
+    
+    var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+    
+    var typeAnnotation: TypeAnnotation { .init(type: typeSyntax) }
+    
+    func callTupleElement(many: Bool) -> TupleExprElement {
+        
+        switch wrapped {
+        case let other as otherArg:
+            //return .pyUnpack(with: other, many: many)
+            return .init(
+                label: label,
+                expression: .init(TryExprSyntax.unPackPyPointer(with: other, many: many) as TryExpr)
+            )
+        case let collection as collectionArg:
+            var collect = collection.callTupleElement(many: many)
+            if !useLabel {
+                collect.label = nil
+                collect.colon = nil
+            }
+            return collect
+        default: return .optionalPyCast(arg: wrapped, many: many)
+        }
+    }  
 }
 
 extension optionalArg: PySendExtactable {

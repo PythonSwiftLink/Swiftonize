@@ -212,3 +212,17 @@ enum WrapperClassOptions: String {
     case service_mode
     case new
 }
+import SwiftSyntax
+import SwiftSyntaxBuilder
+
+enum WrapClassBase: String {
+    case NSObject
+    case SwiftBase
+    case SwiftObject
+    
+    
+    var inheritedType: InheritedTypeSyntax {
+        InheritedTypeSyntax(typeName: SimpleTypeIdentifier(stringLiteral: rawValue))
+    }
+    
+}

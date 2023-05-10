@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import SwiftSyntax
+import SwiftSyntaxBuilder
 
 class collectionArg: _WrapArg, WrapArgProtocol {
     
@@ -64,6 +66,28 @@ class collectionArg: _WrapArg, WrapArgProtocol {
     
     required init(from decoder: Decoder) throws {
         fatalError("init(from:) has not been implemented")
+    }
+    
+    var typeSyntax: TypeSyntax { .init(fromProtocol: ArrayTypeSyntax(elementType: element.typeSyntax)) }
+    var typeAnnotation: TypeAnnotation { .init(type: typeSyntax) }
+    
+    var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+    
+    func callTupleElement(many: Bool) -> TupleExprElement {
+        switch element {
+        case let other as otherArg:
+            return .init(
+                label: label,
+                expression: .init(TryExprSyntax.unPackPyPointer(with: other, many: many) as TryExpr)
+            )
+
+        default: return .init(
+            label: label,
+            expression: .init(TryExprSyntax.pyCast(arg: element, many: many))
+        )
+        }
+                            
+        
     }
 }
 
@@ -212,3 +236,5 @@ extension collectionArg: CustomStringConvertible {
     }
     
 }
+
+

@@ -7,6 +7,9 @@
 //
 
 import Foundation
+import SwiftSyntax
+import SwiftSyntaxBuilder
+
 
 
 public extension WrapClass {
@@ -14,6 +17,9 @@ public extension WrapClass {
     
     //var getSwiftPointer: String { "(s.getSwiftPointer() as \(title))" }
     var getSwiftPointer: String { "s?.get\(title)Pointer()" }
+    
+    
+    
     
     var swift_string: String {
         """
@@ -111,7 +117,7 @@ public extension WrapClass {
             return new!
         }
         \(if: callbacks_count != 0, pyCallbackClass)
-        \(pyProtocol)
+        \(_pyProtocol)
         """
     }
     
@@ -283,8 +289,42 @@ public extension WrapClass {
          )
          */
     }
+    private var _pyProtocol: String {
+        pyProtocol?.formatted().description ?? ""
+    }
     
-    private var pyProtocol: String {
+    var pyProtocol: ProtocolDecl? {
+        
+        let _user_functions = functions.filter({!$0.has_option(option: .callback) && !$0.has_option(option: .no_protocol)})
+        let clsMethods = pyClassMehthods.filter({$0 != .__init__})
+        if  !(callbacks_count == 0 && !new_class) && _user_functions.isEmpty &&
+                clsMethods.isEmpty && pySequenceMethods.isEmpty && init_function == nil { return nil }
+        
+        let protocolList = MemberDeclList {
+            //.init {
+                for f in _user_functions {
+                    f.function_header
+                }
+                for f in self.pySequenceMethods {
+                    f.function_header
+                }
+            //}
+        }
+        let _protocol = ProtocolDeclSyntax(
+            modifiers: nil,
+            protocolKeyword: .protocol,
+            identifier: .identifier("\(title)_PyProtocol"),
+            members: .init(members: protocolList)
+        )
+        return _protocol
+    }
+    
+    private var __pyProtocol: String {
+        let _user_functions = functions.filter({!$0.has_option(option: .callback) && !$0.has_option(option: .no_protocol)})
+        let clsMethods = pyClassMehthods.filter({$0 != .__init__})
+        if  !(callbacks_count == 0 && !new_class) && _user_functions.isEmpty &&
+            clsMethods.isEmpty && pySequenceMethods.isEmpty && init_function == nil { return "" }
+//        print("\(title) pyProtocol:", !(callbacks_count == 0 && !new_class), callbacks_count, _user_functions.count, clsMethods.count, pySequenceMethods.count, init_function)
         
         var _init_function = ""
         
@@ -293,7 +333,7 @@ public extension WrapClass {
             _init_function = "init(\(init_args))"
         }
         
-        let user_functions = functions.filter({!$0.has_option(option: .callback) && !$0.has_option(option: .no_protocol)}).map { function -> String in
+        let user_functions = _user_functions.map { function -> String in
             let rtype = function._return_.type
             let ertn = (function._return_ as? PyCallbackExtactable)?.argType ?? rtype.__swiftType__
             let swift_return = "\(if: rtype != .void && rtype != .None, "-> \(function._return_)", "")"
@@ -305,11 +345,14 @@ public extension WrapClass {
         
         let pyseq_functions = pySequenceMethods.map(\.protocol_string).joined(separator: newLineTab)
         
-        let __funcs__ = pyClassMehthods.filter({$0 != .__init__}).map{ f in
+        let __funcs__ = clsMethods.map{ f in
             wrapper_target_type == ._class ? f.protocol_string : "mutating \(f.protocol_string)"
         }.joined(separator: newLineTab)
         
         let callbacks = callbacks_count > 0 && !new_class ? "var py_callback: \(title)PyCallback? { get set }" : ""
+        
+        
+            
         
         return """
         // Protocol to make target class match the functions in wrapper file
@@ -414,13 +457,22 @@ public extension WrapClass {
                 $0.options.contains(.optional) || $0.type == .object
             })
             let call_args = init_call_args.count > 0 ? ", \(init_call_args.filter({$0 is objectArg}).map { "let \($0.name) = \($0.name)" }.joined(separator: ", "))" : ""
-            init_call = """
-            //if let this = s\(call_args) {
-            if let this = s {
-                set\(title)Pointer(this, \(title)(\(init_args.joined(separator: ", "))) )
-                return 0
-            }
-            """
+            
+            init_call = {
+                if !new_class { return """
+                    if let this = s {
+                        set\(title)Pointer(this, \(title)(\(init_args.joined(separator: ", "))) )
+                        return 0
+                    }
+                    """
+                } else { return """
+                    if let this = s {
+                        set\(title)Pointer(this, \(title)(callback: callback))
+                        return 0
+                    }
+                    """
+                }
+            }()
         }
         
         let __init__ = """
