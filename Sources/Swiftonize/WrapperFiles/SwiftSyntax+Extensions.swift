@@ -48,17 +48,24 @@ extension WrapFunction {
     
     var pyCall: FunctionCallExprSyntax {
         //let cls_pointer: FunctionCallExprSyntax = .getClassPointer(wrap_class?.title ?? "Unknown")
-        let src_member = MemberAccessExprSyntax(
-            base: TryExprSyntax.unPackPySwiftObject(with: "s", as: wrap_class?.title ?? "Unknown"),
-            dot: .period,
-            name: .identifier(call_target ?? name)
-        )
+        if let wrap_class = wrap_class {
+            let src_member = MemberAccessExprSyntax(
+                base: TryExprSyntax.unPackPySwiftObject(with: "_self_", as: wrap_class.title),
+                dot: .period,
+                name: .identifier(call_target ?? name)
+            )
+            let call = FunctionCallExprSyntax.pyCall(
+                src_member,
+                args: _args_,
+                cls: wrap_class
+            )
+            return call.withRightParen(_args_.count > 0 ? .rightParen.withLeadingTrivia(.newline) : .rightParen)
+        }
         let call = FunctionCallExprSyntax.pyCall(
-            src_member,
-            args: _args_,
-            cls: wrap_class
+            IdentifierExpr(stringLiteral: call_target ?? name),
+            args: _args_
         )
-        return call.withRightParen(.rightParen.withLeadingTrivia(.newline))//.withRightParen(.rightParen.withTrailingTrivia(.newline)).withTrailingTrivia(.newline)
+        return call.withRightParen(_args_.count > 0 ? .rightParen.withLeadingTrivia(.newline) : .rightParen)
     }
     
     
@@ -312,7 +319,7 @@ extension ExprSyntaxProtocol where Self == MemberAccessExprSyntax {
     static func getClassPointer(_ label: String) -> MemberAccessExprSyntax {
         
         let output = MemberAccessExprSyntax(
-            base: .init(stringLiteral: "s"),
+            base: .init(stringLiteral: "_self_"),
             dot: .period,
             name: "get\(label)Pointer"
         )

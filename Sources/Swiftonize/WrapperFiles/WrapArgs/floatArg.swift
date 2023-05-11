@@ -108,7 +108,7 @@ extension floatArg: PySendExtactable {
 
 extension floatArg: PyCallbackExtactable {
     func cb_extractLine(many: Bool, for class_pointer: String) -> String? {
-        "let _\(name) = \(name).pyPointer"
+        "\(name).pyPointer"
     }
     
     var function_arg_name: String {

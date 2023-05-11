@@ -31,7 +31,7 @@ enum PyClassFunctions: String, CaseIterable {
         case .__str__:
             return "func __str__() -> String"
         case .__hash__:
-            return "func __hash__() -> String"
+            return "func __hash__() -> Int"
         case .__set_name__:
             return "func __set_name__() -> String"
         case .__buffer__:

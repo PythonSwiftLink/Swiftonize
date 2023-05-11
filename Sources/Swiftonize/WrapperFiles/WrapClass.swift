@@ -266,6 +266,8 @@ public class WrapClass {
             
         case .__repr__:
             pyClassMehthods.append(.__repr__)
+        case .__hash__:
+            pyClassMehthods.append(.__hash__)
             
         default:
             functions.append(.init(fromAst: element))

@@ -145,6 +145,27 @@ extension WrapClass {
         if init_function != nil {
             py_type_options.append(.tp_init)
         }
+        for opt in pyClassMehthods {
+            switch opt {
+                
+            case .__init__:
+                continue
+            case .__repr__:
+                py_type_options.append(.tp_repr)
+            case .__str__:
+                py_type_options.append(.tp_str)
+            case .__hash__:
+                py_type_options.append(.tp_hash)
+            case .__set_name__:
+                continue
+            case .__call__:
+                py_type_options.append(.tp_call)
+            case .__iter__:
+                continue
+            case .__buffer__:
+                continue
+            }
+        }
         let py_type_funcs = PyTypeFunctions(options: py_type_options)
         py_type_funcs._cls = self
         return .init(
@@ -342,23 +363,24 @@ extension WrapClass {
     }
     
     public var _pyMethodDefHandler: FunctionCallExprSyntax {
-        let exp = IdentifierExprSyntax(identifier: .identifier("PyMethodDefHandler"))
-        return .init(
-           
-            calledExpression: exp,
-            leftParen: .leftParen.withTrailingTrivia(.newline.appending(.tabs(1))),
-            argumentList: .init(itemsBuilder: {
-                for (i, f) in send_functions.enumerated() {
-                    switch i {
-                    case 0:  .init(expression: PySwiftFunction(function: f).functionCallExpr)
-                    default: .init(expression: PySwiftFunction(function: f).functionCallExpr)
-                                .withLeadingTrivia(.newlines(2))
-                    }
-                    
-                }
-            }),
-            rightParen: .rightParen.withLeadingTrivia(.newline)
-        )
+        createPyMethodDefHandler(functions: send_functions)
+//        let exp = IdentifierExprSyntax(identifier: .identifier("PyMethodDefHandler"))
+//        return .init(
+//
+//            calledExpression: exp,
+//            leftParen: .leftParen.withTrailingTrivia(.newline.appending(.tabs(1))),
+//            argumentList: .init(itemsBuilder: {
+//                for (i, f) in send_functions.enumerated() {
+//                    switch i {
+//                    case 0:  .init(expression: PySwiftFunction(function: f).functionCallExpr)
+//                    default: .init(expression: PySwiftFunction(function: f).functionCallExpr)
+//                                .withLeadingTrivia(.newlines(2))
+//                    }
+//
+//                }
+//            }),
+//            rightParen: .rightParen.withLeadingTrivia(.newline)
+//        )
     }
     
     public var _classMethods: PatternBindingListSyntax {

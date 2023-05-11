@@ -13,10 +13,9 @@ import SwiftSyntaxBuilder
 
 fileprivate let LETTERS = ["A","B","C","D","E","F","G","H","I"]
 
-fileprivate let R_Generic = GenericParameterClause(stringLiteral: "<R: ConvertibleFromPython>")
+//fileprivate let R_Generic = GenericParameterClause(stringLiteral: "<R: ConvertibleFromPython>")
 
 fileprivate extension GenericParameterClause {
-    static let R = GenericParameterClause(stringLiteral: "<R: ConvertibleFromPython>")
     init(letters: [String], rtype: GenericPyCall.RType) {
         
         self.init(genericParameterList: .init(itemsBuilder: {
@@ -25,7 +24,7 @@ fileprivate extension GenericParameterClause {
                 GenericParameter(name: letter)
             }
             
-            if rtype == .ConvertibleFromPython {
+            if rtype == .PyEncodable {
                 GenericParameter(name: "R")
             }
         }))
@@ -37,7 +36,7 @@ public class GenericPyCall {
     
     public enum RType: String {
         case PyPointer
-        case ConvertibleFromPython
+        case PyEncodable
         case none
     }
     
@@ -79,7 +78,7 @@ public class GenericPyCall {
             
         case .PyPointer:
             return .init(returnType: SimpleTypeIdentifier(stringLiteral: "PyPointer" ))
-        case .ConvertibleFromPython:
+        case .PyEncodable:
             return .init(returnType: SimpleTypeIdentifier(stringLiteral: "R" ))
         case .none:
             return nil
@@ -115,17 +114,17 @@ public class GenericPyCall {
                 }
             }
         }
-        let generics: GenericParameterClause? = (arg_count > 0 || returnType == .ConvertibleFromPython) ? .init(letters: .init(LETTERS[0..<arg_count]), rtype: returnType) : nil
+        let generics: GenericParameterClause? = (arg_count > 0 || returnType == .PyEncodable) ? .init(letters: .init(LETTERS[0..<arg_count]), rtype: returnType) : nil
         
         var whereClause: GenericWhereClause? {
-            guard arg_count > 0 || returnType == .ConvertibleFromPython else { return nil }
+            guard arg_count > 0 || returnType == .PyEncodable else { return nil }
             return .init {
                 for letter in LETTERS[0..<arg_count] {
-                    GenericRequirement(body: .conformanceRequirement(.init(leftTypeIdentifier: SimpleTypeIdentifier(stringLiteral: letter), rightTypeIdentifier: SimpleTypeIdentifier(stringLiteral: "PyConvertible"))))
+                    GenericRequirement(body: .conformanceRequirement(.init(leftTypeIdentifier: SimpleTypeIdentifier(stringLiteral: letter), rightTypeIdentifier: SimpleTypeIdentifier(stringLiteral: "PyEncodable"))))
                         .withLeadingTrivia(.newline + .tab)
                 }
-                if returnType == .ConvertibleFromPython {
-                    GenericRequirement(body: .conformanceRequirement(.init(leftTypeIdentifier: SimpleTypeIdentifier(stringLiteral: "R"), rightTypeIdentifier: SimpleTypeIdentifier(stringLiteral: "ConvertibleFromPython"))))
+                if returnType == .PyEncodable {
+                    GenericRequirement(body: .conformanceRequirement(.init(leftTypeIdentifier: SimpleTypeIdentifier(stringLiteral: "R"), rightTypeIdentifier: SimpleTypeIdentifier(stringLiteral: "PyDecodable"))))
                         .withLeadingTrivia(.newline + .tab)
                 }
             }//.withLeadingTrivia(.newline + .tab)
@@ -155,7 +154,7 @@ public class GenericPyCall {
             
             
             switch returnType {
-            case .ConvertibleFromPython:
+            case .PyEncodable:
                 handleReturn
                 FunctionCallExpr._Py_DecRef("result")
                 ReturnStmt(stringLiteral: "return rtn")
@@ -288,7 +287,7 @@ public class GenerateCallables {
                 .init {
                     for i in 0...9 {
                         MemberDeclListItem(
-                            decl: GenericPyCall(arg_count: i, rtn: .ConvertibleFromPython).functionDecl("callAsFunction")
+                            decl: GenericPyCall(arg_count: i, rtn: .PyEncodable).functionDecl("callAsFunction")
                         ).withLeadingTrivia(.newlines(2))
                         MemberDeclListItem(
                             decl: GenericPyCall(arg_count: i, rtn: .PyPointer).functionDecl("callAsFunction")
@@ -302,7 +301,7 @@ public class GenerateCallables {
             }.withTrailingTrivia(.newline)
             
             for i in 0...9 {
-                GenericPyCall(arg_count: i, pyPointer: "call", rtn: .ConvertibleFromPython).functionDecl("PythonCall")
+                GenericPyCall(arg_count: i, pyPointer: "call", rtn: .PyEncodable).functionDecl("PythonCall")
                     .withLeadingTrivia(.newlines(2))
                 GenericPyCall(arg_count: i, pyPointer: "call", rtn: .PyPointer).functionDecl("PythonCall")
                     .withLeadingTrivia(.newlines(2))

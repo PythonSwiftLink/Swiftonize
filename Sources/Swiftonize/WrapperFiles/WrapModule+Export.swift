@@ -65,12 +65,17 @@ extension WrapModule {
 
 extension WrapModule {
     
+    fileprivate var methods: ExprSyntax {
+        if functions.isEmpty { return .init(NilLiteralExprSyntax()) }
+        return .init(createPyMethodDefHandler(functions: functions))
+    }
+    
     fileprivate var createModuleDefHandler: VariableDeclSyntax {
         let _func = FunctionCallExprSyntax(
             callee: IdentifierExprSyntax(stringLiteral: "PyModuleDefHandler")) {
                 TupleExprElementSyntax(label: "name", expression: .init(StringLiteralExprSyntax(stringLiteral: "\"\(filename)\"")))
                     .withLeadingTrivia(.newline)
-                TupleExprElementSyntax(label: "methods", expression: .init(NilLiteralExprSyntax()))
+                TupleExprElementSyntax(label: "methods", expression: methods)
                     .withLeadingTrivia(.newline)
                     
             }

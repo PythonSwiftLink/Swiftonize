@@ -78,6 +78,15 @@ class PyTypeFunctions {
         }
         """)
     }
+    
+    var tp_hash: ClosureExpr? {
+        guard options.contains(.tp_hash) else { return nil }
+        return .init(stringLiteral: """
+        { _self_ -> Int in
+            UnPackPySwiftObject(with: _self_, as: \(cls.title).self).__hash__
+        }
+        """)
+    }
 }
 
 
@@ -88,7 +97,7 @@ extension PyTypeFunctions {
         let closure = ClosureExpr(stringLiteral: "{ __self__, _args_, kw -> Int32 in }")
         
         return closure.withStatements(.init {
-            Expr(stringLiteral: #"print("tp_init - <\#(cls.title)>")"#)
+            if cls.debug_mode { Expr(stringLiteral: #"print("tp_init - <\#(cls.title)>")"#) }
             createTP_Init(cls: cls, args: cls.init_function?._args_ ?? []).code
             ReturnStmt(stringLiteral: "return 1")
         })
@@ -133,10 +142,34 @@ extension PyTypeFunctions {
         case .tp_repr:
             return .init(fromProtocol: NilLiteralExpr() )
         case .tp_hash:
-            return .init(fromProtocol: NilLiteralExpr() )
+            if let tp_hash = tp_hash {
+                return .init(tp_hash)
+            }
+            return .init( NilLiteralExpr() )
 //        case .tp_as_buffer:
 //            return .init(fromProtocol: NilLiteralExpr() )
         }
         
     }
+}
+
+
+public func createPyMethodDefHandler(functions: [WrapFunction]) -> FunctionCallExprSyntax {
+    let exp = IdentifierExprSyntax(identifier: .identifier("PyMethodDefHandler"))
+    return .init(
+        
+        calledExpression: exp,
+        leftParen: .leftParen.withTrailingTrivia(.newline.appending(.tabs(1))),
+        argumentList: .init {
+            for (i, f) in functions.enumerated() {
+                switch i {
+                case 0:  .init(expression: PySwiftFunction(function: f).functionCallExpr)
+                default: .init(expression: PySwiftFunction(function: f).functionCallExpr)
+                        .withLeadingTrivia(.newlines(2))
+                }
+                
+            }
+        },
+        rightParen: .rightParen.withLeadingTrivia(.newline)
+    )
 }

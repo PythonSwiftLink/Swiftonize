@@ -74,6 +74,8 @@ public extension WrapFunction {
         switch _return_.type {
         case .None, .void:
             return .init(expression: MemberAccessExprSyntax(name: "PyNone"))
+        case .object:
+            return .init(expression: IdentifierExpr(stringLiteral: "\(name)_result"))
         default:
             return .init(expression: MemberAccessExprSyntax(base: .init(stringLiteral: "\(name)_result"), name: "pyPointer"))
         }

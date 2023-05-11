@@ -80,7 +80,9 @@ class PySwiftFunction {
                     arg
                 }
             }
-            "s".optionalGuardUnwrap
+            if function.wrap_class != nil {
+                "_self_".optionalGuardUnwrap
+            }
         }
         return .init(
             conditions: conditions,
@@ -114,22 +116,28 @@ class PySwiftFunction {
         }
     }
     
+    private var functionCode: CodeBlockItemListSyntax {
+        .init {
+            for extract in extracts {
+                extract
+            }
+            switch function._return_.type {
+            case .void, .None:
+                function.pyCall
+            default:
+                function.pyCallReturn
+            }
+            
+            function.pyReturnStmt.withTrailingTrivia(.newline)
+        }
+    }
+    
     private var doCatch: DoStmtSyntax {
         var do_stmt = DoStmtSyntax {
             CodeBlockItemListSyntax {
                 
                 _guard.codeBlockItem.withTrailingTrivia(.newline)
-                for extract in extracts {
-                    extract
-                }
-                switch function._return_.type {
-                case .void, .None:
-                    function.pyCall
-                default:
-                    function.pyCallReturn
-                }
-                
-                function.pyReturnStmt.withTrailingTrivia(.newline)
+                functionCode
                 
             }
             //.withLeadingTrivia(.newline)
@@ -154,7 +162,7 @@ class PySwiftFunction {
     }
     
     private var signature: ClosureSignatureSyntax {
-        var args = ["s"]
+        var args = [function.wrap_class == nil ? "_" : "_self_"]
         switch function._args_.count {
         case 1:
             if let arg = function._args_.first {
@@ -178,8 +186,14 @@ class PySwiftFunction {
         )
 
         f.trailingClosure = .init(signature: signature.withTrailingTrivia(.newline)) {
-            doCatch.withTrailingTrivia(.newline)
-            ReturnStmtSyntax(stringLiteral: "return nil")
+            if function.wrap_class != nil || args.count > 0 {
+                doCatch.withTrailingTrivia(.newline)
+                ReturnStmtSyntax(stringLiteral: "return nil")
+            } else {
+                functionCode.withTrailingTrivia(.newline)
+            }
+            
+           
         }
 
         return f
@@ -187,10 +201,16 @@ class PySwiftFunction {
     
     var functionDecl: FunctionDeclSyntax {
         
-        var f = FunctionDeclSyntax(identifier: .identifier(function.name), signature: function.signature)
-        f.body = .init(statements: .init(itemsBuilder: {
+        let f = FunctionDeclSyntax(identifier: .identifier(function.name), signature: function.signature) {
             doCatch
-        }))
+        }
+        return f
+    }
+    
+    var globalFunction: FunctionDeclSyntax {
+        let f = FunctionDeclSyntax(identifier: .identifier(function.name), signature: function.signature) {
+            doCatch
+        }
         return f
     }
     
