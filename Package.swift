@@ -18,8 +18,8 @@ let package = Package(
         //.package(path: "../PyAstParser"),
         //.package(path: "../PythonSwiftCore"),
         .package(url: "https://github.com/PythonSwiftLink/PyAstParser", branch: "main"),
-        //.package(url: "https://github.com/PythonSwiftLink/PythonSwiftCore", branch: "testing"),
-        .package(url: "https://github.com/PythonSwiftLink/PythonSwiftCore", exact: .init(0, 2, 0)),
+        //.package(url: "https://github.com/PythonSwiftLink/PythonSwiftCore", branch: "main"),
+        .package(url: "https://github.com/PythonSwiftLink/PythonSwiftCore", from: .init(0, 3, 0)),
         .package(url: "https://github.com/SwiftyJSON/SwiftyJSON", branch: "master"),
         .package(url: "https://github.com/apple/swift-syntax", from: .init(508, 0, 0))
     ],

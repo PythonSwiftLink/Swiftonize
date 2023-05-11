@@ -39,6 +39,68 @@ enum PyClassFunctions: String, CaseIterable {
         default: return ""
         }
     }
+    
+    var protocol_decl: MemberDeclList.Element {
+        switch self {
+
+        case .__hash__:
+            return .init(decl: VariableDecl(stringLiteral: "var __hash__: Int { get }"))
+        default:
+            return .init(decl: function_header)
+        }
+    }
+    
+    var function_header: FunctionDeclSyntax {
+        
+        var sig: FunctionSignatureSyntax {
+            var args: [String] = []
+            var rtn: ReturnClauseSyntax? = nil
+            switch self {
+            case .__init__:
+                break
+            case .__repr__:
+                rtn = "String".returnClause
+            case .__str__:
+                rtn = "String".returnClause
+            case .__hash__:
+                rtn = "Int".returnClause
+            case .__set_name__:
+                break
+            case .__call__:
+                break
+            case .__iter__:
+                break
+            case .__buffer__:
+                args = ["s: PyPointer", "buffer: UnsafeMutablePointer<Py_buffer>"]
+                rtn = "Int32".returnClause
+            }
+//            switch self {
+//            case .__len__:
+//                args = .init([])
+//                rtn = "Int".returnClause
+//            case .__getitem__(_, _):
+//                args = ["idx: Int"]
+//                rtn = "PyPointer?".returnClause
+//            case .__setitem__(_, _):
+//                args = ["idx: Int", "newValue: PyPointer"]
+//                rtn = "Bool".returnClause
+//            case .__delitem__(_):
+//                args = ["idx: Int"]
+//                rtn = "Bool".returnClause
+//            case .__missing__:
+//                break
+//            case .__reversed__:
+//                break
+//            case .__contains__:
+//                break
+//            }
+            
+            return .init(input: args.parameterClause, output: rtn)
+        }
+        
+        
+        return .init(identifier: .identifier(rawValue), signature: sig)
+    }
 }
     // Sequence
 enum PySequenceFunctions: String, CaseIterable {

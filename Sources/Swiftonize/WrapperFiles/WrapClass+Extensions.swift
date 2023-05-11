@@ -301,6 +301,7 @@ public extension WrapClass {
                 clsMethods.isEmpty && pySequenceMethods.isEmpty && init_function == nil { return nil }
         
         let protocolList = MemberDeclList {
+            
             //.init {
                 for f in _user_functions {
                     f.function_header
@@ -308,6 +309,9 @@ public extension WrapClass {
                 for f in self.pySequenceMethods {
                     f.function_header
                 }
+            for f in self.pyClassMehthods {
+                f.protocol_decl
+            }
             //}
         }
         let _protocol = ProtocolDeclSyntax(

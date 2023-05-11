@@ -109,7 +109,7 @@ extension WrapClass {
             argumentList: .init {
                 TupleExprElementSyntax(
                     label: "name",
-                    expression: .init( StringLiteralExprSyntax(content: title) )
+                    expression: .init( StringLiteralExprSyntax(content: _title) )
                 ).withLeadingTrivia(.newline)
                 TupleExprElementSyntax(
                     label: "functions",

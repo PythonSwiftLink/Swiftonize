@@ -87,6 +87,24 @@ class PyTypeFunctions {
         }
         """)
     }
+    var tp_str: ClosureExpr? {
+        guard options.contains(.tp_str) else { return nil }
+        return .init(stringLiteral: """
+        
+        { _self_ -> PyPointer? in
+            UnPackPySwiftObject(with: _self_, as: \(cls.title).self).__str__().pyPointer
+        }
+        """)
+    }
+    
+    var tp_repr: ClosureExpr? {
+        guard options.contains(.tp_repr) else { return nil }
+        return .init(stringLiteral: """
+        { _self_ -> PyPointer? in
+            UnPackPySwiftObject(with: _self_, as: \(cls.title).self).__repr__().pyPointer
+        }
+        """)
+    }
 }
 
 
@@ -138,14 +156,14 @@ extension PyTypeFunctions {
         case .tp_call:
             return .init(fromProtocol: NilLiteralExpr() )
         case .tp_str:
-            return .init(fromProtocol: NilLiteralExpr() )
+            return .init(fromProtocol: tp_str ?? NilLiteralExpr() )
         case .tp_repr:
-            return .init(fromProtocol: NilLiteralExpr() )
+            return .init(fromProtocol: tp_repr ?? NilLiteralExpr() )
         case .tp_hash:
-            if let tp_hash = tp_hash {
-                return .init(tp_hash)
-            }
-            return .init( NilLiteralExpr() )
+//            if let tp_hash = tp_hash {
+//                return .init(tp_hash)
+//            }
+            return .init(fromProtocol: tp_hash ?? NilLiteralExpr() )
 //        case .tp_as_buffer:
 //            return .init(fromProtocol: NilLiteralExpr() )
         }
