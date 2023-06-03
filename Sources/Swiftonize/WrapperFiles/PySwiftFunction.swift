@@ -100,20 +100,26 @@ class PySwiftFunction {
     }
     private var extracts: [CodeBlockItemSyntax] {
         let many = arg_count > 1
-        return args.compactMap { arg in
-            switch arg {
-            case let call as callableArg:
-                if many {
-                    return .init(
-                        item: .decl(.init(stringLiteral: "let _\(call.name) = _args_[\(call.idx)]!"))
-                    )
-                }
-                return .init(
-                    item: .decl(.init(stringLiteral: "let _\(call.name) = \(call.name)"))
-                )
-            default: return nil
+        return args.compactMap {
+            if let extract = $0.extractDecl(many: many) {
+                return .init(item: .decl(.init(extract)))
             }
+            return nil
         }
+//        return args.compactMap { arg in
+//            switch arg {
+//            case let call as callableArg:
+//                if many {
+//                    return .init(
+//                        item: .decl(.init(stringLiteral: "let _\(call.name) = _args_[\(call.idx)]!"))
+//                    )
+//                }
+//                return .init(
+//                    item: .decl(.init(stringLiteral: "let _\(call.name) = \(call.name)"))
+//                )
+//            default: return nil
+//            }
+//        }
     }
     
     private var functionCode: CodeBlockItemListSyntax {

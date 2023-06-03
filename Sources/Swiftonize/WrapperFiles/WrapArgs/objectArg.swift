@@ -69,6 +69,10 @@ class objectArg: _WrapArg, WrapArgProtocol {
     func callTupleElement(many: Bool) -> TupleExprElement {
         return .init(label: label, expression: .init(stringLiteral: many ? "_args_[\(idx)]!" : name))
     }
+    
+    func extractDecl(many: Bool) -> VariableDecl? {
+        nil
+    }
 }
 
 extension objectArg: PySendExtactable {

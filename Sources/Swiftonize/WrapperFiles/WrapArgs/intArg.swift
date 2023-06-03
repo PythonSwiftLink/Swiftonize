@@ -68,6 +68,10 @@ class intArg: _WrapArg, WrapArgProtocol {
     func callTupleElement(many: Bool) -> TupleExprElement {
         return .pyCast(arg: self, many: many)
     }
+    
+    func extractDecl(many: Bool) -> VariableDecl? {
+        nil
+    }
 }
 
 extension intArg: PySendExtactable {

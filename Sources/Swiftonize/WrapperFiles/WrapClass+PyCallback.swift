@@ -199,7 +199,7 @@ class PythonCall {
                 }
                 return nil
             }
-            if a.useLabel {
+            if !a.no_label {
                 return .init(
                     firstName: secondName,
                     secondName: .identifier(a.name),

@@ -86,8 +86,10 @@ class collectionArg: _WrapArg, WrapArgProtocol {
             expression: .init(TryExprSyntax.pyCast(arg: element, many: many))
         )
         }
-                            
-        
+    }
+    
+    func extractDecl(many: Bool) -> VariableDecl? {
+        nil
     }
 }
 

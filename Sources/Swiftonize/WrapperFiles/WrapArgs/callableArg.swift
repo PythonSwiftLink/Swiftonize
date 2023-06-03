@@ -143,17 +143,26 @@ class callableArg: _WrapArg, WrapArgProtocol {
     
     var typeAnnotation: TypeAnnotation { type.annotation }
     
+    var exprSyntax: ExprSyntax {
+        .init(stringLiteral: PythonCall(
+            callable: name,
+            args: callArgs,
+            rtn: _return!).closureDecl
+            .formatted().description)
+    }
+    
     func callTupleElement(many: Bool) -> TupleExprElement {
         return .init(
             label: label,
-            expression: ExprSyntax(stringLiteral: PythonCall(
-                callable: name,
-                args: callArgs,
-                rtn: _return!).closureDecl
-                        .formatted().description
-                        //.replacingOccurrences(of: newLine, with: newLineTab)
-                )
+            expression: exprSyntax
         )
+    }
+    
+    func extractDecl(many: Bool) -> VariableDecl? {
+        if many {
+            return .init(stringLiteral: "let _\(name) = _args_[\(idx)]!")
+        }
+        return .init(stringLiteral: "let _\(name) = \(name)")
     }
 }
 

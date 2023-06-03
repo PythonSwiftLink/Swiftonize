@@ -66,6 +66,10 @@ class otherArg: _WrapArg, WrapArgProtocol {
     func callTupleElement(many: Bool) -> TupleExprElement {
         return .pyUnpack(with: self, many: many)
     }
+    
+    func extractDecl(many: Bool) -> VariableDecl? {
+        nil
+    }
 }
 
 extension otherArg: PySendExtactable {

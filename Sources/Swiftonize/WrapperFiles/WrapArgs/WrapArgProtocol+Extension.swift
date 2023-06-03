@@ -25,7 +25,15 @@ extension WrapArgProtocol {
         return name
     }
     
-    var useLabel: Bool {
-        !options.contains(.no_label)
+    var no_label: Bool {
+        options.contains(.no_label)
     }
+}
+
+extension _WrapArg {
+    
+    func setIndex(_ idx: Int) {
+        _idx = idx
+    }
+    
 }

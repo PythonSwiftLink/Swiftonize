@@ -57,7 +57,9 @@ protocol WrapArgProtocol: Decodable {
     
     var typeAnnotation: TypeAnnotation { get }
     
-    func callTupleElement(many: Bool) -> TupleExprElement 
+    func callTupleElement(many: Bool) -> TupleExprElement
+    
+    func extractDecl(many: Bool) -> VariableDecl?
 }
 
 protocol PyCallbackExtactable {

@@ -61,6 +61,7 @@ class optionalArg: _WrapArg, WrapArgProtocol {
     
     init(name: String, type: PythonType, other_type: String?, idx: Int, options: [WrapArgOptions],wrapped: WrapArgProtocol) {
         wrapped.add_option(.optional)
+        (wrapped as! _WrapArg).setIndex(idx)
         self.wrapped = wrapped
         super.init(_name: name, _type: type, _other_type: other_type, _idx: idx, _options: options)
     }
@@ -86,14 +87,29 @@ class optionalArg: _WrapArg, WrapArgProtocol {
             )
         case let collection as collectionArg:
             var collect = collection.callTupleElement(many: many)
-            if !useLabel {
+            if no_label {
                 collect.label = nil
                 collect.colon = nil
             }
             return collect
+        case let callable as callableArg:
+            var _arg: String {
+                if many { return "_\(name)"}
+                return name
+            }
+            let opt_call = SequenceExpr {
+                MemberAccessExpr(base: IdentifierExpr(stringLiteral: _arg), dot: .period, name: .identifier("isNone"),trailingTrivia: .space)
+                UnresolvedTernaryExpr(firstChoice: NilLiteralExpr(leadingTrivia: .space, nilKeyword: .nil, trailingTrivia: .space))
+                callable.exprSyntax
+            }
+            return .init(label: label, expression: .init(opt_call))
         default: return .optionalPyCast(arg: wrapped, many: many)
         }
-    }  
+    }
+    
+    func extractDecl(many: Bool) -> VariableDecl? {
+        wrapped.extractDecl(many: many)
+    }
 }
 
 extension optionalArg: PySendExtactable {

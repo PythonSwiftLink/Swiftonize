@@ -17,7 +17,6 @@ extension WrapArgProtocol {
     
     var functionParameter: FunctionParameterSyntax {
         var secondName: TokenSyntax? {
-            
 //            if options.contains(.) {
 //                return .init(.identifier("_"))?.withTrailingTrivia(.space)
 //            }
@@ -26,9 +25,9 @@ extension WrapArgProtocol {
             }
             return nil
         }
-        if useLabel {
+        if no_label {
             return .init(
-                firstName: secondName,
+                firstName: .identifier("_ "),
                 secondName: .identifier(name),
                 colon: .colon,
                 type: typeSyntax
