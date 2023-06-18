@@ -46,6 +46,8 @@ public class WrapModule {
     var python_classes: [String] = []
     var dispatchEnabled = false
     
+    var expose_module_functions = false
+    
     var functions: [WrapFunction] = []
     
     var constants: [WrapArgProtocol] = []
@@ -78,6 +80,29 @@ public class WrapModule {
         for element in ast_module.body {
             
             switch element.type {
+                
+            case .With:
+                
+                if let with = element as? PyAst_With {
+                    guard with.name == "swift_settings" else { break }
+                    print(with.name, with.items.map(\.name), with.body.map(\.type))
+                    for item in with.body {
+                        switch item.name {
+                        case "shared_module_functions":
+                            if let shared_module_functions = item as? PyAst_Assign, let value = shared_module_functions.value {
+                                
+                                expose_module_functions = (Bool(value.name) ?? false)
+                                print("expose_module_functions: \(expose_module_functions)")
+                            }
+                            //
+                            
+                        default: continue
+                        }
+                    }
+                }
+                
+                
+                
                 
             case .FunctionDef:
                 

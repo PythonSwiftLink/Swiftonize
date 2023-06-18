@@ -53,7 +53,9 @@ extension WrapModule {
                 for cls in classes {
                     cls.code
                 }
-                
+                if expose_module_functions {
+                    exposedPyMethodDefHandler
+                }
                 createModuleDefHandler.withLeadingTrivia(.newlines(2))
                 createPyInit.withLeadingTrivia(.newlines(2))
             }
@@ -65,21 +67,46 @@ extension WrapModule {
 
 extension WrapModule {
     
-    fileprivate var methods: ExprSyntax {
+    public var methods: ExprSyntax {
         if functions.isEmpty { return .init(NilLiteralExprSyntax()) }
         return .init(createPyMethodDefHandler(functions: functions))
     }
     
-    fileprivate var createModuleDefHandler: VariableDeclSyntax {
-        let _func = FunctionCallExprSyntax(
-            callee: IdentifierExprSyntax(stringLiteral: "PyModuleDefHandler")) {
-                TupleExprElementSyntax(label: "name", expression: .init(StringLiteralExprSyntax(stringLiteral: "\"\(filename)\"")))
-                    .withLeadingTrivia(.newline)
-                TupleExprElementSyntax(label: "methods", expression: methods)
-                    .withLeadingTrivia(.newline)
-                    
-            }
+    fileprivate var exposedPyMethodDefHandler: VariableDeclSyntax {
         
+        let funcs = createPyMethodDefHandler(functions: functions)
+        
+        return VariableDeclSyntax(
+            modifiers: .init(arrayLiteral: .init(name: .public, trailingTrivia: .space)),
+            .let,
+            name: .init(stringLiteral: "\(filename)_module_functions"),
+            initializer: .init(value: funcs.withRightParen(.rightParen.withLeadingTrivia(.newline)))
+            
+        )
+    }
+    
+    fileprivate var createModuleDefHandler: VariableDeclSyntax {
+        let _func: FunctionCallExprSyntax
+        if expose_module_functions {
+            _func = FunctionCallExprSyntax(
+                callee: IdentifierExprSyntax(stringLiteral: "PyModuleDefHandler")) {
+                    TupleExprElementSyntax(label: "name", expression: .init(StringLiteralExprSyntax(stringLiteral: "\"\(filename)\"")))
+                        .withLeadingTrivia(.newline)
+                    TupleExprElementSyntax(label: "methods", expression: .init(stringLiteral: "\(filename)_module_functions"))
+                        .withLeadingTrivia(.newline)
+                    
+                }
+            
+        } else {
+            _func = FunctionCallExprSyntax(
+                callee: IdentifierExprSyntax(stringLiteral: "PyModuleDefHandler")) {
+                    TupleExprElementSyntax(label: "name", expression: .init(StringLiteralExprSyntax(stringLiteral: "\"\(filename)\"")))
+                        .withLeadingTrivia(.newline)
+                    TupleExprElementSyntax(label: "methods", expression: methods)
+                        .withLeadingTrivia(.newline)
+                    
+                }
+        }
         return VariableDeclSyntax(
             modifiers: .init(arrayLiteral: .init(name: .fileprivate, trailingTrivia: .space)),
             .let,
