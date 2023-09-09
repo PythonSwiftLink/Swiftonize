@@ -338,9 +338,9 @@ public class GenerateCallables {
                             MemberDeclListItem(
                                 decl: GenericPyCall(arg_count: i, gil_mode: use_gil, rtn: .PyEncodable).functionDecl("callAsFunction")
                             ).withLeadingTrivia(.newlines(2))
-                            MemberDeclListItem(
-                                decl: GenericPyCall(arg_count: i, gil_mode: use_gil, rtn: .PyPointer).functionDecl("callAsFunction")
-                            ).withLeadingTrivia(.newlines(2))
+//                            MemberDeclListItem(
+//                                decl: GenericPyCall(arg_count: i, gil_mode: use_gil, rtn: .PyPointer).functionDecl("callAsFunction")
+//                            ).withLeadingTrivia(.newlines(2))
                             MemberDeclListItem(
                                 decl: GenericPyCall(arg_count: i, gil_mode: use_gil, rtn: .none).functionDecl("callAsFunction")
                             ).withLeadingTrivia(.newlines(2))
@@ -355,8 +355,8 @@ public class GenerateCallables {
                     GenericPyCall(arg_count: i, pyPointer: "call", gil_mode: use_gil, rtn: .PyEncodable).functionDecl(call_title)
                     
                         .withLeadingTrivia(.newlines(2))
-                    GenericPyCall(arg_count: i, pyPointer: "call", gil_mode: use_gil, rtn: .PyPointer).functionDecl(call_title)
-                        .withLeadingTrivia(.newlines(2))
+//                    GenericPyCall(arg_count: i, pyPointer: "call", gil_mode: use_gil, rtn: .PyPointer).functionDecl(call_title)
+//                        .withLeadingTrivia(.newlines(2))
                     GenericPyCall(arg_count: i, pyPointer: "call", gil_mode: use_gil, rtn: .none).functionDecl(call_title)
                         .withLeadingTrivia(.newlines(2))
                 }
