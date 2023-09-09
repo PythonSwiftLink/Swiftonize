@@ -145,7 +145,7 @@ class createTP_Init {
     
     func setPointer() -> SequenceExprSyntax {
         let unmanaged = IdentifierExpr(stringLiteral: "Unmanaged")
-        let _passRetained = MemberAccessExpr(base: unmanaged, dot: .period, name: .identifier("passRetained"))
+        let _passRetained = MemberAccessExpr(base: unmanaged, dot: .period, name: .identifier(cls.unretained ? "passUnretained" : "passRetained"))
         let passRetained = FunctionCallExpr(callee: _passRetained) {
             .init(expression: initPySwiftTarget().withLeadingTrivia(.newline))
         }.withRightParen(.rightParen.withLeadingTrivia(.newline))

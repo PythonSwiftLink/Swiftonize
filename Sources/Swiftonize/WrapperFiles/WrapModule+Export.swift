@@ -98,7 +98,7 @@ extension WrapModule {
                 }
             
         } else {
-            _func = FunctionCallExprSyntax(
+             _func = FunctionCallExprSyntax(
                 callee: IdentifierExprSyntax(stringLiteral: "PyModuleDefHandler")) {
                     TupleExprElementSyntax(label: "name", expression: .init(StringLiteralExprSyntax(stringLiteral: "\"\(filename)\"")))
                         .withLeadingTrivia(.newline)

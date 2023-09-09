@@ -211,6 +211,7 @@ enum WrapperClassOptions: String {
     case target
     case service_mode
     case new
+    case unretained
 }
 import SwiftSyntax
 import SwiftSyntaxBuilder

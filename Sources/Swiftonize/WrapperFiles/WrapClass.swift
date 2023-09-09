@@ -111,6 +111,8 @@ public class WrapClass {
     
     var debug_mode = false
     
+    var unretained = false
+    
     var callbacks: [WrapFunction] { functions.filter({$0.has_option(option: .callback)}) }
     var send_functions: [WrapFunction] { functions.filter({!$0.has_option(option: .callback)}) }
     
@@ -161,12 +163,20 @@ public class WrapClass {
                             break
                         case .new:
                             new_class = (Bool(kw.value.name) ?? false)
-                            
+                        case .unretained:
+                            unretained = (Bool(kw.value.name) ?? false)
                         default: break
                         }
                         
                     }
                 }
+            case "combine": if let deco = deco as? PyAst_Call {
+                deco.keywords.forEach { kw in
+                    switch kw.name {
+                    default: break
+                    }
+                }
+            }
             default: break
             }
         }

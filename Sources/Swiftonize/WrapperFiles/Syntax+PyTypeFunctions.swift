@@ -137,7 +137,7 @@ extension PyTypeFunctions {
         case .tp_new:
             return .init(fromProtocol: tp_new)
         case .tp_dealloc:
-            return .init(stringLiteral:
+            return cls.unretained ? .init(fromProtocol: NilLiteralExpr() ) : .init(stringLiteral:
                 tp_dealloc.formatted().description
                     .replacingOccurrences(of: "d < ", with: "d<")
                     .replacingOccurrences(of: " > .", with: ">.")
@@ -160,9 +160,6 @@ extension PyTypeFunctions {
         case .tp_repr:
             return .init(fromProtocol: tp_repr ?? NilLiteralExpr() )
         case .tp_hash:
-//            if let tp_hash = tp_hash {
-//                return .init(tp_hash)
-//            }
             return .init(fromProtocol: tp_hash ?? NilLiteralExpr() )
 //        case .tp_as_buffer:
 //            return .init(fromProtocol: NilLiteralExpr() )
