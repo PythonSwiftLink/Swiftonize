@@ -40,16 +40,28 @@ public class GenericPyCall {
         case none
     }
     
+    public enum GILMode {
+        case none
+        case enabled
+        case external
+    }
+    
     var arg_count: Int
     
     var pyPointer: String?
     
     var returnType: RType
     
-    public init(arg_count: Int, pyPointer: String?=nil, rtn: RType) {
+    //var gil: Bool
+    
+    var gil_mode: GILMode
+    
+    public init(arg_count: Int, pyPointer: String?=nil,gil_mode: GILMode = .none, rtn: RType) {
         self.arg_count = arg_count
         self.pyPointer = pyPointer
         self.returnType = rtn
+        //self.gil = gil
+        self.gil_mode = gil_mode
     }
     
     var parameters: ParameterClause {
@@ -129,9 +141,34 @@ public class GenericPyCall {
                 }
             }//.withLeadingTrivia(.newline + .tab)
         }
+        var attributeList: AttributeListSyntax? {
+            guard returnType == .PyPointer else { return nil }
+            return .init {
+                CustomAttributeSyntax(.init(stringLiteral: "_disfavoredOverload"))
+            }.withTrailingTrivia(.newline)
+        }
         //returnType == .ConvertibleFromPython ? .R : nil
-        return .init(identifier: .identifier(title), genericParameterClause: generics, signature: functionSignature, genericWhereClause: whereClause) {
-            
+        let public_mod = ModifierList {
+            DeclModifier(name: .identifier("public "))
+        }
+        return .init(
+            attributes: attributeList,
+            modifiers: public_mod,
+            identifier: .identifier(title),
+            genericParameterClause: generics,
+            signature: functionSignature,
+            genericWhereClause: whereClause) {
+            let gil = self.gil_mode == .enabled
+            if gil {
+                if returnType == .PyPointer {
+                    SequenceExpr(stringLiteral: "_ = PyGILState_Ensure()")
+                    
+                } else {
+                    VariableDecl(letOrVarKeyword: .let) {
+                        PatternBinding(pattern: IdentifierPattern(stringLiteral: "gil"), initializer: .init(value: FunctionCallExpr(callee: IdentifierExpr(stringLiteral: "PyGILState_Ensure"))))
+                    }
+                }
+            }
             if arg_count > 0 {
                 if arg_count > 1 {
                     variDecl
@@ -157,10 +194,16 @@ public class GenericPyCall {
             case .PyEncodable:
                 handleReturn
                 FunctionCallExpr._Py_DecRef("result")
+                if gil {
+                    FunctionCallExpr(stringLiteral: "PyGILState_Release(gil)")
+                }
                 ReturnStmt(stringLiteral: "return rtn")
             case .PyPointer:
                 ReturnStmt(stringLiteral: "return result")
             case .none:
+                if gil {
+                    FunctionCallExpr(stringLiteral: "PyGILState_Release(gil)")
+                }
                 FunctionCallExpr._Py_DecRef("result")
             }
             
@@ -278,38 +321,47 @@ public class GenerateCallables {
             })))
         }).withTrailingTrivia(.newline)
     }
-    
+    public var asFunctions: CodeBlockItemList {.init {
+        importer
+        ImportDecl(stringLiteral: "import Foundation")
+        
+    }}
     public var code: CodeBlockItemList {
         .init {
             importer
             ImportDecl(stringLiteral: "import Foundation")
             ExtensionDecl("extension PyPointer") {
                 .init {
-                    for i in 0...9 {
-                        MemberDeclListItem(
-                            decl: GenericPyCall(arg_count: i, rtn: .PyEncodable).functionDecl("callAsFunction")
-                        ).withLeadingTrivia(.newlines(2))
-                        MemberDeclListItem(
-                            decl: GenericPyCall(arg_count: i, rtn: .PyPointer).functionDecl("callAsFunction")
-                        ).withLeadingTrivia(.newlines(2))
-                        MemberDeclListItem(
-                            decl: GenericPyCall(arg_count: i, rtn: .none).functionDecl("callAsFunction")
-                        ).withLeadingTrivia(.newlines(2))
-                        
-                    }
+                    let use_gil: GenericPyCall.GILMode = .none
+//                    for use_gil in [false, true] {
+                        for i in 0...9 {
+                            MemberDeclListItem(
+                                decl: GenericPyCall(arg_count: i, gil_mode: use_gil, rtn: .PyEncodable).functionDecl("callAsFunction")
+                            ).withLeadingTrivia(.newlines(2))
+                            MemberDeclListItem(
+                                decl: GenericPyCall(arg_count: i, gil_mode: use_gil, rtn: .PyPointer).functionDecl("callAsFunction")
+                            ).withLeadingTrivia(.newlines(2))
+                            MemberDeclListItem(
+                                decl: GenericPyCall(arg_count: i, gil_mode: use_gil, rtn: .none).functionDecl("callAsFunction")
+                            ).withLeadingTrivia(.newlines(2))
+                            
+                        }
+//                    }
                 }
             }.withTrailingTrivia(.newline)
-            
-            for i in 0...9 {
-                GenericPyCall(arg_count: i, pyPointer: "call", rtn: .PyEncodable).functionDecl("PythonCall")
-                    .withLeadingTrivia(.newlines(2))
-                GenericPyCall(arg_count: i, pyPointer: "call", rtn: .PyPointer).functionDecl("PythonCall")
-                    .withLeadingTrivia(.newlines(2))
-                GenericPyCall(arg_count: i, pyPointer: "call", rtn: .none).functionDecl("PythonCall")
-                    .withLeadingTrivia(.newlines(2))
+            for use_gil in [GenericPyCall.GILMode.none, .enabled] {
+                for i in 0...9 {
+                    let call_title = "PythonCall\(use_gil == .enabled ? "WithGil" : "")"
+                    GenericPyCall(arg_count: i, pyPointer: "call", gil_mode: use_gil, rtn: .PyEncodable).functionDecl(call_title)
+                    
+                        .withLeadingTrivia(.newlines(2))
+                    GenericPyCall(arg_count: i, pyPointer: "call", gil_mode: use_gil, rtn: .PyPointer).functionDecl(call_title)
+                        .withLeadingTrivia(.newlines(2))
+                    GenericPyCall(arg_count: i, pyPointer: "call", gil_mode: use_gil, rtn: .none).functionDecl(call_title)
+                        .withLeadingTrivia(.newlines(2))
+                }
+                
             }
-            
-            
         }
     }
     
