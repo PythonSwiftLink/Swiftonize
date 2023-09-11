@@ -10,7 +10,7 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import PyAstParser
 import PythonSwiftCore
-import SwiftSyntaxParser
+//import SwiftSyntaxParser
 import SwiftParser
 
 extension TypeAnnotation {

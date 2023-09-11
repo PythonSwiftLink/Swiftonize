@@ -9,7 +9,7 @@ import Foundation
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftParser
-import SwiftSyntaxParser
+//import SwiftSyntaxParser
 
 
 class PyTypeFunctions {

@@ -7,7 +7,7 @@
 
 import Foundation
 import SwiftSyntax
-import SwiftSyntaxParser
+//import SwiftSyntaxParser
 
 class PyGetSetProperty {
     
