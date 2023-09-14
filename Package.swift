@@ -1,4 +1,4 @@
-// swift-tools-version: 5.7
+// swift-tools-version: 5.8
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -22,7 +22,9 @@ let package = Package(
         .package(url: "https://github.com/PythonSwiftLink/PythonSwiftCore", branch: "testing"),
         //.package(url: "https://github.com/PythonSwiftLink/PythonSwiftCore", from: .init(0, 3, 0)),
         .package(url: "https://github.com/SwiftyJSON/SwiftyJSON", branch: "master"),
-        .package(url: "https://github.com/apple/swift-syntax", from: .init(508, 0, 0))
+        .package(url: "https://github.com/apple/swift-syntax", from: .init(508, 0, 0)),
+        
+        .package(path: "../PythonTestSuite")
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -43,9 +45,15 @@ let package = Package(
             dependencies: [
                 "WrapContainers"
             ]
-        )
-//        .testTarget(
-//            name: "PythonSwiftLinkParserTests",
-//            dependencies: ["PythonSwiftLinkParser","PyAstParser"]),
+        ),
+        .testTarget(
+            name: "SwiftonizeTests",
+            dependencies: [
+                "Swiftonize",
+                "WrapContainers",
+                "PythonSwiftCore",
+                "PythonTestSuite"
+            ]
+        ),
     ]
 )

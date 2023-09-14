@@ -45,6 +45,8 @@ public class callableArg: _WrapArg, WrapArgProtocol {
                 callArgs = _list.elts.enumerated().map { i, a in _WrapArg._fromAst(index: i, a, name: "__arg\(i)__") }
 //            case let sub as PyAst_Subscript:
 //                callArgs = s
+            case let sub as PyAst_Subscript:
+                callArgs = [_WrapArg._fromAst(index: 0, sub, name: _name)]
             default:
                 
                 let wrong_ast = telts[0]
