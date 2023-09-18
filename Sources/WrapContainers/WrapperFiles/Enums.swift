@@ -112,7 +112,7 @@ public enum PythonType: String, CaseIterable,Codable {
 }
 public extension PythonType {
     
-    var annotation: TypeAnnotation {
+    var annotation: TypeAnnotationSyntax {
         
         return .init(type: syntaxType)
     }

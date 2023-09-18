@@ -2,6 +2,8 @@ import XCTest
 @testable import Swiftonize
 @testable import WrapContainers
 @testable import PythonTestSuite
+import SwiftParser
+import SwiftSyntax
 
 final class SwiftnizeTests: XCTestCase {
     
@@ -93,7 +95,7 @@ final class SwiftnizeTests: XCTestCase {
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
         initPython()
-        
+        return 
         let module = await WrapModule(fromAst: "my_module", string: """
         @wrapper
         class MyWrapper:
@@ -124,4 +126,57 @@ final class SwiftnizeTests: XCTestCase {
         
         
     }
+	
+	func test_autoWrapper() throws {
+		initPython()
+		
+		let classes = nsItemProviderTree.statements.compactMap { blockitem in
+			blockitem.item.as(ClassDeclSyntax.self)
+		}
+		let export = URL(filePath: "/Users/codebuilder/Downloads/export.swift")
+		let url = URL(filePath: "/Volumes/CodeSSD/GitHub/kivy-ios/kivy_ios/recipes/swift_webviews/src/sources/WebViews.swift")
+		let mod = WrapModule(filename: url.deletingPathExtension().lastPathComponent, file: try! .init(contentsOf: url))
+//		let mod = WrapModule(filename: "mySwift")
+//		mod.classes = classes.map(WrapClass.init)
+//		let url = URL(fileURLWithPath: "/Users/codebuilder/Downloads/export.swift")
+		try mod.code.formatted().description.write(to: export, atomically: true, encoding: .utf8)
+		
+	}
 }
+public let nsItemProviderTree = Parser.parse(source: nsItemProviderCode)
+public let testBuilderTree = Parser.parse(source: """
+
+class MySwiftClass {
+
+	var a: String {
+		""
+	}
+
+	private var b: String {
+		get { }
+		set { }
+	}
+	public var c: String {
+		get { }
+		set { }
+	}
+
+
+	func MyFunction(a: Int) -> String {
+		return ""
+	}
+
+	func MyFunction2(b: Int, c: String?) -> String {
+		return ""
+	}
+
+	func MyFunction3( _ b: Int, _ c: [[Int]]) -> String {
+		return ""
+	}
+}
+
+enum MySwiftEnum: String {
+ case MyCase
+}
+
+""")

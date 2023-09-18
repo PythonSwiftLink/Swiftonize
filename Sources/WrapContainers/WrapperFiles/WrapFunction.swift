@@ -38,6 +38,19 @@ class WrapFunctionDecorator: Codable {
 }
 
 public class WrapFunction {
+	public init(name: String, _args_: [WrapArgProtocol], _return_: WrapArgProtocol, call_class: String? = nil, call_target: String? = nil, options: [WrapFunctionOption], wrap_class: WrapClass?) {
+		self.name = name
+		self.args = []
+		self._args_ = _args_
+		self._return_ = _return_
+		self.call_class = call_class
+		self.call_target = call_target
+		self.options = options
+		self.compare_string = ""
+		self.function_pointer = ""
+		self.wrap_class = wrap_class
+	}
+	
     public let name: String
     public var args: [WrapArg]
     public var _args_: [WrapArgProtocol]

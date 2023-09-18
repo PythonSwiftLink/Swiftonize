@@ -37,6 +37,23 @@ fileprivate extension PyPointer {
 }
 
 public class WrapModule {
+	public init(filename: String, classes: [WrapClass] = [], custom_enums: [CustomEnum] = [], python_classes: [String] = [], dispatchEnabled: Bool = false, expose_module_functions: Bool = false, functions: [WrapFunction] = [], constants: [WrapArgProtocol] = [], vars: [WrapArgProtocol] = [], usedTypes: [WrapArg] = [], usedListTypes: [WrapArg] = [], pyi_mode: Bool = false, swift_import_list: [String] = [String](), swiftui_mode: Bool = false) {
+		self.filename = filename
+		self.classes = classes
+		self.custom_enums = custom_enums
+		self.python_classes = python_classes
+		self.dispatchEnabled = dispatchEnabled
+		self.expose_module_functions = expose_module_functions
+		self.functions = functions
+		self.constants = constants
+		self.vars = vars
+		self.usedTypes = usedTypes
+		self.usedListTypes = usedListTypes
+		self.pyi_mode = pyi_mode
+		self.swift_import_list = swift_import_list
+		self.swiftui_mode = swiftui_mode
+	}
+	
     
     
     public var filename: String

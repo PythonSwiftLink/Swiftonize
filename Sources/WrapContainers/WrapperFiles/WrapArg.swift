@@ -37,6 +37,8 @@ private func WrapArgHasOption(arg: WrapArg,option: WrapArgOptions) -> Bool {
 }
 
 public class WrapArg: Equatable {
+
+	
     var name: String
     var type: PythonType
     var other_type: String?

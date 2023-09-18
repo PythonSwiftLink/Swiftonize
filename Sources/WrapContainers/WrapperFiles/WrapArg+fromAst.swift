@@ -121,7 +121,7 @@ extension _WrapArg {
         fatalError(v.name)
     }
     
-    static func wrapArgFromType(name: String, type: PythonType, _other_type: String?, idx: Int, options: [WrapArgOptions]) -> WrapArgProtocol {
+    public static func wrapArgFromType(name: String, type: PythonType, _other_type: String?, idx: Int, options: [WrapArgOptions]) -> WrapArgProtocol {
         switch type {
             
         case .int, .int32, .int16, .int8, .uint, .uint32, .uint16, .uint8, .long, .ulong, .short, .ushort:

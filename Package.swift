@@ -1,4 +1,4 @@
-// swift-tools-version: 5.8
+// swift-tools-version: 5.7
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -18,13 +18,15 @@ let package = Package(
         //.package(path: "../PyAstParser"),
         //.package(path: "../PythonSwiftCore"),
         .package(url: "https://github.com/PythonSwiftLink/PyAstParser", branch: "main"),
+        //.package(path: "../PyAstParser"),
         //.package(url: "https://github.com/PythonSwiftLink/PythonSwiftCore", branch: "main"),
         .package(url: "https://github.com/PythonSwiftLink/PythonSwiftCore", branch: "testing"),
         //.package(url: "https://github.com/PythonSwiftLink/PythonSwiftCore", from: .init(0, 3, 0)),
         .package(url: "https://github.com/SwiftyJSON/SwiftyJSON", branch: "master"),
         .package(url: "https://github.com/apple/swift-syntax", from: .init(508, 0, 0)),
         
-        .package(path: "../PythonTestSuite")
+        //.package(path: "../PythonTestSuite")
+        .package(url: "https://github.com/PythonSwiftLink/PythonTestSuite", branch: "master"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -35,15 +37,17 @@ let package = Package(
                 "PythonSwiftCore",
                 "PyAstParser",
                 "SwiftyJSON",
-                .product(name: "SwiftSyntax", package: "swift-syntax"),
-                .product(name: "SwiftSyntaxBuilder", package: "swift-syntax")
+				.product(name: "SwiftSyntax", package: "swift-syntax"),
+				.product(name: "SwiftSyntaxBuilder", package: "swift-syntax")
             ]
         ),
         
         .target(
             name: "Swiftonize",
             dependencies: [
-                "WrapContainers"
+                "WrapContainers",
+				.product(name: "SwiftSyntax", package: "swift-syntax"),
+				.product(name: "SwiftSyntaxBuilder", package: "swift-syntax")
             ]
         ),
         .testTarget(
@@ -52,7 +56,8 @@ let package = Package(
                 "Swiftonize",
                 "WrapContainers",
                 "PythonSwiftCore",
-                "PythonTestSuite"
+                "PythonTestSuite",
+				.product(name: "SwiftSyntaxBuilder", package: "swift-syntax")
             ]
         ),
     ]

@@ -171,6 +171,8 @@ public enum PySequenceFunctions: String, CaseIterable {
 
 
 public class WrapClass {
+	
+	
     
 
     public var _title: String
@@ -223,7 +225,7 @@ public class WrapClass {
     public var callbacks: [WrapFunction] { functions.filter({$0.has_option(option: .callback)}) }
     public var send_functions: [WrapFunction] { functions.filter({!$0.has_option(option: .callback)}) }
     
-    init(_ name: String) {
+    public init(_ name: String) {
         _title = name
         functions = []
         decorators = []

@@ -59,7 +59,7 @@ public class collectionArg: _WrapArg, WrapArgProtocol {
 //    
 //    public func swift_property_setter(arg: String) -> String { handleSendCallType2(T: arg) }
 //    
-    init(name: String, type: PythonType, other_type: String?, idx: Int, options: [WrapArgOptions],element: WrapArgProtocol) {
+    public init(name: String, type: PythonType, other_type: String?, idx: Int, options: [WrapArgOptions],element: WrapArgProtocol) {
         self.element = element
         super.init(_name: name, _type: type, _other_type: other_type, _idx: idx, _options: options)
     }

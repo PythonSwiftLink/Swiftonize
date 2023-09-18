@@ -120,7 +120,7 @@ extension objectArg: WrapArgSyntax {
 }
 
 extension otherArg: WrapArgSyntax {
-    public var typeSyntax: TypeSyntax { .init(stringLiteral: other_type! ) }
+    public var typeSyntax: TypeSyntax { .init(stringLiteral: other_type ?? "wrongType" ) }
     
     public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
     

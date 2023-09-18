@@ -5,6 +5,12 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 
 public class callableArg: _WrapArg, WrapArgProtocol {
+	public init(name: String, idx: Int = 0, callArgs: [WrapArgProtocol] = [], _return: WrapArgProtocol? = nil) {
+		self.callArgs = callArgs
+		self._return = _return
+		super.init(_name: name, _type: .callable, _other_type: nil, _idx: idx, _options: [])
+	}
+	
     
     public var callArgs: [WrapArgProtocol] = []
     public var _return: WrapArgProtocol?

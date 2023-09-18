@@ -89,7 +89,7 @@ public class GenericPyCall {
         switch returnType {
             
         case .PyPointer:
-            return .init(returnType: SimpleTypeIdentifier(stringLiteral: "PyPointer" ))
+			return .init(returnType: SimpleTypeIdentifier(stringLiteral: "PyPointer" ))
         case .PyEncodable:
             return .init(returnType: SimpleTypeIdentifier(stringLiteral: "R" ))
         case .none:

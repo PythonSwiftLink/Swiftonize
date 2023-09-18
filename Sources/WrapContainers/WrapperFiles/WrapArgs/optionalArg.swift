@@ -59,7 +59,7 @@ public class optionalArg: _WrapArg, WrapArgProtocol {
 //    
 //    public func swift_property_setter(arg: String) -> String { handleSendCallType2(T: arg) }
 //    
-    init(name: String, type: PythonType, other_type: String?, idx: Int, options: [WrapArgOptions],wrapped: WrapArgProtocol) {
+    public init(name: String, type: PythonType, other_type: String?, idx: Int, options: [WrapArgOptions],wrapped: WrapArgProtocol) {
         wrapped.add_option(.optional)
         (wrapped as! _WrapArg).setIndex(idx)
         self.wrapped = wrapped

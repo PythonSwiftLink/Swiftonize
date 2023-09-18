@@ -64,7 +64,7 @@ public class strArg: _WrapArg, WrapArgProtocol {
 //    
 //    public func swift_property_setter(arg: String) -> String { handleSendCallType2(T: arg) }
 //    
-    override init(_name: String, _type: PythonType, _other_type: String?, _idx: Int, _options: [WrapArgOptions]) {
+    override public init(_name: String, _type: PythonType, _other_type: String?, _idx: Int, _options: [WrapArgOptions]) {
         super.init(_name: _name, _type: _type, _other_type: _other_type, _idx: _idx, _options: [])
     }
     
@@ -146,28 +146,37 @@ extension strArg: CustomStringConvertible {
     public var description: String { argType }
 }
 
-extension strArg: IdentifiedDeclSyntax {
-
-    public var identifier: SwiftSyntax.TokenSyntax {
-        .identifier(argType)
-    }
-    
-    public func withIdentifier(_ newChild: SwiftSyntax.TokenSyntax?) -> Self {
-        self
-    }
-    
-    public var _syntaxNode: SwiftSyntax.Syntax {
-        .init(identifier)
-    }
-    
-    static public var structure: SwiftSyntax.SyntaxNodeStructure {
-        .choices([])
-    }
-    
-    public func childNameForDiagnostics(_ index: SwiftSyntax.SyntaxChildrenIndex) -> String? {
-        nil
-    }
-}
-
+//extension strArg: IdentifiedDeclSyntax {
+//	public var name: SwiftSyntax.TokenSyntax {
+//		get {
+//			.identifier(name)
+//		}
+//		set(newValue) {
+//			<#code#>
+//		}
+//	}
+//	
+//
+//    public var identifier: SwiftSyntax.TokenSyntax {
+//        .identifier(argType)
+//    }
+//    
+//    public func withIdentifier(_ newChild: SwiftSyntax.TokenSyntax?) -> Self {
+//        self
+//    }
+//    
+//    public var _syntaxNode: SwiftSyntax.Syntax {
+//        .init(identifier)
+//    }
+//    
+//    static public var structure: SwiftSyntax.SyntaxNodeStructure {
+//        .choices([])
+//    }
+//    
+//    public func childNameForDiagnostics(_ index: SwiftSyntax.SyntaxChildrenIndex) -> String? {
+//        nil
+//    }
+//}
+//
 
 
