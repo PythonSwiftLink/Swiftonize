@@ -61,7 +61,7 @@ extension WrapClass {
     
     public var pySwiftType: VariableDeclSyntax {
         let name = IdentifierPatternSyntax(identifier: .identifier("\(title)PyType"))
-        let var_decl = VariableDeclSyntax(.let, name: name, initializer: createPySwiftType.initClause )
+		let var_decl = VariableDeclSyntax(modifiers: [.init(name: .public)],.let, name: name, initializer: createPySwiftType.initClause )
         return var_decl
     }
     
@@ -245,7 +245,7 @@ extension WrapClass {
             return -1
             
             },
-            _release : { s, buf in
+            _releaseBuffer : { s, buf in
             
             }
         )
@@ -399,7 +399,7 @@ extension WrapClass {
     
     fileprivate var createPyClass: CodeBlockItemSyntax {
         .init(item: .decl(.init(stringLiteral: """
-        func create_py\(title)(_ target: \(title)) -> PyPointer {
+        public func create_py\(title)(_ target: \(title)) -> PyPointer {
             let new = _PySwiftObject_New(\(title)PyType.pytype)
             PySwiftObject_Cast(new).pointee.swift_ptr = Unmanaged.passRetained(target).toOpaque()
             return new!
@@ -408,7 +408,7 @@ extension WrapClass {
     }
     fileprivate var createPyObjectClass: CodeBlockItemSyntax {
         .init(item: .decl(.init(stringLiteral: """
-        func _create_py\(title)(_ target: \(title)) -> PythonObject {
+        public func _create_py\(title)(_ target: \(title)) -> PythonObject {
             let new = PySwiftObject_New(\(title)PyType.pytype)
             PySwiftObject_Cast(new).pointee.swift_ptr = Unmanaged.passRetained(target).toOpaque()
             return .init(ptr: new, from_getter: true)

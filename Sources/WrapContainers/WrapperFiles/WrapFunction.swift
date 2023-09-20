@@ -59,6 +59,7 @@ public class WrapFunction {
     //let is_callback: Bool
     //let swift_func: Bool
     //let direct: Bool
+	public var default_args: [String] = []
     public let call_class: String!
     public var call_target: String!
     
@@ -93,6 +94,7 @@ public class WrapFunction {
         //_args_ = ast_func.args.filter({$0.name != "self"}).enumerated().map(_buildWrapArg)
         _args_ = ast_func.args.filter({$0.name != "self"}).enumerated().map(_WrapArg.fromAst)
         
+		default_args = ast_func.defaults.map(\.name)
         //_args_ = ast_func.args.enumerated().c
         
         //returns = .init(name: "", type: .void, other_type: "", idx: 0, arg_options: [.return_])
