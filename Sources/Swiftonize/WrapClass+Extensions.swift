@@ -315,7 +315,7 @@ public extension WrapClass {
             //}
         }
         let _protocol = ProtocolDeclSyntax(
-            modifiers: nil,
+			modifiers: [.init(name: .public)],
             protocolKeyword: .protocol,
             identifier: .identifier("\(title)_PyProtocol"),
             members: .init(members: protocolList)

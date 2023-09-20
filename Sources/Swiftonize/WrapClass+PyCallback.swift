@@ -248,7 +248,7 @@ class PythonCall {
         func_lines.append("Py_DecRef(\(name)_result)")
         func_lines.append("if let gil = gil { PyGILState_Release(gil) }")
         func_lines.append(return_result)
-        return withCodeLines(func_lines)
+		return withCodeLines(func_lines).addModifier(.init(name: .public))
     }
     
     var function_string: String {

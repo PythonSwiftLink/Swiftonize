@@ -144,6 +144,7 @@ extension WrapModule {
         let initializer = InitializerClauseSyntax(value: f_expr)
         
         return .init(
+			modifiers: [.init(name: .public)],
             identifier: .identifier("PyInit_\(filename)"),
             signature: sig) {
                 let pattern = IdentifierPatternSyntax(stringLiteral: "m")

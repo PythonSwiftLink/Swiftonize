@@ -125,6 +125,7 @@ public class PyCallbacksGenerator {
         let cls_title = cls.new_class ?  cls.title : "\(cls.title)PyCallback"
         let cls_dect = ClassDeclSyntax(
             attributes: nil,
+			modifiers: [.init(name: .public)],
             identifier: cls_title,
             inheritanceClause: inher) {
                 .init {
