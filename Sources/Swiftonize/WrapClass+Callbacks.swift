@@ -139,7 +139,7 @@ public class PyCallbacksGenerator {
                     
                     _deinit.withTrailingTrivia(.newline)
                     for f in cls.callbacks {
-                        PythonCall(function: f).functionDecl.withTrailingTrivia(.newline)
+						PythonCall(function: f).functionDecl.withTrailingTrivia(.newline)
                     }
                 }.withTrailingTrivia(.newline)
             }

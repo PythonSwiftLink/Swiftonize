@@ -62,6 +62,8 @@ public protocol WrapArgProtocol: Decodable {
 //    func extractDecl(many: Bool) -> VariableDecl?
 }
 
+
+
 public protocol PyCallbackExtactable {
     
     

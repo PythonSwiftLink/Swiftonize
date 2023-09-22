@@ -169,6 +169,12 @@ public enum PySequenceFunctions: String, CaseIterable {
     case __contains__ // PySequenceMethods.sq_contains - methods.contains
 }
 
+public enum RepresentedPyPType: String {
+	case `class`
+	case tuple
+	case dict
+	case list
+}
 
 public class WrapClass {
 	
@@ -224,6 +230,8 @@ public class WrapClass {
     
     public var callbacks: [WrapFunction] { functions.filter({$0.has_option(option: .callback)}) }
     public var send_functions: [WrapFunction] { functions.filter({!$0.has_option(option: .callback)}) }
+	
+	public var representedPyType: RepresentedPyPType = .class
     
     public init(_ name: String) {
         _title = name
@@ -274,6 +282,10 @@ public class WrapClass {
                             new_class = (Bool(kw.value.name) ?? false)
                         case .unretained:
                             unretained = (Bool(kw.value.name) ?? false)
+						case .pytype:
+							if let rpType = RepresentedPyPType(rawValue: kw.value.name) {
+								representedPyType = rpType
+							}
                         default: break
                         }
                         
@@ -286,6 +298,7 @@ public class WrapClass {
                     }
                 }
             }
+			
             default: break
             }
         }
@@ -375,8 +388,10 @@ public class WrapClass {
         case .__call__:
             pyClassMehthods.append(.__call__)
         case .__init__:
-            let init_f = WrapFunction(fromAst: element)
-            init_function = init_f
+			if representedPyType == .class {
+				let init_f = WrapFunction(fromAst: element)
+				init_function = init_f
+			}
         case .__buffer__:
             pyClassMehthods.append(.__buffer__)
             

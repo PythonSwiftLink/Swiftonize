@@ -25,7 +25,7 @@ class createTP_Init {
     weak var _cls: WrapClass?
     var cls: WrapClass { _cls! }
     var args: [WrapArgProtocol]
-    var __init__: WrapFunction { cls.init_function! }
+    var __init__: WrapFunction? { cls.init_function }
     
     //init(@ArgsUnpacker args: () -> [WrapArgProtocol]) {
     init(cls: WrapClass, args: [WrapArgProtocol]) {
@@ -76,6 +76,7 @@ class createTP_Init {
                 nkwargs
                 CodeBlockItemSyntax.if_nkwargs(args: args) {
                     //else
+					
                     nargs
                     GuardStmt.nargs_kwargs(args.count)
                     handle_args_n_kwargs
@@ -144,10 +145,18 @@ class createTP_Init {
     }
     
     func setPointer() -> SequenceExprSyntax {
+		let _throws_ = __init__?.throws ?? false
         let unmanaged = IdentifierExpr(stringLiteral: "Unmanaged")
         let _passRetained = MemberAccessExpr(base: unmanaged, dot: .period, name: .identifier(cls.unretained ? "passUnretained" : "passRetained"))
+		var initExpr: ExprSyntaxProtocol {
+			if _throws_ {
+				return initPySwiftTargetThrows()
+			} else {
+				return initPySwiftTarget()
+			}
+		}
         let passRetained = FunctionCallExpr(callee: _passRetained) {
-            .init(expression: initPySwiftTarget().withLeadingTrivia(.newline))
+			.init(expression: initExpr.withLeadingTrivia(.newline))
         }.withRightParen(.rightParen.withLeadingTrivia(.newline))
         let toOpaque = FunctionCallExpr(callee: MemberAccessExpr(
             base: passRetained,
@@ -164,7 +173,7 @@ class createTP_Init {
     }
     
     func initPySwiftTarget() -> FunctionCallExprSyntax {
-        let id = IdentifierExprSyntax(identifier: .identifier(cls.title))
+		let id = IdentifierExprSyntax(identifier: .identifier(cls.title))
         
         let tuple = TupleExprElementList {
             //TupleExprElementSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
@@ -178,11 +187,32 @@ class createTP_Init {
             leftParen: .leftParen,
             argumentList: tuple,
             rightParen: .rightParen
-        )
-        return f_exp
+		)
+		return f_exp
         
         //return TryExprSyntax(tryKeyword: .tryKeyword(trailingTrivia: .space), expression: f_exp)
     }
+	
+	func initPySwiftTargetThrows() -> TryExpr {
+		let id = IdentifierExprSyntax(identifier: .identifier(cls.title))
+		
+		let tuple = TupleExprElementList {
+			//TupleExprElementSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
+			for arg in args {
+				TupleExprElementSyntax(label: arg.label, expression: .init(stringLiteral: arg.name))
+			}
+			
+		}
+		let f_exp = FunctionCallExprSyntax(
+			calledExpression: id,
+			leftParen: .leftParen,
+			argumentList: tuple,
+			rightParen: .rightParen
+		)
+		return .init(expression: f_exp)
+		
+		//return TryExprSyntax(tryKeyword: .tryKeyword(trailingTrivia: .space), expression: f_exp)
+	}
     
 }
 

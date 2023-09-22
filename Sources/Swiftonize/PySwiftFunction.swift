@@ -10,7 +10,38 @@ import SwiftSyntax
 import SwiftParser
 import WrapContainers
 
-
+extension WrapFunction {
+//	public var statements: SwiftSyntax.CodeBlockItemListSyntax {
+//		.init([.init(item: body)])
+//	}
+//	
+	public func withStatements(_ newChild: SwiftSyntax.CodeBlockItemListSyntax?) -> Self {
+		fatalError()
+	}
+	
+	public var body: SwiftSyntax.CodeBlockSyntax {
+		PySwiftFunction(function: self).body
+	}
+	
+	
+	public func withBody(_ newChild: SwiftSyntax.CodeBlockSyntax?) -> Self {
+		fatalError()
+	}
+	
+	public var _syntaxNode: SwiftSyntax.Syntax {
+		fatalError()
+	}
+	
+	public static var structure: SwiftSyntax.SyntaxNodeStructure {
+		fatalError()
+	}
+	
+	public func childNameForDiagnostics(_ index: SwiftSyntax.SyntaxChildrenIndex) -> String? {
+		fatalError()
+	}
+	
+	
+}
 
 class PySwiftFunction {
     
@@ -19,7 +50,9 @@ class PySwiftFunction {
     //var guard_line: String = ""
     var code: [String] = []
     var args: [WrapArgProtocol] { function._args_ }
+	var defaults: [String] { function.default_args }
     var arg_count: Int { args.count }
+	var defaults_count: Int { defaults.count }
     
     init(function: WrapFunction) {
         self._function = function
@@ -72,8 +105,9 @@ class PySwiftFunction {
     private var _guard: GuardStmtSyntax {
         let conditions = ConditionElementListSyntax {
             let arg_count = function._args_.count
+			let defaults_count = function.default_args.count
             if arg_count > 1 {
-                countCompare("nargs", " == ", arg_count)
+                countCompare("nargs", " >= ", arg_count - defaults_count)
                 "_args_".optionalGuardUnwrap
             } else {
                 for arg in function._args_.argConditions {
@@ -121,6 +155,40 @@ class PySwiftFunction {
 //            }
 //        }
     }
+	
+	func caseItem(_ v: Int) -> CaseItem {
+		.init(pattern: ExpressionPatternSyntax(expression: IntegerLiteralExpr(v) ) )
+	}
+	func switchCaseLabel(_ v: Int) -> SwitchCaseLabel {
+		return .init(caseItems: .init([
+			caseItem(v)
+		]))
+	}
+	
+	var breakBlockItem: CodeBlockItemListSyntax {
+		.init([
+			.init(item: .stmt(.init(stringLiteral: "break")))
+		])
+	}
+	
+	var sCases: [SwitchCase] {
+		((arg_count - defaults_count)...arg_count).map { i in
+			//SwitchCase(label: .case(switchCaseLabel(i)), statements: [])
+			SwitchCase(label: .case(switchCaseLabel(i)), statements: caseFunctionCode(maxArgs: i))
+		}
+	}
+	
+	var switchcase: SwitchStmt {
+
+		return .init(
+			expression: IdentifierExpr(stringLiteral: "nargs"),
+			cases: .init(itemsBuilder: {
+				for c in sCases {
+					c
+				}
+			})
+		)
+	}
     
     private var functionCode: CodeBlockItemListSyntax {
         .init {
@@ -129,14 +197,48 @@ class PySwiftFunction {
             }
             switch function._return_.type {
             case .void, .None:
-                function.pyCall
+				if function.throws {
+					TryExpr(expression: function.pyCall )
+				} else {
+					function.pyCall
+				}
             default:
-                function.pyCallReturn
+				function.pyCallReturn
             }
-            
             function.pyReturnStmt.withTrailingTrivia(.newline)
         }
     }
+	
+	private func caseFunctionCode(maxArgs: Int) -> CodeBlockItemListSyntax {
+		.init {
+			for extract in extracts {
+				extract
+			}
+			switch function._return_.type {
+			case .void, .None:
+				function.pyCallDefault(maxArgs: maxArgs)
+			default:
+				function.pyCallDefaultReturn(maxArgs: maxArgs)
+			}
+			
+			function.pyReturnStmt.withTrailingTrivia(.newline)
+		}
+	}
+	
+	private func doCatchCase() -> DoStmtSyntax {
+		var do_stmt = DoStmtSyntax {
+			CodeBlockItemListSyntax {
+				
+				_guard.codeBlockItem.withTrailingTrivia(.newline)
+				//caseFunctionCode(maxArgs: arg_count - defaults_count)
+				switchcase
+				
+			}
+			//.withLeadingTrivia(.newline)
+		}
+		do_stmt.catchClauses = catchClauseList
+		return do_stmt
+	}
     
     private var doCatch: DoStmtSyntax {
         var do_stmt = DoStmtSyntax {
@@ -193,8 +295,13 @@ class PySwiftFunction {
 
         f.trailingClosure = .init(signature: signature.withTrailingTrivia(.newline)) {
             if function.wrap_class != nil || args.count > 0 {
-                doCatch.withTrailingTrivia(.newline)
-                ReturnStmtSyntax(stringLiteral: "return nil")
+				if defaults_count > 0 {
+					doCatchCase().withTrailingTrivia(.newline)
+					ReturnStmtSyntax(stringLiteral: "return nil")
+				} else {
+					doCatch.withTrailingTrivia(.newline)
+					ReturnStmtSyntax(stringLiteral: "return nil")
+				}
             } else {
                 functionCode.withTrailingTrivia(.newline)
             }
@@ -227,6 +334,18 @@ class PySwiftFunction {
     
     
 }
+extension PySwiftFunction: WithCodeBlockSyntax {
+	var body: SwiftSyntax.CodeBlockSyntax {
+		.init(statements: statements)
+	}
+	
+	func withBody(_ newChild: SwiftSyntax.CodeBlockSyntax?) -> Self {
+		self
+	}
+	
+	
+}
+
 extension PySwiftFunction: WithStatementsSyntax {
     var statements: SwiftSyntax.CodeBlockItemListSyntax {
         .init {

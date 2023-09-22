@@ -31,6 +31,7 @@ public enum WrapFunctionDecoratorType: String, Codable {
     case no_protocol
     case call_target
     case func_options
+	case `throws`
 }
 
 class WrapFunctionDecorator: Codable {
@@ -64,6 +65,8 @@ public class WrapFunction {
     public var call_target: String!
     
     public var options: [WrapFunctionOption]
+	
+	public var `throws` = false
     
     
     //let is_dispatch: Bool
@@ -116,7 +119,8 @@ public class WrapFunction {
         
         ast_func.decorator_list.forEach { deco in
             switch WrapFunctionDecoratorType(rawValue: deco.name) {
-            
+			case .throws:
+				self.throws = true
             case .func_options:
                 guard
                     let call = deco as? PyAst_Call

@@ -310,7 +310,9 @@ enum WrapperClassOptions: String {
     case service_mode
     case new
     case unretained
+	case pytype
 }
+
 import SwiftSyntax
 import SwiftSyntaxBuilder
 

@@ -4,7 +4,23 @@ import PyAstParser
 import SwiftSyntax
 import SwiftSyntaxBuilder
 
-public class callableArg: _WrapArg, WrapArgProtocol {
+public class callableArg: _WrapArg, WrapArgProtocol, DeclSyntaxProtocol {
+	public required init?<S>(_ node: S) where S : SwiftSyntax.SyntaxProtocol {
+		super.init()
+	}
+	
+	public var _syntaxNode: SwiftSyntax.Syntax {
+		.init(FunctionDecl(stringLiteral: "func yourMom() {}"))
+	}
+	
+	public static var structure: SwiftSyntax.SyntaxNodeStructure {
+		.choices([])
+	}
+	
+	public func childNameForDiagnostics(_ index: SwiftSyntax.SyntaxChildrenIndex) -> String? {
+		name
+	}
+	
 	public init(name: String, idx: Int = 0, callArgs: [WrapArgProtocol] = [], _return: WrapArgProtocol? = nil) {
 		self.callArgs = callArgs
 		self._return = _return

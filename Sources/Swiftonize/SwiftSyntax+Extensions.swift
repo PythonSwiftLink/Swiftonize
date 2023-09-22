@@ -68,6 +68,29 @@ extension WrapFunction {
         )
         return call.withRightParen(_args_.count > 0 ? .rightParen.withLeadingTrivia(.newline) : .rightParen)
     }
+	
+	func pyCallDefault(maxArgs: Int) -> FunctionCallExprSyntax {
+		//let cls_pointer: FunctionCallExprSyntax = .getClassPointer(wrap_class?.title ?? "Unknown")
+		let args = Array(_args_[0..<maxArgs])
+		if let wrap_class = wrap_class {
+			let src_member = MemberAccessExprSyntax(
+				base: TryExprSyntax.unPackPySwiftObject(with: "_self_", as: wrap_class.title),
+				dot: .period,
+				name: .identifier(call_target ?? name)
+			)
+			let call = FunctionCallExprSyntax.pyCall(
+				src_member,
+				args: args,
+				cls: wrap_class
+			)
+			return call.withRightParen(_args_.count > 0 ? .rightParen.withLeadingTrivia(.newline) : .rightParen)
+		}
+		let call = FunctionCallExprSyntax.pyCall(
+			IdentifierExpr(stringLiteral: call_target ?? name),
+			args: args
+		)
+		return call.withRightParen(_args_.count > 0 ? .rightParen.withLeadingTrivia(.newline) : .rightParen)
+	}
     
     
     var returnPattern: PatternBindingSyntax {
@@ -76,14 +99,25 @@ extension WrapFunction {
     }
     
     var pyCallReturn: VariableDeclSyntax {
+		let call: ExprSyntaxProtocol = self.throws ? TryExpr(expression: pyCall) : pyCall
         let _var = VariableDeclSyntax(
             .let,
             name: .init(stringLiteral: "\(name)_result"),
-            initializer: .init(equal: .equal, value: pyCall)
+            initializer: .init(equal: .equal, value: call)
         )
         
         return _var.withTrailingTrivia(.newline)
     }
+	
+	func pyCallDefaultReturn(maxArgs: Int) -> VariableDeclSyntax {
+		let _var = VariableDeclSyntax(
+			.let,
+			name: .init(stringLiteral: "\(name)_result"),
+			initializer: .init(equal: .equal, value: pyCallDefault(maxArgs: maxArgs))
+		)
+		
+		return _var.withTrailingTrivia(.newline)
+	}
     
     var assignFromClass: SequenceExpr {
         .init {

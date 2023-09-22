@@ -14,9 +14,23 @@ import SwiftSyntaxBuilder
 import WrapContainers
 
 class PythonCall {
+	required init?<S>(_ node: S) where S : SwiftSyntax.SyntaxProtocol {
+		fatalError()
+	}
+	
+	var _syntaxNode: SwiftSyntax.Syntax {
+		functionDecl._syntaxNode
+	}
+	
+	static var structure: SwiftSyntax.SyntaxNodeStructure { fatalError() }
+	
+	func childNameForDiagnostics(_ index: SwiftSyntax.SyntaxChildrenIndex) -> String? {
+		name
+	}
+	
     
     weak var _function: WrapFunction?
-    var function: WrapFunction { _function! }
+    var function: WrapFunction? { _function }
     
     private weak var wrap_cls : WrapClass?
     
@@ -42,10 +56,17 @@ class PythonCall {
         if let wrap_cls = wrap_cls { return wrap_cls }
         fatalError()
     }
+	
+	var call_target: String {
+		if let call_target = function?.call_target { return call_target }
+		return function?.name ?? "ErrorName"
+	}
     
     var name: String {
         if let function = _function {
-            return function.call_target ?? function.name
+			//
+			
+            return function.name
         }
         if let callable_name = callable_name {
             return callable_name
@@ -122,6 +143,7 @@ class PythonCall {
     private var py_call: String {
         let _args = filtered_cb_arg_names.joined(separator: ", ")
         let arg_count = filtered_cb_arg_names.count
+		let name = function?.name ?? name
         switch arg_count {
         case 0: return  "\(return_string)\(_return_.convert_return(arg: "PyObject_CallNoArgs(_\(name))"))"
         case 1: return  """
@@ -229,7 +251,7 @@ class PythonCall {
     }
     
     var function_header: FunctionDeclSyntax {
-        .init(identifier: .identifier(name), signature: signature)
+        .init(identifier: .identifier(call_target), signature: signature)
     }
     
     func withCodeLines(_ lines: [String]) -> FunctionDecl {
@@ -262,7 +284,7 @@ class PythonCall {
         func_lines.append("Py_DecRef(\(name)_result)")
         func_lines.append("if let gil = gil { PyGILState_Release(gil) }")
         func_lines.append(return_result)
-        return function.withCodeLines(func_lines)
+        return function?.withCodeLines(func_lines) ?? ""
     }
     
     
@@ -272,6 +294,8 @@ class PythonCall {
 extension WrapFunction {
     var pythonCall: PythonCall { .init(function: self) }
 }
+
+
 
 fileprivate extension WrapFunction {
     
