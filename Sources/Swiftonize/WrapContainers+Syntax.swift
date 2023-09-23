@@ -70,19 +70,15 @@ public func wrapArgFromType(name: String, type: TypeSyntax, idx: Int = 0, option
 	case .attributedType:
 		let attrType = type.as(AttributedType.self)!
 		let baseType = attrType.baseType
-		print(baseType.kind, baseType)
 		switch baseType.kind {
 		case .functionType:
 			let functionType = baseType.as(FunctionType.self)!
-			print(functionType.arguments.map({"\($0.type.kind): \($0.type)"}))
 			
 			
 			for argument in functionType.arguments {
 				if let arg = argument.type.as(AttributedType.self) {
 					let argBaseType = arg.baseType
-					print(argBaseType, argBaseType.kind)
 					if let innerCallArg = argBaseType.as(FunctionType.self) {
-						print(innerCallArg.arguments, innerCallArg.arguments.map(\.name?.text))
 				
 						return callableArg(
 							name: name,
@@ -100,7 +96,6 @@ public func wrapArgFromType(name: String, type: TypeSyntax, idx: Int = 0, option
 				_return: objectArg(_name: "", _type: .void, _other_type: nil, _idx: 0, _options: [.return_])
 			)
 			
-			break
 		case .memberTypeIdentifier:
 			
 			break
@@ -199,7 +194,6 @@ func swiftToPythonType(type: TypeSyntax) -> PythonType {
 		let t = arrayType.elementType.as(SimpleTypeIdentifier.self)!
 		if t.name.text == "String" { return .str }
 		if let pyType = PythonType(rawValue: t.name.text.lowercased()) {
-			print(pyType)
 			return pyType
 		}
 		
@@ -223,7 +217,6 @@ extension WrapClass {
 			.compactMap({ member in member.decl.as(VariableDecl.self) })
 			.filter({$0.modifiers?.contains(where: {d in d.name.text != "private"} ) ?? true})
 			.map(WrapClassProperty.init)
-		//print(props)
 		functions = members.compactMap { member in
 			let decl = member.decl
 			if let f =  decl.as(FunctionDeclSyntax.self) {
@@ -281,21 +274,17 @@ extension WrapFunction {
 
 extension WrapClassProperty {
 	convenience init(syntax: VariableDecl) {
-		print(syntax.modifiers.map({ m in
-			m.first?.name.text
-		}))
+		
 		if let binding = syntax.bindings.first {
 			var pyType: PythonType = .object
 			var getset: ClassPropertyType = .Getter
 			if let accessor = binding.accessor {
-				print(accessor.kind)
 				switch accessor.kind {
 				case .codeBlock:
 					let codeBlock = accessor.as(CodeBlock.self)!
 					
 				case .accessorBlock:
 					let acc = accessor.as(AccessorBlock.self)!
-					print(acc.accessors.map(\.accessorKind.text))
 					if acc.accessors.contains(where: {a in a.accessorKind.text == "set"}) {
 						getset = .GetSet
 					}
@@ -306,7 +295,6 @@ extension WrapClassProperty {
 			}
 			if let type = binding.typeAnnotation?.type {
 				pyType = swiftToPythonType(type: type)
-				print(binding.pattern)
 			}
 			self.init(
 				name: binding.pattern.description,
