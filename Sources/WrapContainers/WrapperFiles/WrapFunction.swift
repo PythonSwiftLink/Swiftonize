@@ -242,11 +242,7 @@ public class WrapFunction {
             }
         }
 
-//        print(withCodeLines([
-//            "let a: PyPointer? = PyObject_CallOneArg(_bannerViewDidReceiveAd, _bannerView)",
-//            "let b = a + 1",
-//            "let c = a + b"
-//        ]))
+
     }
     
     init(name: String, args: [WrapArg], rtn: WrapArg!, options: [WrapFunctionOption]) {

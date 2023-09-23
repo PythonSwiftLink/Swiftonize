@@ -102,14 +102,12 @@ public class WrapModule {
                 
                 if let with = element as? PyAst_With {
                     guard with.name == "swift_settings" else { break }
-                    print(with.name, with.items.map(\.name), with.body.map(\.type))
                     for item in with.body {
                         switch item.name {
                         case "shared_module_functions":
                             if let shared_module_functions = item as? PyAst_Assign, let value = shared_module_functions.value {
                                 
                                 expose_module_functions = (Bool(value.name) ?? false)
-                                print("expose_module_functions: \(expose_module_functions)")
                             }
                             //
                             
