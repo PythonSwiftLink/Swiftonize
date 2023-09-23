@@ -400,7 +400,7 @@ extension WrapClass {
     fileprivate var createPyClass: CodeBlockItemSyntax {
         .init(item: .decl(.init(stringLiteral: """
         public func create_py\(title)(_ target: \(title)) -> PyPointer {
-            let new = _PySwiftObject_New(\(title)PyType.pytype)
+            let new = PySwiftObject_New(\(title)PyType.pytype)
             PySwiftObject_Cast(new).pointee.swift_ptr = Unmanaged.passRetained(target).toOpaque()
             return new!
         }
