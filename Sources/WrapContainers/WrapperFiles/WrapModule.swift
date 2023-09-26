@@ -36,8 +36,8 @@ fileprivate extension PyPointer {
     }
 }
 
-public class WrapModule {
-	public init(filename: String, classes: [WrapClass] = [], custom_enums: [CustomEnum] = [], python_classes: [String] = [], dispatchEnabled: Bool = false, expose_module_functions: Bool = false, functions: [WrapFunction] = [], constants: [WrapArgProtocol] = [], vars: [WrapArgProtocol] = [], usedTypes: [WrapArg] = [], usedListTypes: [WrapArg] = [], pyi_mode: Bool = false, swift_import_list: [String] = [String](), swiftui_mode: Bool = false) {
+public class WrapModule: Codable {
+	public init(filename: String, classes: [WrapClass] = [], custom_enums: [CustomEnum] = [], python_classes: [String] = [], dispatchEnabled: Bool = false, expose_module_functions: Bool = false, functions: [WrapFunction] = [], constants: [WrapArgProtocol] = [], vars: [WrapArgProtocol] = [], pyi_mode: Bool = false, swift_import_list: [String] = [String](), swiftui_mode: Bool = false) {
 		self.filename = filename
 		self.classes = classes
 		self.custom_enums = custom_enums
@@ -47,8 +47,7 @@ public class WrapModule {
 		self.functions = functions
 		self.constants = constants
 		self.vars = vars
-		self.usedTypes = usedTypes
-		self.usedListTypes = usedListTypes
+
 		self.pyi_mode = pyi_mode
 		self.swift_import_list = swift_import_list
 		self.swiftui_mode = swiftui_mode
@@ -69,9 +68,9 @@ public class WrapModule {
     
     public var constants: [WrapArgProtocol] = []
     public var vars: [WrapArgProtocol] = []
-
-    public var usedTypes: [WrapArg] = []
-    public var usedListTypes: [WrapArg] = []
+//
+//    public var usedTypes: [WrapArg] = []
+//    public var usedListTypes: [WrapArg] = []
     public let working_dir = FileManager().currentDirectoryPath
     
     public var pyi_mode: Bool = false
@@ -126,9 +125,16 @@ public class WrapModule {
             case .ClassDef:
                 
                 guard let ast_cls = element as? PyAst_Class else { fatalError() }
-                if ast_cls.decorator_list.first(where: {$0.name == "wrapper" }) != nil {
-                    classes.append(.init(fromAst: ast_cls))
-                }
+				
+				guard ast_cls.decorator_list.contains(where: { o in
+					switch o.name {
+					case "wrapper", "autowrap":
+						return true
+					default: return false
+					}
+				}) else { continue }
+				
+				classes.append(.init(fromAst: ast_cls))
                 
             case .Expr:
                 if element.name.contains("import") {
@@ -153,100 +159,49 @@ public class WrapModule {
         }
     
     
-    
-    
-//    func postProcess() {
-//        for cls in classes {
-//            for function in cls.functions {
-//                for arg in function.args {
-//                    arg.postProcess(mod: self, cls: cls)
-//                }
-//            }
-//        }
-//    }
-//    required init(from decoder: Decoder) throws {
-//        try super.init(from: decoder)
-//        build()
-//    }
+	
 
     
     var classes_has_swift_function: Bool {
         true
         }
     
-//    func build() {
-//        for _class in classes {
-//            _class.build()
-//            if _class.dispatch_mode {
-//                dispatchEnabled = true
-//            }
-//            
-//            
-//        }
-//        find_used_arg_types()
-//    }
-    
-//    func add_missing_arg_type(type:String) -> WrapArg {
-//        let is_data = ["data","jsondata"].contains(type)
-//        let json_arg: JSON = [
-//            "name":type,
-//            "type":type,
-//            "idx": 0,
-//            "is_data": is_data
-//        ]
-//
-//        let decoder = JSONDecoder()
-//        return try! decoder.decode(WrapArg.self, from: json_arg.rawData())
-//    }
-    
-//    func find_used_arg_types() {
-//        let test_types = ["object","json","jsondata","data","str", "bytes"]
-//        
-//        for cls in classes {
-//            //var has_swift_functions = false
-//            for function in cls.functions {
-//                let returns = function.returns
-////                if (returns.has_option(.list) || returns.has_option(.data)) && !["object","void"].contains(returns.type.rawValue) {
-////                    fatalError("\n\t\(if: returns.has_option(.list),"list[\(returns.type.rawValue)]",returns.type.rawValue) as return type is not supported atm")
-////                }
-//                if !usedTypes.contains(where: {$0.type == returns.type && ($0.has_option(.list) == returns.has_option(.list))}) {
-//                    //check for supported return list
-//                    
-//                    
-//                    if returns.has_option(.list) || returns.has_option(.data) || returns.has_option(.json) || test_types.contains(returns.type.rawValue) {
-//                        
-//                        usedTypes.append(returns)
-//                        if !usedTypes.contains(where: {$0.type == returns.type && !$0.has_option(.list)}) {
-//                            usedTypes.append(add_missing_arg_type(type: returns.type.rawValue))
-//                        }
-//                    }
-//                        
-//                }
-//                                    
-//                for arg in function.args {
-//                    let is_list = arg.has_option(.list)
-//                    
-//                    if !usedTypes.contains(where: {$0.type == arg.type && ($0.has_option(.list) == is_list)}) {
-//                        if is_list || arg.has_option(.data) || arg.has_option(.json) || test_types.contains(arg.type.rawValue){
-//                            usedTypes.append(arg)
-//                        }
-//                    }
-//                }
-//                //if function.swift_func {has_swift_functions = true}
-//            } //function loop end
-//            
-//           
-//            
-//        }
-//    }
-    
+
     func export(objc: Bool, header: Bool) -> String {
         for _ in classes {
             //_class.export(objc: objc, header: header)
         }
         
         return ""
-    }
+	}
+	
+	enum CodingKeys: CodingKey {
+		case filename
+		case classes
+		case custom_enums
+		case python_classes
+		case dispatchEnabled
+		case expose_module_functions
+		case functions
+		case constants
+		case vars
+		case usedTypes
+		case usedListTypes
+		case working_dir
+		case pyi_mode
+		case swift_import_list
+		case swiftui_mode
+	}
+	
+	public required init(from decoder: Decoder) throws {
+		let c = try decoder.container(keyedBy: CodingKeys.self)
+		filename = try c.decode(String.self, forKey: .filename)
+		
+	}
+	
+	public func encode(to encoder: Encoder) throws {
+		
+	}
 }
 
 

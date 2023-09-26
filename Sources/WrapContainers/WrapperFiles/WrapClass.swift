@@ -176,7 +176,7 @@ public enum RepresentedPyPType: String {
 	case list
 }
 
-public class WrapClass {
+public class WrapClass: Codable {
 	
 	
     
@@ -332,6 +332,16 @@ public class WrapClass {
         }
         callbacks_count = functions.filter({$0.has_option(option: .callback)}).count
         functions.forEach{[weak self] in $0.wrap_class = self}
+		
+		if representedPyType == .tuple {
+			init_function = .init(
+				name: "init",
+				_args_: [objectArg(_name: "tuple", _type: .tuple, _other_type: nil, _idx: 0, _options: [])],
+				_return_: objectArg(_name: "", _type: .void, _other_type: nil, _idx: 0, _options: [.return_]),
+				options: [],
+				wrap_class: self
+			)
+		}
     }
     
     
@@ -421,7 +431,53 @@ public class WrapClass {
             default: fatalError()
             }
         }
-    }
+	}
+	
+	enum CodingKeys: CodingKey {
+		case title
+		case alternate_title
+		case functions
+		case decorators
+		case properties
+		case singleton
+		case new_class
+		case bases
+		case wrapper_target_type
+		case callbacks_count
+		case pointer_compare_strings
+		case pointer_compare_dict
+		case dispatch_mode
+		case has_swift_functions
+		case dispatch_events
+		case class_vars
+		case class_ext_options
+		case pySequenceMethods
+		case pyClassMehthods
+		case pyNumericMethods
+		case pyAsyncMethods
+		case callback_protocols
+		case swift_object_mode
+		case init_function
+		case ignore_init
+		case debug_mode
+		case unretained
+		case representedPyType
+	}
+	
+	public required init(from decoder: Decoder) throws {
+		let c = try decoder.container(keyedBy: CodingKeys.self)
+		_title = try c.decode(String.self, forKey: .title)
+		decorators = try c.decode([WrapClassDecorator].self, forKey: .decorators)
+		properties = [] //try c.decode([WrapClassProperty].self, forKey: .properties)
+		
+		functions = []
+		
+		singleton = false
+	}
+	
+	public func encode(to encoder: Encoder) throws {
+		
+	}
 }
 
 

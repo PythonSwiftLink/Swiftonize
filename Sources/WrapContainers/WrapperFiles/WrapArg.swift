@@ -75,7 +75,7 @@ public class WrapArg: Equatable {
         case options
         }
     
-    init(name: String, type: PythonType, other_type: String?, idx: Int, arg_options: [WrapArgOptions]) {
+    public init(name: String, type: PythonType, other_type: String?, idx: Int, arg_options: [WrapArgOptions]) {
         self.name = name
         self.type = type
         self.other_type = other_type

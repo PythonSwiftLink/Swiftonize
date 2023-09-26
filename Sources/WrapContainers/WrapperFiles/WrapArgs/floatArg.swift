@@ -7,7 +7,7 @@ public class floatArg: _WrapArg, WrapArgProtocol {
         super.init(arg)
     }
     
-    override init(_name: String, _type: PythonType, _other_type: String?, _idx: Int, _options: [WrapArgOptions]) {
+    public override init(_name: String, _type: PythonType, _other_type: String?, _idx: Int, _options: [WrapArgOptions]) {
         super.init(_name: _name, _type: _type, _other_type: _other_type, _idx: _idx, _options: _options)
     }
     
