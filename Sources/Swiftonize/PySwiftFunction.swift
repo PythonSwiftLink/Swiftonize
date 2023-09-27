@@ -172,10 +172,16 @@ class PySwiftFunction {
 	}
 	
 	var sCases: [SwitchCase] {
-		((arg_count - defaults_count)...arg_count).map { i in
+		let min_count = (arg_count - defaults_count)
+		var sc  =  ((min_count )..<arg_count).map { i in
 			//SwitchCase(label: .case(switchCaseLabel(i)), statements: [])
 			SwitchCase(label: .case(switchCaseLabel(i)), statements: caseFunctionCode(maxArgs: i))
+			
 		}
+		sc.append(
+			SwitchCase(label: .default(.init()), statements: caseFunctionCode(maxArgs: arg_count))
+		)
+		return sc
 	}
 	
 	var switchcase: SwitchStmt {
