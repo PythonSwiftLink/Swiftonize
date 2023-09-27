@@ -336,7 +336,7 @@ public class WrapClass: Codable {
 		if representedPyType == .tuple {
 			init_function = .init(
 				name: "init",
-				_args_: [objectArg(_name: "tuple", _type: .tuple, _other_type: nil, _idx: 0, _options: [])],
+				_args_: [objectArg(_name: "tuple", _type: .object, _other_type: nil, _idx: 0, _options: [])],
 				_return_: objectArg(_name: "", _type: .void, _other_type: nil, _idx: 0, _options: [.return_]),
 				options: [],
 				wrap_class: self
