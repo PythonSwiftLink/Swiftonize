@@ -110,12 +110,21 @@ extension WrapFunction {
     }
 	
 	func pyCallDefaultReturn(maxArgs: Int) -> VariableDeclSyntax {
-		let _var = VariableDeclSyntax(
-			.let,
-			name: .init(stringLiteral: "\(name)_result"),
-			initializer: .init(equal: .equal, value: pyCallDefault(maxArgs: maxArgs))
-		)
-		
+		let _var: VariableDeclSyntax
+		if self.throws {
+			
+			_var = .init(
+				.let,
+				name: .init(stringLiteral: "\(name)_result"),
+				initializer: .init(equal: .equal, value: pyCallDefault(maxArgs: maxArgs))
+			)
+		} else {
+			_var = .init(
+				.let,
+				name: .init(stringLiteral: "\(name)_result"),
+				initializer: .init(equal: .equal, value: TryExpr(expression: pyCallDefault(maxArgs: maxArgs)))
+			)
+		}
 		return _var.withTrailingTrivia(.newline)
 	}
     

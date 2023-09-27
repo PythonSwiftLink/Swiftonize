@@ -222,7 +222,11 @@ class PySwiftFunction {
 			}
 			switch function._return_.type {
 			case .void, .None:
-				function.pyCallDefault(maxArgs: maxArgs)
+				if function.throws {
+					TryExpr(expression: function.pyCallDefault(maxArgs: maxArgs))
+				} else {
+					function.pyCallDefault(maxArgs: maxArgs)
+				}
 			default:
 				function.pyCallDefaultReturn(maxArgs: maxArgs)
 			}
