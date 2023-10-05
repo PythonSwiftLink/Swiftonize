@@ -9,6 +9,7 @@ import Foundation
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import PythonSwiftCore
+import PythonTypeAlias
 import WrapContainers
 
 protocol SyntaxTypeConvertable {

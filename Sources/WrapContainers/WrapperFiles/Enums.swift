@@ -7,6 +7,7 @@
 
 import Foundation
 import PythonSwiftCore
+import PythonTypeAlias
 
 public enum PythonTypeConvertOptions {
     case objc
