@@ -300,6 +300,12 @@ public extension String {
             .init(name: self)
         }))
     }
+	
+	var `import`: ImportDeclSyntax {
+		.init(path: .init(itemsBuilder: {
+			.init(name: self)
+		}))
+	}
     
     var inheritedType: InheritedTypeSyntax {
         InheritedTypeSyntax(typeName: SimpleTypeIdentifier(stringLiteral: self))

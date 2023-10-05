@@ -43,8 +43,10 @@ extension WrapModule {
             .init {
                 "Foundation"._import
                 if swiftui_mode {
-                    "PythonSwiftCore"._import
-                    "PythonLib"._import
+                    "PythonSwiftCore".import
+                    //"PythonLib"._import
+					"PySwiftObject".import
+					//"PythonTypeAlias".import
                 }
                 for imp in swift_import_list {
                     imp._import
