@@ -2,8 +2,6 @@
 .DS_Store
 .swiftpm
 */DS_Store
-Sources/Swiftonize/*.DS_Store
 Package.resolved
-Sources/Swiftonize/WrapperFiles/.DS_Store
 .build/
 .swiftpm/

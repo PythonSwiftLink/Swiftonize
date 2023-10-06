@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 5.8
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -13,15 +13,12 @@ let package = Package(
             targets: ["Swiftonize"]),
     ],
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
-        //.package(path: "../PyAstParser"),
-        //.package(path: "../PythonSwiftCore"),
+
         .package(url: "https://github.com/PythonSwiftLink/PyAstParser", branch: "main"),
         //.package(path: "../PyAstParser"),
         //.package(url: "https://github.com/PythonSwiftLink/PythonSwiftCore", branch: "main"),
-        .package(url: "https://github.com/PythonSwiftLink/PythonSwiftLink", branch: "master"),
-        //.package(url: "https://github.com/PythonSwiftLink/PythonSwiftCore", from: .init(0, 3, 0)),
+		.package(url: "https://github.com/PythonSwiftLink/PythonSwiftLink", from: .init(0, 0, 0)),
+		//.package(path: "../PythonSwiftLink"),
         .package(url: "https://github.com/SwiftyJSON/SwiftyJSON", branch: "master"),
         .package(url: "https://github.com/apple/swift-syntax", from: .init(508, 0, 0)),
         

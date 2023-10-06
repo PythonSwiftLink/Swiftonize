@@ -11,7 +11,7 @@ import WrapContainers
 import SwiftSyntaxBuilder
 
 public protocol WrapArgSyntax {
-    var typeExpr: TypeExprSyntax { get }
+    var typeExpr: TypeExpr { get }
     
     var typeSyntax: TypeSyntax { get }
     
@@ -27,7 +27,7 @@ public protocol WrapArgSyntax {
 extension intArg: WrapArgSyntax {
     public var typeSyntax: TypeSyntax { type.syntaxType }
     
-    public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+    public var typeExpr: TypeExpr { .init(type: typeSyntax) }
     
     public var typeAnnotation: TypeAnnotation { type.annotation }
     
@@ -45,7 +45,7 @@ extension boolArg: WrapArgSyntax {
         
         public var typeSyntax: TypeSyntax { type.syntaxType }
         
-        public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+        public var typeExpr: TypeExpr { .init(type: typeSyntax) }
         
     public func callTupleElement(many: Bool) -> TupleExprElement {
             return .pyCast(arg: self, many: many)
@@ -58,7 +58,7 @@ extension boolArg: WrapArgSyntax {
 extension dataArg: WrapArgSyntax {
     public var typeSyntax: TypeSyntax { type.syntaxType }
         
-        public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+        public var typeExpr: TypeExpr { .init(type: typeSyntax) }
         
         public var typeAnnotation: TypeAnnotation { type.annotation }
         
@@ -74,7 +74,7 @@ extension dataArg: WrapArgSyntax {
 extension floatArg: WrapArgSyntax {
     public var typeSyntax: TypeSyntax { type.syntaxType }
         
-        public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+        public var typeExpr: TypeExpr { .init(type: typeSyntax) }
         
         public var typeAnnotation: TypeAnnotation { type.annotation }
         
@@ -90,7 +90,7 @@ extension floatArg: WrapArgSyntax {
 extension strArg: WrapArgSyntax {
     public var typeSyntax: TypeSyntax { type.syntaxType }
         
-        public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+        public var typeExpr: TypeExpr { .init(type: typeSyntax) }
         
         public var typeAnnotation: TypeAnnotation { type.annotation }
         
@@ -106,7 +106,7 @@ extension strArg: WrapArgSyntax {
 extension objectArg: WrapArgSyntax {
     public var typeSyntax: TypeSyntax { type.syntaxType }
     
-    public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+    public var typeExpr: TypeExpr { .init(type: typeSyntax) }
     
     public var typeAnnotation: TypeAnnotation { type.annotation }
     
@@ -122,7 +122,7 @@ extension objectArg: WrapArgSyntax {
 extension otherArg: WrapArgSyntax {
     public var typeSyntax: TypeSyntax { .init(stringLiteral: other_type ?? "wrongType" ) }
     
-    public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+    public var typeExpr: TypeExpr { .init(type: typeSyntax) }
     
     public var typeAnnotation: TypeAnnotation { .init(type: typeSyntax) }
     
@@ -139,7 +139,7 @@ extension otherArg: WrapArgSyntax {
 extension optionalArg: WrapArgSyntax {
     public var typeSyntax: TypeSyntax { .init( OptionalTypeSyntax(wrappedType: (wrapped as! WrapArgSyntax).typeSyntax) ) }
     
-    public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+    public var typeExpr: TypeExpr { .init(type: typeSyntax) }
     
     public var typeAnnotation: TypeAnnotation { .init(type: typeSyntax) }
     
@@ -150,7 +150,7 @@ extension optionalArg: WrapArgSyntax {
             //return .pyUnpack(with: other, many: many)
             return .init(
                 label: label,
-                expression: .init(TryExprSyntax.unPackPyPointer(with: other, many: many) as TryExpr)
+                expression: .init(TryExpr.unPackPyPointer(with: other, many: many) as TryExpr)
             )
         case let collection as collectionArg:
             var collect = collection.callTupleElement(many: many)
@@ -184,7 +184,7 @@ extension collectionArg: WrapArgSyntax {
     public var typeSyntax: TypeSyntax { .init(fromProtocol: ArrayTypeSyntax(elementType: (element as! WrapArgSyntax).typeSyntax)) }
     public var typeAnnotation: TypeAnnotation { .init(type: typeSyntax) }
     
-    public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+    public var typeExpr: TypeExpr { .init(type: typeSyntax) }
     
     public func callTupleElement(many: Bool) -> TupleExprElement {
         switch element {
@@ -232,7 +232,7 @@ extension callableArg: WrapArgSyntax {
         return .init(t)
     }
     
-    public var typeExpr: TypeExprSyntax {
+    public var typeExpr: TypeExpr {
         .init(type: typeSyntax)
         
     }
@@ -266,7 +266,7 @@ extension callableArg: WrapArgSyntax {
 extension objectStrEnumArg: WrapArgSyntax {
     public var typeSyntax: TypeSyntax { type.syntaxType }
         
-        public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+        public var typeExpr: TypeExpr { .init(type: typeSyntax) }
         
         public var typeAnnotation: TypeAnnotation { type.annotation }
         
@@ -282,7 +282,7 @@ extension objectStrEnumArg: WrapArgSyntax {
 extension jsonDataArg: WrapArgSyntax {
     public var typeSyntax: TypeSyntax { type.syntaxType }
         
-        public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+        public var typeExpr: TypeExpr { .init(type: typeSyntax) }
         
         public var typeAnnotation: TypeAnnotation { type.annotation }
         
@@ -298,7 +298,7 @@ extension jsonDataArg: WrapArgSyntax {
 extension intEnumArg: WrapArgSyntax {
     public var typeSyntax: TypeSyntax { type.syntaxType }
         
-        public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
+        public var typeExpr: TypeExpr { .init(type: typeSyntax) }
         
         public var typeAnnotation: TypeAnnotation { type.annotation }
         

@@ -7,7 +7,7 @@
 
 import Foundation
 import PythonSwiftCore
-import PythonTypeAlias
+//import PythonTypeAlias
 //import PythonKit
 public let tab = "\t"
 public let tabNewLine = "\t\n"
