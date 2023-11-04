@@ -14,10 +14,10 @@ let package = Package(
     ],
     dependencies: [
 
-        .package(url: "https://github.com/PythonSwiftLink/PyAstParser", branch: "main"),
+		.package(url: "https://github.com/PythonSwiftLink/PyAstParser", from: .init(311, 0, 0)),
         //.package(path: "../PyAstParser"),
         //.package(url: "https://github.com/PythonSwiftLink/PythonSwiftCore", branch: "main"),
-		.package(url: "https://github.com/PythonSwiftLink/PythonSwiftLink", from: .init(0, 0, 0)),
+		.package(url: "https://github.com/PythonSwiftLink/PythonSwiftLink", from: .init(311, 0, 0)),
 		//.package(path: "../PythonSwiftLink"),
         .package(url: "https://github.com/SwiftyJSON/SwiftyJSON", branch: "master"),
         .package(url: "https://github.com/apple/swift-syntax", from: .init(508, 0, 0)),

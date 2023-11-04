@@ -297,6 +297,7 @@ public class WrapClass: Codable {
                     default: break
                     }
                 }
+				
             }
 			
             default: break

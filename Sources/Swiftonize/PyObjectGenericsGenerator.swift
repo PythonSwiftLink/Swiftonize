@@ -317,7 +317,7 @@ public class GenerateCallables {
         
         return .init(clauses: .init {
             .init(poundKeyword: .poundIf,condition: IdentifierExpr(stringLiteral: "BEEWARE"), elements: .statements(.init(itemsBuilder: {
-                ImportDecl(stringLiteral: "import PythonLib").withTrailingTrivia(.newline)
+                ImportDecl(stringLiteral: "//import PythonLib").withTrailingTrivia(.newline)
             })))
         }).withTrailingTrivia(.newline)
     }
