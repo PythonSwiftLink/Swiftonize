@@ -93,7 +93,7 @@ extension PyWrap.Function {
 		.init(callee: ExprSyntax(stringLiteral: "PyObject_GetAttr")) {
 			"callback".tupleExprElement
 			name._tupleExprElement
-		}
+		}.with(\.trailingTrivia, .init(stringLiteral: "!"))
 	}
 	
 	var pyDictGet: FunctionCallExprSyntax {
