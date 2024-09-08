@@ -421,7 +421,7 @@ public extension PyWrap.Class {
 		
 		let protocolList = MemberDeclListSyntax {
 			if let callbacks = callbacks {
-				"var py_callback: \(raw: name).PyCallback { get set }"
+				"var py_callback: \(raw: name).PyCallback? { get set }"
 			}
 			for f in functions ?? [] {
 				f.function_header
