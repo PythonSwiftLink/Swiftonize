@@ -178,7 +178,9 @@ struct PyTypeObjectGenerator {
 						label.asLabeledExpr("PyObject_GenericSetAttr".asExpr())
 					}
 				case .tp_as_buffer:
-					label.nilLabel.newLine
+					label.asLabeledExpr(
+						bases.contains(.Buffer) ? ".init(&\(cls.name).PyBuffer)".asExpr() : nil
+					)
 				case .tp_flags:
 					label.asLabeledExpr("NewPyObjectTypeFlag.DEFAULT".asExpr())
 				case .tp_doc:
