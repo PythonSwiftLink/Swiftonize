@@ -17,6 +17,7 @@ extension PyWrap.Module {
 			"PyUnpack".import
 			"PyEncode".import
 			"PyCallable".import
+			"PyDictionary".import
 			for imp in imports {
 				imp.import
 			}
