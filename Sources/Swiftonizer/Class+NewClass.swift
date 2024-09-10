@@ -49,6 +49,7 @@ public class NewClassGenerator {
 		let conditions = ConditionElementListSyntax {
 			ExprSyntax(stringLiteral: "PyDict_Check(callback)")
 		}
+		let cls = cls.callbacks!
 		IfExprSyntax(
 			leadingTrivia: .newlines(2),
 			conditions: conditions,
@@ -125,7 +126,7 @@ public class NewClassGenerator {
 					CreateDeclMember(.var, name: "_pycall", type: .init(type: TypeSyntax(stringLiteral: "PyPointer")))
 						.with(\.leadingTrivia, .newlines(2))
 					//.with(\.leadingTrivia, .newlines(2))
-					for f in cls.functions ?? [] {
+					for f in cls.callbacks?.functions ?? [] {
 						CreateDeclMember(.var, name: "_\(f.name)", type: .init(type: TypeSyntax(stringLiteral: "PyPointer")), _private: true)
 						//CreateDeclMember(.var, name: <#T##String#>, type: <#T##TypeAnnotationSyntax#>)
 					}
@@ -134,7 +135,7 @@ public class NewClassGenerator {
 					//.with(\.leadingTrivia, .newlines(2))
 					
 					_deinit.with(\.leadingTrivia, .newline)
-					for f in cls.functions ?? [] {
+					for f in cls.callbacks?.functions ?? [] {
 						PythonCall(function: f).functionDecl
 						
 						//.with(\.leadingTrivia, .newline)

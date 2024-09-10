@@ -297,7 +297,8 @@ extension AST.Name {
 		case .bytes:
 			fatalError()
 		case .data:
-			if !ignoreFatals { fatalError() }
+			let o = PyWrap.DataType(from: self, type: t)
+			return PyWrap.DataArg(ast: ast_arg, type: o)
 		case .json:
 			fatalError()
 		case .jsondata:

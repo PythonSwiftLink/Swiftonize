@@ -118,8 +118,9 @@ public extension PyWrap {
 				for deco in decos {
 					switch deco.type {
 					case .Call:
-						if let call = deco as? AST.Call, let ast_name = call._func as? AST.Name {
-							let deco_name = ast_name.id
+						//if let call = deco as? AST.Call, let ast_name = call._func as? AST.Name {
+						if let call = deco as? AST.Call {
+							let deco_name = call._func.name
 							if deco_name == "wrapper" {
 								let kws = call.keywords.compactMap { kw in
 									if let arg = kw.arg, let value = (kw.value as? AST.Constant)?.value {

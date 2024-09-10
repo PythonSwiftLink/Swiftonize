@@ -67,6 +67,12 @@ extension PyWrap {
 	}
 }
 extension Array where Element == any ExprProtocol {
+	var has_wrapper: Bool {
+		contains(where: { $0.name == "wrapper" })
+	}
+	
+	var no_wrapper: Bool { !has_wrapper }
+	
 	func contains(name: String) -> Bool {
 		self.contains { expr in
 			switch expr.type {

@@ -10,7 +10,28 @@ extension PyWrap.CallableArg: ArgSyntax {
 	}
 	
 	public func extractDecl(many: Bool) -> SwiftSyntax.VariableDeclSyntax? {
-		nil
+		let types = type.input.types
+		let args = types.enumerated().map{"arg\($0.offset)"}.joined(separator: ", ")
+		return .init(
+			.let,
+			name: "_\(raw: name)",
+			type: .init(type: self._typeSyntax),
+			initializer: .init(
+				value: ExprSyntax(stringLiteral:  """
+					{ \(args) in
+						DispatchQueue.main.async {
+							do {
+								try PythonCallWithGil(call: \(name)\(types.count > 0 ? ", " : "")\(args))
+							} catch let err as PythonError {
+								// python errors
+							} catch {
+								// other errors
+							}
+						}
+					}
+					""")
+			)
+		)
 	}
 	
 	

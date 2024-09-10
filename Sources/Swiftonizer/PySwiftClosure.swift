@@ -32,6 +32,12 @@ extension PyMethodClosure {
 			CodeBlockItemListSyntax {
 				
 				guard_stmt.codeBlockItem.with(\.trailingTrivia, .newline)
+				for callable in function.args.filter({$0.type.py_type == .callable}) {
+					"let \(raw: callable.name) = __args__[\(raw: callable.index ?? 0)]"
+				}
+				for extract in extracts {
+					extract
+				}
 				functionCall
 				"return .None"
 			}
@@ -135,9 +141,12 @@ extension PyMethodClosure {
 	private var extracts: [CodeBlockItemSyntax] {
 		let many = arg_count > 1
 		return function.args.compactMap { arg in
-//			if let extract = (arg).extractDecl(many: many) {
-//				return .init(item: .decl(.init(extract)))
-//			}
+			//guard
+				let arg = arg as! ArgSyntax
+			//else { return nil }
+			if let extract = (arg).extractDecl(many: many) {
+				return .init(item: .decl(.init(extract)))
+			}
 			return nil
 		}
 	}

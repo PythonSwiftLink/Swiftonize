@@ -24,14 +24,15 @@ if local {
 
 let package = Package(
     name: "Swiftonize",
-    platforms: [.macOS(.v11), .iOS(.v13)],
+    platforms: [.macOS(.v13), .iOS(.v13)],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
 //        .library(
 //            name: "Swiftonize",
 //            targets: ["Swiftonize"]),
 		.library(name: "SwiftonizeNew", targets: ["Swiftonizer"]),
-		.library(name: "PyWrapper", targets: ["PyWrapper"])
+		.library(name: "PyWrapper", targets: ["PyWrapper"]),
+		.library(name: "ShadowPip", targets: ["ShadowPip"])
     ],
     dependencies: dependencies,
     targets: [
@@ -48,7 +49,13 @@ let package = Package(
 				.product(name: "SwiftSyntaxBuilder", package: "swift-syntax")
             ]
         ),
-        
+		.target(
+			name: "ShadowPip",
+			dependencies: [
+				.product(name: "PyAstParser", package: "PyAst"),
+				"PyWrapper",
+			]
+		),
 //        .target(
 //            name: "Swiftonize",
 //            dependencies: [

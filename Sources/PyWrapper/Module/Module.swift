@@ -27,6 +27,23 @@ public struct PyWrap {
 	private init() {}
 }
 
+fileprivate extension Stmt {
+	var is_class: Bool {
+		type == .ClassDef
+	}
+}
+
+fileprivate extension ExprProtocol {
+	var is_wrapper: Bool { name == "wrapper" }
+}
+
+fileprivate extension AST.ClassDef {
+	var is_wrapper: Bool {
+		decorator_list.has_wrapper
+	}
+	var not_wrapper : Bool { !is_wrapper }
+}
+
 public extension PyWrap {
 	
 	
@@ -42,55 +59,55 @@ public extension PyWrap {
 			
 			self.filename = filename
 			
-			let wrapped_classes: [String:String] = try ast.body.reduce(into: [:], { partialResult, stmt in
-				let stmt_type = stmt.type
-				switch stmt_type {
-				case .Assign:
-					if let assign = stmt as? AST.Assign {
-						switch assign.value.type {
-						case .Call:
-							if let call = assign.value as? AST.Call {
-								if let name = call._func as? AST.Name {
-									switch name.id {
-									case "NewType", "TypeVar":
-										break
-										//throw SwiftonizeModuleError.Assign("NewType - \(assign.value)")
-									default:
-										break
-									}
-								}
-							}
-						case .Dict:
-							if let target = assign.targets.first as? AST.Name {
-								if target.id == "wrapped_classes" {
-									if let dict = assign.value as? AST.Dict {
-										
-										let keys = dict.keys.compactMap({$0 as? AST.Constant}).compactMap(\.value)
-										let values = dict.values.compactMap({$0 as? AST.Name}).map(\.id)
-										for (i, key) in keys.enumerated() {
-											partialResult[key] = values[i]
-										}
-									}
-								}
-							}
-						default: break
-						}
-						//throw SwiftonizeModuleError.Assign("\(assign.targets) - \(assign.value)")
-					}
-				default: break
-				}
-			})
+//			let wrapped_classes: [String:String] = try ast.body.reduce(into: [:], { partialResult, stmt in
+//				let stmt_type = stmt.type
+//				switch stmt_type {
+//				case .Assign:
+//					if let assign = stmt as? AST.Assign {
+//						switch assign.value.type {
+//						case .Call:
+//							if let call = assign.value as? AST.Call {
+//								if let name = call._func as? AST.Name {
+//									switch name.id {
+//									case "NewType", "TypeVar":
+//										break
+//										//throw SwiftonizeModuleError.Assign("NewType - \(assign.value)")
+//									default:
+//										break
+//									}
+//								}
+//							}
+//						case .Dict:
+//							if let target = assign.targets.first as? AST.Name {
+//								if target.id == "wrapped_classes" {
+//									if let dict = assign.value as? AST.Dict {
+//										
+//										let keys = dict.keys.compactMap({$0 as? AST.Constant}).compactMap(\.value)
+//										let values = dict.values.compactMap({$0 as? AST.Name}).map(\.id)
+//										for (i, key) in keys.enumerated() {
+//											partialResult[key] = values[i]
+//										}
+//									}
+//								}
+//							}
+//						default: break
+//						}
+//						//throw SwiftonizeModuleError.Assign("\(assign.targets) - \(assign.value)")
+//					}
+//				default: break
+//				}
+//			})
 			
 			let _type_vars = try handleTypeVars(ast.body.compactMap({$0 as? AST.Assign}))
 			type_vars = _type_vars
-			let _classes = ast.body.compactMap({$0 as? AST.ClassDef})
+			let _classes = ast.body.compactMap({$0 as? AST.ClassDef}).filter(\.is_wrapper)
 			
-			let classes2wrap = Array(wrapped_classes.values)
-			let filtered_classes = _classes.filter({classes2wrap.contains($0.name)})
+			//let classes2wrap = Array(wrapped_classes.values)
+			//let filtered_classes = _classes.filter({classes2wrap.contains($0.name)})
 			
 			let bases = try handleBaseTypes(_classes)
 			
-			classes = try filtered_classes.map({try PyWrap.fromAST($0, classes: wrapped_classes, base_types: bases, type_vars: _type_vars)})
+			classes = try _classes.map({try PyWrap.fromAST($0, classes: [:], base_types: bases, type_vars: _type_vars)})
 //			classes = ast.body.compactMap { stmt in
 //				let stmt_type = stmt.type
 //				switch stmt_type {

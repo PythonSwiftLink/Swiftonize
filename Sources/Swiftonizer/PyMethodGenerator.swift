@@ -85,7 +85,7 @@ extension PyMethodGenerator {
 	var functionCall: FunctionCallExprSyntax {
 		Self.pyMethodDef(
 			name: f.name,
-			doc: "yo",
+			doc: "",
 			flag: f.getFlag(flag: meth_or_func, keywords: false),
 			ftype: f.getMethodType(),
 			pymethod: callBlock
