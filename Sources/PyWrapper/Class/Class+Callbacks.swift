@@ -23,13 +23,24 @@ extension PyWrap.Class {
 		public var ast: AST.ClassDef
 		public weak var cls: PyWrap.Class?
 		public var functions: [PyWrap.Function]
+		public var properties: [any ClassProperty]?
 		public var bases: [ExprProtocol] { cls?.ast?.bases ?? [] }
 		public var count: Int { functions.count }
+		
+		public var __init__: PyWrap.Function?
 		
 		public init(ast: AST.ClassDef, cls: PyWrap.Class) {
 			self.ast = ast
 			self.cls = cls
-			functions = convertAST2Function(ast.body, cls: cls) ?? []
+			var _functions: [PyWrap.Function]? = convertAST2Function(ast.body, cls: cls)
+			if let init_index = _functions?.firstIndex(where: { $0.name == "__init__" }) {
+				__init__ = _functions?.remove(at: init_index)
+				//options.py_init = true
+			}
+			functions = _functions ?? []
+			properties = convertAST2Property(ast.body)
+			
+			
 		}
 		
 		public var name: String { cls?.name ?? "NoName"}

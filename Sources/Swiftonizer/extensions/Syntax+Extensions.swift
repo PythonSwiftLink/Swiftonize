@@ -52,16 +52,16 @@ extension SequenceExprSyntax {
 	init(pyDict arg: AnyArg) {
 		self.init(elements: .init(itemsBuilder: {
 			//IdentifierExpr(stringLiteral: arg.name)
-			ExprSyntax(stringLiteral: "\(arg.self)")
+			ExprSyntax(stringLiteral: "\(arg.name)")
 			AssignmentExprSyntax()
-			TryExprSyntax.pyDict_GetItem("kw", "\(arg.self)")
+			TryExprSyntax.pyDict_GetItem("kw", "\(arg.optional_name ?? arg.name)")
 		}))
 	}
 	
 	init(pyTuple arg: AnyArg) {
 		self.init(elements: .init(itemsBuilder: {
 			//            IdentifierExpr(stringLiteral: arg.name)
-			ExprSyntax(stringLiteral: "\(arg.self)")
+			ExprSyntax(stringLiteral: "\(arg.name)")
 			AssignmentExprSyntax()
 			TryExprSyntax.pyTuple_GetItem("_args_", 0)
 		}))

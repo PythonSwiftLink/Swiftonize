@@ -49,11 +49,26 @@ public struct PythonCall {
 		if let returns = function.returns as? ArgTypeSyntax {
 			signature.returnClause = .init(type: returns.typeSyntax)
 		}
+		//let many = function.args.count
+		let extracts = function.args.compactMap { arg -> CodeBlockItemSyntax? in
+			switch arg.type.py_type {
+			case .optional:
+				if let opt = arg.type as? PyWrap.OptionalType, opt.wrapped.py_type == .error {
+					return "let \(raw: arg.name) = \(raw: arg.name)?.localizedDescription"
+				}
+				
+			default: return nil
+			}
+			return nil
+		}
 		return .init(name: .identifier(name), signature: signature) {
 			//"var gil: PyGILState_STATE?"
 			//"if PyGILState_Check() == 0 { gil = PyGILState_Ensure() }"
 			DoStmtSyntax(
 				body: .init {
+					for extract in extracts {
+						extract
+					}
 					py_call
 				},
 				catchClauses: .init {
@@ -239,8 +254,30 @@ public class PyCallbacksGenerator {
 						.with(\.leadingTrivia, .newlines(2))
 					//.with(\.leadingTrivia, .newlines(2))
 					for f in cls.functions {
-						CreateDeclMember(.var, name: "_\(f.name)", type: .init(type: TypeSyntax(stringLiteral: "PyPointer")), _private: true)
+						CreateDeclMember(
+							.let,
+							name: "_\(f.name)",
+							type: .init(type: TypeSyntax(stringLiteral: "PyPointer")),
+							_private: true
+						)
 						//CreateDeclMember(.var, name: <#T##String#>, type: <#T##TypeAnnotationSyntax#>)
+						
+					}
+					for p in cls.properties ?? [] {
+						CreateDeclMember(
+							.let,
+							name: "_\(p.target_name ?? p.name)",
+							type: .init(type: TypeSyntax(stringLiteral: "PyPointer")),
+							_private: true,
+							
+							initializer: .init(
+								value: MemberAccessExprSyntax(
+									base: StringLiteralExprSyntax(content: p.name),
+									period: .periodToken(),
+									name: "pyPointer"
+								)
+							)
+						)
 					}
 					
 					_init.with(\.leadingTrivia, .newlines(2))
@@ -251,6 +288,34 @@ public class PyCallbacksGenerator {
 						PythonCall(function: f).functionDecl
 						
 						//.with(\.leadingTrivia, .newline)
+					}
+					
+					for prop in cls.properties ?? [] {
+						let getter = """
+						get {
+							do {
+								if let object = PyObject_GetAttr(_pycall, _\(prop.target_name ?? prop.name)) {
+									return try pyCast(from: object)
+								}
+							}
+							catch _ {
+								
+							}
+							fatalError()
+						}
+						""".replacingOccurrences(of: "\n", with: "\n\t")
+						let setter = prop.property_type == .GetSet ?
+						"""
+						set {
+							PyObject_SetAttr(_pycall, _\(prop.target_name ?? prop.name), newValue.pyPointer)
+						}
+						""".replacingOccurrences(of: "\n", with: "\n\t") : ""
+						"""
+						var \(raw: prop.target_name ?? prop.name): \(raw: prop.prop_type.string) {
+							\(raw: getter)
+							\(raw: setter)
+						}
+						"""
 					}
 				}.with(\.leadingTrivia, .newline)
 			}

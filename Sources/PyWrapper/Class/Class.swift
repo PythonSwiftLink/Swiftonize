@@ -27,6 +27,7 @@ fileprivate func convertAST2Function(_ asts: [any Stmt], cls: PyWrap.Class) -> [
 		case .FunctionDef:
 			if let function = ast as? AST.FunctionDef {
 				if functionsExclude.contains(function.name) { continue }
+				if function.decorator_list.contains(name: "no_protocol") { continue }
 				out.append(.init(ast: function, cls: cls))
 			}
 		default: continue
@@ -37,6 +38,25 @@ fileprivate func convertAST2Function(_ asts: [any Stmt], cls: PyWrap.Class) -> [
 
 
 fileprivate func convertAST2Property(_ asts: [any Stmt], cls: PyWrap.Class) -> [any ClassProperty]? {
+	if asts.isEmpty { return nil }
+	var out = [any ClassProperty]()
+	for ast in asts {
+		switch ast.type {
+		case .AnnAssign:
+			
+			out.append(PyWrap.Class.propertyFromAST(ast: ast as! AST.AnnAssign))
+		case .Assign:
+			out.append(PyWrap.Class.Property(stmt: ast as! AST.Assign))
+		case .FunctionDef: continue
+		case .ClassDef: continue
+		case .Expr: continue
+		default: fatalError(ast.type.rawValue)
+		}
+	}
+	return out.isEmpty ? nil : out
+}
+
+func convertAST2Property(_ asts: [any Stmt]) -> [any ClassProperty]? {
 	if asts.isEmpty { return nil }
 	var out = [any ClassProperty]()
 	for ast in asts {

@@ -10,8 +10,11 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import PyWrapper
 
-
-
+extension LabeledExprSyntax {
+	func newLabel(_ n: String) -> Self {
+		with(\.label, .init(stringLiteral: n))
+	}
+}
 
 extension Array where Element == AnyArg {
 	var parameterList: FunctionParameterListSyntax {

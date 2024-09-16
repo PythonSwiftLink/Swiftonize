@@ -14,7 +14,11 @@ class ObjectInitializer {
 	
 	init(_cls: PyWrap.Class? = nil, generic_target: String? = nil) {
 		self._cls = _cls
-		if let __init__ = _cls!.functions?.first(where: { $0.name == "__init__" }) {
+		if let __init__ = _cls?.__init__ {
+			args = __init__.args
+			
+			print(args)
+		} else if let __init__ = _cls!.functions?.first(where: { $0.name == "__init__" }) {
 			args = __init__.args
 		}
 		cls_name = generic_target ?? _cls?.name ?? ""
@@ -27,9 +31,17 @@ class ObjectInitializer {
 
 extension ObjectInitializer {
 	
+	var initVars: [VariableDeclSyntax] {
+		args.map { arg in
+			VariableDeclSyntax(.var, name: .init(stringLiteral: arg.optional_name ?? arg.name), type: .init(type: arg._typeSyntax))
+		}
+	}
+	
 	var codeBlock: SwiftSyntax.CodeBlockItemListSyntax { .init {
 		if cls.options.py_init {
+			
 			DoStmtSyntax(catchClauses: catchClauses) {
+				for initvar in initVars { initvar }
 				"let nkwargs = (kw == nil) ? 0 : PyDict_Size(kw)"
 				if_nkwargs(elseCode: .init {
 					"let nargs = PyTuple_Size(_args_)"
@@ -63,11 +75,12 @@ extension ObjectInitializer {
 		
 		return .init {
 			for arg in args {
+				let arg_name = arg.optional_name ?? arg.name
 				SequenceExprSyntax(elements: .init(itemsBuilder: {
 					//IdentifierExpr(stringLiteral: arg.name)
-					ExprSyntax(stringLiteral: "\(arg)")
+					ExprSyntax(stringLiteral: "\( arg_name)")
 					AssignmentExprSyntax()
-					TryExprSyntax.pyDict_GetItem("kw", "\(arg)")
+					TryExprSyntax.pyDict_GetItem("kw", "\(arg_name)")
 				}))
 			}
 		}
@@ -184,8 +197,15 @@ extension ObjectInitializer {
 		
 		let tuple = TupleExprElementListSyntax {
 			//TupleExprElementSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
+			let many = args.count > 1
 			for arg in args {
-				//TupleExprElementSyntax(label: arg.label, expression: ExprSyntax(stringLiteral: arg.name))
+				let arg_name = arg.optional_name ?? arg.name
+				let label = arg.no_label ? nil : arg_name
+				
+				TupleExprElementSyntax(label: label, expression: ExprSyntax(stringLiteral: arg_name))
+//				if let _arg = arg as? ArgSyntax {
+//					_arg.callTupleElement(many: many)
+//				}
 			}
 			
 		}

@@ -107,10 +107,13 @@ public class NewClassGenerator {
 		let bases = cls.bases()
 		//guard let cls = cls else { fatalError() }
 		let new_callback = true //( bases.count == 0)
-		let inher: TypeInheritanceClauseSyntax? = new_callback ? nil : .init {
+		let inher: TypeInheritanceClauseSyntax? = cls.new_class ? .init {
 			//for base in bases { base.rawValue.inheritedType }
 			//for cp in cls.callback_protocols { cp.inheritedType }
-		}
+			for base in bases.filter({$0 == .NSObject}) {
+				base.rawValue.inheritanceType
+			}
+		} : nil
 		//		let cls_title = cls.new_class ?  cls.name : "\(cls.name)PyCallback"
 		let cls_title = cls.new_class ?  cls.name : "PyCallback"
 		let cls_dect = ClassDeclSyntax(

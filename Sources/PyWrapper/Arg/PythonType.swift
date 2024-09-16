@@ -45,7 +45,8 @@ public enum PythonType: String, CaseIterable,Codable {
 	case bool
 	case void
 	case None
-	case callable
+	case callable = "Callable"
+	case CallableOnce
 	case optional = "Optional"
 	case error = "Error"
 	case url = "URL"
@@ -59,7 +60,8 @@ public enum PythonSubscriptType: String, CaseIterable, Codable {
 	case Array
 	case memoryview
 	case tuple
-	case callable
+	case callable = "Callable"
+	case CallableOnce
 	case dict
 	case optional = "Optional"
 	case other

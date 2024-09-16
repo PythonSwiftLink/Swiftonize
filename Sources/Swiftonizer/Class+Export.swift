@@ -418,6 +418,9 @@ public extension PyWrap.Class {
 //		if  !(callbacks_count == 0 && !new_class) && _user_functions.isEmpty && init_function == nil {
 //			if bases.isEmpty { return nil }
 //		}
+		let filtered_functions = functions?.filter({ f in
+			false
+		})
 		
 		let protocolList = MemberDeclListSyntax {
 			if let callbacks = callbacks {

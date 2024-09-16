@@ -8,10 +8,21 @@ extension PyWrap.CallableArg: ArgSyntax {
 		if no_label { return .init(expression: "_\(name)".expr) }
 		return .init(label: name, expression: "_\(name)".expr)
 	}
-	
+	private func extractOptional(opt: PyWrap.OptionalType, index: Int) -> String? {
+		return switch opt.wrapped.py_type {
+		case .error: "let arg\(index) = arg\(index)?.localizedDescription"
+		default: nil
+		}
+	}
 	public func extractDecl(many: Bool) -> SwiftSyntax.VariableDeclSyntax? {
 		let types = type.input.types
 		let args = types.enumerated().map{"arg\($0.offset)"}.joined(separator: ", ")
+		let extracts = types.enumerated().compactMap({ item in
+			return switch item.element.py_type {
+			case .optional: extractOptional(opt: item.element as! PyWrap.OptionalType, index: item.offset)
+			default: nil
+			}
+		})
 		return .init(
 			.let,
 			name: "_\(raw: name)",
@@ -19,6 +30,7 @@ extension PyWrap.CallableArg: ArgSyntax {
 			initializer: .init(
 				value: ExprSyntax(stringLiteral:  """
 					{ \(args) in
+						\(extracts.joined(separator: "\n"))
 						DispatchQueue.main.async {
 							do {
 								try PythonCallWithGil(call: \(name)\(types.count > 0 ? ", " : "")\(args))

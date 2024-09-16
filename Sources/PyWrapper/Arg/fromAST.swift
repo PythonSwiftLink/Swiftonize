@@ -181,8 +181,10 @@ extension AST.Subscript {
 			fatalError(value.id)
 		case .tuple:
 			fatalError(value.id)
-		case .callable:
-			return PyWrap.CallableArg(ast: ast_arg, type: PyWrap.CallableType(from: ast, type: .callable))
+		case .callable, .CallableOnce:
+			let call = PyWrap.CallableArg(ast: ast_arg, type: PyWrap.CallableType(from: ast, type: .callable))
+			call.type.once = t == .CallableOnce
+			return call
 		case .dict:
 			//return PyWrap.DictionaryType(from: ast, type: .dict)
 			return PyWrap.DictionaryArg(ast: ast_arg, type: PyWrap.DictionaryType(from: ast, type: .dict))
@@ -208,7 +210,7 @@ extension AST.Subscript {
 			fatalError(value.id)
 		case .tuple:
 			fatalError(value.id)
-		case .callable:
+		case .callable, .CallableOnce:
 			fatalError(value.id)
 		case .dict:
 			return PyWrap.DictionaryType(from: ast, type: .dict)
@@ -267,6 +269,8 @@ extension AST.Name {
 			fatalError()
 		case .callable:
 			fatalError()
+		case .CallableOnce:
+			fatalError()
 		case .optional:
 			fatalError()
 			
@@ -315,8 +319,10 @@ extension AST.Name {
 			fatalError()
 		case .None:
 			fatalError()
-		case .callable:
-			return PyWrap.CallableArg(ast: ast_arg)
+		case .callable, .CallableOnce:
+			let call = PyWrap.CallableArg(ast: ast_arg)
+			call.type.once = t == .CallableOnce
+			return call
 		case .optional:
 			fatalError()
 		case .error:

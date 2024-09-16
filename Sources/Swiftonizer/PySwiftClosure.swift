@@ -33,7 +33,7 @@ extension PyMethodClosure {
 				
 				guard_stmt.codeBlockItem.with(\.trailingTrivia, .newline)
 				for callable in function.args.filter({$0.type.py_type == .callable}) {
-					"let \(raw: callable.name) = __args__[\(raw: callable.index ?? 0)]"
+					"let \(raw: callable.name) = __args__[\(raw: callable.index ?? 0)]!"
 				}
 				for extract in extracts {
 					extract

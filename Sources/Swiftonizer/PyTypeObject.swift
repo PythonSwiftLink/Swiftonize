@@ -49,13 +49,20 @@ extension PyTypeObjectLabels {
 }
 
 extension Array where Element == any ExprProtocol {
+	func first(base: WrapClassBase) -> (any ExprProtocol)? {
+		first(name: base.rawValue)
+	}
 	func first(name: String) -> (any ExprProtocol)? {
-		self.first { expr in
-			if let expr = expr as? AST.Name {
-				return expr.id == name
+		return self.first(where: { expr in
+			return switch expr {
+			case let ast_name as AST.Name:
+				ast_name.id == name
+			case let call as AST.Call:
+				call.name == name
+			default: false
 			}
-			return false
-		}
+		})
+		
 	}
 }
 

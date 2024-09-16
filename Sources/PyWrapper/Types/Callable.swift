@@ -82,6 +82,7 @@ public extension PyWrap {
 		public var output: (any TypeProtocol)?
 		//public var element: any TypeProtocol
 		//public var dims = 1
+		public var once = false
 		
 		public init(from ast: AST.Subscript, type: PythonType) {
 			self.ast = ast
