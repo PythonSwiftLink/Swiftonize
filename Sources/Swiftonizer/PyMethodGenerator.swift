@@ -60,6 +60,11 @@ extension PyMethodGenerator {
 		default:
 			pyCallDefaultReturn(maxArgs: maxArgs)
 		}
+		if let returns = f.returns {
+			f.pyReturnStmt
+		} else {
+			"return .None"
+		}
 	}}
 	
 	var callBlock: ClosureExprSyntax { .init(

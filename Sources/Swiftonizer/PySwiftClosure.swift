@@ -39,7 +39,7 @@ extension PyMethodClosure {
 					extract
 				}
 				functionCall
-				"return .None"
+				//"return .None"
 			}
 			//.with(\.leadingTrivia, .newline)
 		}
@@ -168,6 +168,8 @@ extension PyMethodClosure {
 				//functionCode.with(\.trailingTrivia, .newline)
 				functionCall.with(\.trailingTrivia, .newline)
 			}
+			
+			
 		}
 	}
 	private func catchItem(_ label: String) -> CatchItemListSyntax {
