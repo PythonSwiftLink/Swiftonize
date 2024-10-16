@@ -49,14 +49,17 @@ public struct PythonCall {
 		if let returns = function.returns as? ArgTypeSyntax {
 			signature.returnClause = .init(type: returns.typeSyntax)
 		}
-		//let many = function.args.count
+		let many = function.args.count > 1
 		let extracts = function.args.compactMap { arg -> CodeBlockItemSyntax? in
 			switch arg.type.py_type {
 			case .optional:
 				if let opt = arg.type as? PyWrap.OptionalType, opt.wrapped.py_type == .error {
 					return "let \(raw: arg.name) = \(raw: arg.name)?.localizedDescription"
 				}
-				
+			case .error:
+				if let _arg = arg as? ArgSyntax, let decl = _arg.extractDecl(many: many) {
+					return .init(item: .decl(.init(decl)))
+				}
 			default: return nil
 			}
 			return nil

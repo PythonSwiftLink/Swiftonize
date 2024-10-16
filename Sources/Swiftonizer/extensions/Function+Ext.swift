@@ -106,22 +106,37 @@ extension PyWrap.Function {
 
 
 
-
+public extension ReturnStmtSyntax {
+	
+}
 
 public extension PyWrap.Function {
 	
-	var pyReturnStmt: ReturnStmtSyntax {
+	func _pyReturnStmt(expr: ExprSyntaxProtocol) -> ReturnStmtSyntax {
 		switch returns?.py_type {
 		case .None, .void:
-			return .init(expression: MemberAccessExprSyntax(name: "None"))
+				.init(expression: MemberAccessExprSyntax(name: "None"))
 		case .object:
-			//return .init(expression: IdentifierExpr(stringLiteral: "\(name)_result"))
-			return .init(expression: ExprSyntax(stringLiteral: "\(name)_result"))
+			//rereturnturn .init(expression: IdentifierExpr(stringLiteral: "\(name)_result"))
+				.init(expression: expr)
 		default:
 			//            return .init(expression: MemberAccessExprSyntax(base: .init(stringLiteral: "\(name)_result"), name: "pyPointer"))
-			return .init(expression: MemberAccessExprSyntax(base: ExprSyntax(stringLiteral: "\(name)_result"), name: .identifier("pyPointer")))
+				.init(expression: MemberAccessExprSyntax(base: expr, name: .identifier("pyPointer")))
 		}
-		
+	}
+	
+	var pyReturnStmt: ReturnStmtSyntax {
+		let rtn: ReturnStmtSyntax = switch returns?.py_type {
+		case .None, .void:
+			.init(expression: MemberAccessExprSyntax(name: "None"))
+		case .object:
+			//rereturnturn .init(expression: IdentifierExpr(stringLiteral: "\(name)_result"))
+			 .init(expression: ExprSyntax(stringLiteral: "\(name)_result"))
+		default:
+			//            return .init(expression: MemberAccessExprSyntax(base: .init(stringLiteral: "\(name)_result"), name: "pyPointer"))
+			.init(expression: MemberAccessExprSyntax(base: ExprSyntax(stringLiteral: "\(name)_result"), name: .identifier("pyPointer")))
+		}
+		return rtn//.with(\.trailingTrivia, .newlines(2))
 	}
 	
 	var returnClause: ReturnClauseSyntax? {

@@ -28,6 +28,7 @@ extension PyWrap.Module {
 			PyMethods(methods: functions, is_public: true, custom_title: "\(filename)PyMethods").output
 			createPyModuleDef
 			createPyInitExt
+			importModuleExt
 		})
 		
 		
@@ -114,4 +115,12 @@ extension PyWrap.Module {
 			}
 	}
 	
+	var importModuleExt: ExprSyntax {
+		"""
+		
+		public extension PySwiftModuleImport {
+			static let \(raw: filename) = PySwiftModuleImport(name: \(literal: filename), module: PyInit_\(raw: filename))
+		}
+		"""
+	}
 }

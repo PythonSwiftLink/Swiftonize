@@ -326,7 +326,10 @@ extension AST.Name {
 		case .optional:
 			fatalError()
 		case .error:
-			fatalError()
+			guard let name = ast_arg.annotation as? AST.Name else { fatalError("not AST.Name -> \(ast_arg.lineno)")}
+			let o = PyWrap.StringType(ast: name, py_type: .error)
+			let err = PyWrap.StringArg(ast: ast_arg, type: o)
+			return err
 		case .url:
 			fatalError()
 			

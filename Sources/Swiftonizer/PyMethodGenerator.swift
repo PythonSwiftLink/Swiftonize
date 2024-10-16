@@ -48,23 +48,33 @@ extension PyMethodGenerator {
 //		statements: PySwiftClosure(function: f).statements)
 //	}
 	
+	func funcCall() -> ExprSyntaxProtocol {
+		
+		if f.throws {
+			TryExprSyntax(expression: pyCallDefault(maxArgs: maxArgs))
+		} else {
+			pyCallDefault(maxArgs: maxArgs)
+		}
+		
+	}
+	
 	var functionBlock: CodeBlockItemListSyntax { .init {
 		switch f.returns?.py_type {
 		case .void, .None, .none:
-			if f.throws {
-				//TryExprSyntax(expression: function.pyCallDefault(maxArgs: maxArgs))
-				TryExprSyntax(expression: pyCallDefault(maxArgs: maxArgs))
-			} else {
-				pyCallDefault(maxArgs: maxArgs)
-			}
+//			if f.throws {
+//				TryExprSyntax(expression: pyCallDefault(maxArgs: maxArgs))
+//			} else {
+//				pyCallDefault(maxArgs: maxArgs)
+//			}
+			funcCall()
+			"return .None\n\t"
+			
 		default:
-			pyCallDefaultReturn(maxArgs: maxArgs)
+			//pyCallDefaultReturn(maxArgs: maxArgs)
+			f._pyReturnStmt(expr: funcCall() )
 		}
-		if let returns = f.returns {
-			f.pyReturnStmt
-		} else {
-			"return .None"
-		}
+	
+		
 	}}
 	
 	var callBlock: ClosureExprSyntax { .init(

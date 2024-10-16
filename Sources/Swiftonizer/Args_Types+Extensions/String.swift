@@ -10,7 +10,22 @@ extension PyWrap.StringArg: ArgSyntax {
 	}
 	
 	public func extractDecl(many: Bool) -> SwiftSyntax.VariableDeclSyntax? {
-		nil
+		
+		let expr: ExprSyntaxProtocol? = switch type.py_type {
+		case .url:
+			ExprSyntax(stringLiteral: "\(name).path")
+		case .error:
+			ExprSyntax(stringLiteral: "\(name).localizedDescription")
+		default:
+			nil
+		}
+		guard let expr = expr else { return nil }
+		return .init(
+			.let,
+			name: .init(stringLiteral: name),
+			type: .init(type: TypeSyntax("String")),
+			initializer: .init(value: expr)
+		)
 	}
 }
 

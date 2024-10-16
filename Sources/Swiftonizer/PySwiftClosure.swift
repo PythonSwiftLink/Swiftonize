@@ -30,8 +30,9 @@ extension PyMethodClosure {
 	private var doCatch: DoStmtSyntax {
 		var do_stmt = DoStmtSyntax {
 			CodeBlockItemListSyntax {
-				
-				guard_stmt.codeBlockItem.with(\.trailingTrivia, .newline)
+				if function.args.count > 0 {
+					guard_stmt.codeBlockItem.with(\.trailingTrivia, .newline)
+				}
 				for callable in function.args.filter({$0.type.py_type == .callable}) {
 					"let \(raw: callable.name) = __args__[\(raw: callable.index ?? 0)]!"
 				}
@@ -166,7 +167,11 @@ extension PyMethodClosure {
 				}
 			} else {
 				//functionCode.with(\.trailingTrivia, .newline)
-				functionCall.with(\.trailingTrivia, .newline)
+				if function.throws {
+					doCatch.with(\.trailingTrivia, .tab)
+				} else {
+					functionCall.with(\.trailingTrivia, .tab)
+				}
 			}
 			
 			
