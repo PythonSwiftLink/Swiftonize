@@ -19,7 +19,7 @@ if local {
 } else {
 	dependencies.append(contentsOf: [
 		//.package(url: "https://github.com/PythonSwiftLink/PyAst", branch: "master"),
-		.package(url: "https://github.com/PythonSwiftLink/PyAst", from: .init(0, 0, 1)),
+		.package(url: "https://github.com/PythonSwiftLink/PyAst", from: .init(0, 0, 0)),
 
 	])
 }
