@@ -8,7 +8,7 @@ import CompilerPluginSupport
 let local = false
 
 var dependencies: [Package.Dependency] = [
-	.package(url: "https://github.com/SwiftyJSON/SwiftyJSON", branch: "master"),
+	.package(url: "https://github.com/SwiftyJSON/SwiftyJSON", from: .init(5, 0, 2)),
 	.package(url: "https://github.com/apple/swift-syntax", from: .init(509, 0, 0))
 ]
 
@@ -18,7 +18,8 @@ if local {
 	])
 } else {
 	dependencies.append(contentsOf: [
-		.package(url: "https://github.com/PythonSwiftLink/PyAst", branch: "master"),
+		//.package(url: "https://github.com/PythonSwiftLink/PyAst", branch: "master"),
+		.package(url: "https://github.com/PythonSwiftLink/PyAst", from: .init(0, 0, 1)),
 	])
 }
 
