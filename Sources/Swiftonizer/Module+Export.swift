@@ -115,12 +115,9 @@ extension PyWrap.Module {
 			}
 	}
 	
-	var importModuleExt: ExprSyntax {
-		"""
-		
-		public extension PySwiftModuleImport {
-			static let \(raw: filename) = PySwiftModuleImport(name: \(literal: filename), module: PyInit_\(raw: filename))
-		}
-		"""
+	var importModuleExt: ExtensionDeclSyntax {
+		.init(modifiers: [.public], extendedType: TypeSyntax(stringLiteral: "PySwiftModuleImport"), memberBlock: .init{
+			"static let \(raw: filename) = PySwiftModuleImport(name: \(literal: filename), module: PyInit_\(raw: filename))"
+		})
 	}
 }
