@@ -9,7 +9,7 @@ let local = false
 
 var dependencies: [Package.Dependency] = [
 	.package(url: "https://github.com/SwiftyJSON/SwiftyJSON", from: .init(5, 0, 2)),
-	.package(url: "https://github.com/apple/swift-syntax", from: .init(509, 0, 0))
+	.package(url: "https://github.com/swiftlang/swift-syntax", from: .init(509, 0, 0))
 ]
 
 if local {
