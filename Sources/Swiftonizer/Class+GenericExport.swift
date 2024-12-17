@@ -12,6 +12,7 @@ extension PyWrap.Class {
 		var output = [ExtensionDeclSyntax]()
 		for t in options.generic_typevar?.types ?? [] {
 			let generic_name = "\(name)<\(t)>"
+			print("generic_extensions:\n\t\(generic_name)")
 			output.append( .init(extendedType: TypeSyntax(stringLiteral: generic_name)) {
 				tp_new()
 				tp_init(target: generic_name)
