@@ -39,13 +39,13 @@ jobs:
               
               mkdir release
               lipo -create $X64BIN $ARMBIN -output release/Swiftonize
-              #cp -rf .build/apple/Products/Release/PSProjectCLI release/Swiftonize
-              tar -C ./release/ -czvf ./PSProject.tar.gz ./    
+              #cp -rf .build/apple/Products/Release/SwiftonizeCLI release/Swiftonize
+              tar -C ./release/ -czvf ./Swiftonize.tar.gz ./    
       
       - name: Set SHA256
         id: shasum
         run: |
-          echo "var=$(shasum -a 256 ./PSProject.tar.gz | awk '{printf $1}')" >> $GITHUB_OUTPUT
+          echo "var=$(shasum -a 256 ./Swiftonize.tar.gz | awk '{printf $1}')" >> $GITHUB_OUTPUT
 
       - name: Set Version
         id: version
@@ -54,7 +54,7 @@ jobs:
       
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "PSProject.tar.gz"
+          artifacts: "Swiftonize.tar.gz"
           token: ${{ secrets.Homebrew }}
           allowUpdates: true
         
