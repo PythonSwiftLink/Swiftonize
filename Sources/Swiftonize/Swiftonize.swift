@@ -7,6 +7,7 @@ import Foundation
 struct Swiftonize: AsyncParsableCommand {
     
     static var configuration: CommandConfiguration = .init(
+        version: "0.0.4",
         subcommands: [
             Build.self,
             //VenvDump.self
