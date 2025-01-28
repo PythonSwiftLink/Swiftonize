@@ -17,7 +17,7 @@ class Swiftonize < Formula
   desc ""
   homepage ""
 
-  url "https://github.com/PythonSwiftLink/SwiftonizeGenerator/releases/download/{version}/Swiftonize.tar.gz"
+  url "https://github.com/PythonSwiftLink/Swiftonize/releases/download/{version}/Swiftonize.tar.gz"
   version "{version}"
   sha256 "{sha}"
   license ""
@@ -38,7 +38,7 @@ class Swiftonize{version_name} < Formula
   desc ""
   homepage ""
 
-  url "https://github.com/PythonSwiftLink/SwiftonizeGenerator/releases/download/{version}/Swiftonize.tar.gz"
+  url "https://github.com/PythonSwiftLink/Swiftonize/releases/download/{version}/Swiftonize.tar.gz"
   version "{version}"
   sha256 "{sha}"
   license ""
