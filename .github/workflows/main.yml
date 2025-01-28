@@ -1,0 +1,104 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Homebrew Builder
+
+# Controls when the workflow will run
+on:
+  push:
+   tags: '*'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  mainjob1:
+    #runs-on: macos-13
+    runs-on: macos-latest
+    #runs-on: self-hosted
+    outputs:
+      sha: ${{ steps.shasum.outputs.var }}
+      version: ${{ steps.version.outputs.var }}
+
+    permissions:
+      contents: write
+      
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build x86_64    
+        run: swift build -c release --disable-sandbox --arch x86_64 --product Swiftonize
+      
+      - name: Build arm64    
+        run: swift build -c release --disable-sandbox --arch arm64 --product Swiftonize
+
+
+      - name: Build Release    
+        run: | 
+              X64BIN=".build/x86_64-apple-macosx/release/Swiftonize"
+              ARMBIN=".build/arm64-apple-macosx/release/Swiftonize"
+              
+              mkdir release
+              lipo -create $X64BIN $ARMBIN -output release/Swiftonize
+              #cp -rf .build/apple/Products/Release/PSProjectCLI release/Swiftonize
+              tar -C ./release/ -czvf ./PSProject.tar.gz ./    
+      
+      - name: Set SHA256
+        id: shasum
+        run: |
+          echo "var=$(shasum -a 256 ./PSProject.tar.gz | awk '{printf $1}')" >> $GITHUB_OUTPUT
+
+      - name: Set Version
+        id: version
+        run: |
+            echo "var=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
+      
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "PSProject.tar.gz"
+          token: ${{ secrets.Homebrew }}
+          allowUpdates: true
+        
+  mainjob2:
+    needs: mainjob1
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v3
+
+      - name: retrieve output
+        run: |
+          echo "${{ needs.mainjob1.outputs.version }}"
+          echo "${{ needs.mainjob1.outputs.sha }}"
+
+      
+      - name: setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10' # install the python version needed
+
+      - name: install python packages
+        run: |
+          python3 -m pip install --upgrade pip
+          #pip3 install cookiecutter
+        
+      - name: generate formula
+        run: |
+          mkdir homebrew_formula
+          python3.10 generate_formula.py ${{ needs.mainjob1.outputs.version }} ${{ needs.mainjob1.outputs.sha }}
+
+      - name: clone tools and update
+        run: |
+            git clone https://github.com/pythonswiftlink/homebrew-tools
+            cp -f homebrew_formula/* homebrew-tools/Formula/p/
+
+      - name: Pushes to another repository
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.Homebrew }}
+        with:
+          source-directory: 'homebrew-tools'
+          destination-github-username: 'pythonswiftlink'
+          destination-repository-name: 'homebrew-tools'
+          user-email: pythonswiftlink@gmail.com
+          target-branch: master
