@@ -67,20 +67,22 @@ extension intArg: PySendExtactable {
     public var extract_needed: Bool { false }
     
     func function_input(many: Bool) -> String {
-        let _name = many ? "_args_[\(idx)]" : name
+        //let _name = many ? "_args_[\(idx)]" : name
+        let _name = many ? "_args_" : name
         return """
-        try pyCast(from: \(_name) )
+        try pyCast(from: \(_name), index: \(idx))
         """
     }
     
     func extractLine(many: Bool, with t: (String?)->String?, for class_pointer: String) -> String? {
         //guard let wrapped = wrapped as? PySendExtactable else { return nil }
         let _t = t(argType) ?? argType
-        let target = many ? "_args_[\(idx)]" : "\(name)"
+//        let target = many ? "_args_[\(idx)]" : "\(name)"
+        let target = many ? "_args_" : "\(name)"
         if options.contains(.optional) {
             return "let _\(name): \(_t) = try optionalPyCast(from: \(target) )"
         }
-        return "let _\(name): \(argType) = try pyCast(from: \(target) )"
+        return "let _\(name): \(argType) = try pyCast(from: \(target), index: \(\(idx)) )"
     }
     
     public var function_call_name: String? {

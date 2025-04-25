@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Swiftonize}",
+            "name": "Debug Swiftonize",
+            "program": "${workspaceFolder:Swiftonize}/.build/debug/Swiftonize",
+            "preLaunchTask": "swift: Build Debug Swiftonize"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Swiftonize}",
+            "name": "Release Swiftonize",
+            "program": "${workspaceFolder:Swiftonize}/.build/release/Swiftonize",
+            "preLaunchTask": "swift: Build Release Swiftonize"
+        }
+    ]
+}

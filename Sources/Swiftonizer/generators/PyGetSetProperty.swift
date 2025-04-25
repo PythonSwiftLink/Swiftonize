@@ -93,7 +93,7 @@ struct PyGetSetProperty {
 					
 				}
 				CatchClauseSyntax(catchItem("let other_error")) {
-					"other_error.pyExceptionError()".codeBlockItem
+					"//other_error.pyExceptionError()".codeBlockItem
 				}
 				
 			}

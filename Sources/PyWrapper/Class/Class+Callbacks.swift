@@ -28,6 +28,8 @@ extension PyWrap.Class {
 		public var count: Int { functions.count }
 		
 		public var __init__: PyWrap.Function?
+        
+        public var array_mode: Bool
 		
 		public init(ast: AST.ClassDef, cls: PyWrap.Class) {
 			self.ast = ast
@@ -40,7 +42,7 @@ extension PyWrap.Class {
 			functions = _functions ?? []
 			properties = convertAST2Property(ast.body)
 			
-			
+            array_mode = ast.bases.contains(name: "list")
 		}
 		
 		public var name: String { cls?.name ?? "NoName"}

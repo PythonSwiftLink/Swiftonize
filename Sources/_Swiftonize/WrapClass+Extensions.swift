@@ -229,7 +229,7 @@ public extension WrapClass {
                         }
                     }
                     catch let other_error {
-                        other_error.pyExceptionError()
+                        //other_error.pyExceptionError()
                     }
                     return 1
                 }

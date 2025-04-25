@@ -55,14 +55,14 @@ public class NewClassGenerator {
 			conditions: conditions,
 			body: .init {
 				assignCallback
-				for cp in cls.functions ?? [] {
+				for cp in cls.functions {
 					cp.assignFromDict
 				}
 			},
 			elseKeyword: .keyword(.else),
 			elseBody: .init(CodeBlockSyntax {
 				assignCallbackKeep
-				for cp in cls.functions ?? [] {
+				for cp in cls.functions {
 					cp.assignFromClass
 				}
 			})
@@ -102,51 +102,90 @@ public class NewClassGenerator {
 			"Py_DecRef(_pycall)"
 		}
 	}
+    
+    private var attributes: AttributeListSyntax {
+        .init {
+            AttributeSyntax.dynamicMemberLookup
+        }
+    }
+    
+    private var inheritanceClause:  InheritanceClauseSyntax? {
+        let bases = cls.bases()
+        
+        if bases.isEmpty { return nil }
+        return cls.new_class ? .init(inheritedTypes: .init {
+            let bases = cls.bases()
+            for base in bases.filter({$0 == .NSObject}) {
+                base.rawValue.inheritanceType
+            }
+        }) : nil
+    }
 	
-	public var code: ClassDeclSyntax {
-		let bases = cls.bases()
-		//guard let cls = cls else { fatalError() }
-		let new_callback = true //( bases.count == 0)
-		let inher: TypeInheritanceClauseSyntax? = cls.new_class ? .init {
-			//for base in bases { base.rawValue.inheritedType }
-			//for cp in cls.callback_protocols { cp.inheritedType }
-			for base in bases.filter({$0 == .NSObject}) {
-				base.rawValue.inheritanceType
-			}
-		} : nil
-		//		let cls_title = cls.new_class ?  cls.name : "\(cls.name)PyCallback"
-		let cls_title = cls.new_class ?  cls.name : "PyCallback"
-		let cls_dect = ClassDeclSyntax(
-			
-			//modifiers: [.init(name: .publictok)],
-			modifiers: .init(itemsBuilder: {
-				.init(name: .keyword(.public))
-			}),
-			identifier: .identifier(cls_title),
-			inheritanceClause: inher) {
-				.init {
-					
-					CreateDeclMember(.var, name: "_pycall", type: .init(type: TypeSyntax(stringLiteral: "PyPointer")))
-						.with(\.leadingTrivia, .newlines(2))
-					//.with(\.leadingTrivia, .newlines(2))
-					for f in cls.callbacks?.functions ?? [] {
-						CreateDeclMember(.var, name: "_\(f.name)", type: .init(type: TypeSyntax(stringLiteral: "PyPointer")), _private: true)
-						//CreateDeclMember(.var, name: <#T##String#>, type: <#T##TypeAnnotationSyntax#>)
-					}
-					
-					_init.with(\.leadingTrivia, .newlines(2))
-					//.with(\.leadingTrivia, .newlines(2))
-					
-					_deinit.with(\.leadingTrivia, .newline)
-					for f in cls.callbacks?.functions ?? [] {
-						PythonCall(function: f).functionDecl
-						
-						//.with(\.leadingTrivia, .newline)
-					}
-				}.with(\.leadingTrivia, .newline)
-			}
-		
-		return cls_dect
-	}
+    private var modifiers: DeclModifierListSyntax {
+        [
+            .public
+        ]
+    }
+        
+    public var code: ClassDeclSyntax {
+        
+        let cls_title = cls.new_class ?  cls.name : "PyCallback"
+        return ClassDeclSyntax(
+            leadingTrivia: .newline,
+            attributes: attributes,
+            modifiers: modifiers,
+            name: .identifier(cls_title),
+            inheritanceClause: inheritanceClause
+        ) { .init {
+            
+            CreateDeclMember(.var, name: "_pycall", type: .init(type: TypeSyntax(stringLiteral: "PyPointer")))
+                .with(\.leadingTrivia, .newlines(2))
+            
+            for f in cls.callbacks?.functions ?? [] {
+                CreateDeclMember(.var, name: "_\(f.name)", type: .init(type: TypeSyntax(stringLiteral: "PyPointer")), _private: true)
+            }
+            
+            _init.with(\.leadingTrivia, .newlines(2))
+            
+            _deinit.with(\.leadingTrivia, .newline)
+            for f in cls.callbacks?.functions ?? [] {
+                PythonCall(function: f).functionDecl
+            }
+            
+            DynamicMemberLookup(cls_var: "_pycall").code
+        }}
+    }
+//		let cls_dect = ClassDeclSyntax(
+//			
+//			//modifiers: [.init(name: .publictok)],
+//			modifiers: .init(itemsBuilder: {
+//				.init(name: .keyword(.public))
+//			}),
+//			identifier: .identifier(cls_title),
+//			inheritanceClause: inher) {
+//				.init {
+//					
+//					CreateDeclMember(.var, name: "_pycall", type: .init(type: TypeSyntax(stringLiteral: "PyPointer")))
+//						.with(\.leadingTrivia, .newlines(2))
+//					//.with(\.leadingTrivia, .newlines(2))
+//					for f in cls.callbacks?.functions ?? [] {
+//						CreateDeclMember(.var, name: "_\(f.name)", type: .init(type: TypeSyntax(stringLiteral: "PyPointer")), _private: true)
+//						//CreateDeclMember(.var, name: <#T##String#>, type: <#T##TypeAnnotationSyntax#>)
+//					}
+//					
+//					_init.with(\.leadingTrivia, .newlines(2))
+//					//.with(\.leadingTrivia, .newlines(2))
+//					
+//					_deinit.with(\.leadingTrivia, .newline)
+//					for f in cls.callbacks?.functions ?? [] {
+//						PythonCall(function: f).functionDecl
+//						
+//						//.with(\.leadingTrivia, .newline)
+//					}
+//				}.with(\.leadingTrivia, .newline)
+//			}
+//		
+//		return cls_dect
+	
 	
 }

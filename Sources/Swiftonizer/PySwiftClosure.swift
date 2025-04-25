@@ -76,7 +76,7 @@ extension PyMethodClosure {
 					arg
 				}
 			}
-			if function.class != nil {
+            if function.class != nil, !function.static {
 				"__self__".optionalGuardUnwrap
 			}
 		}
@@ -95,7 +95,7 @@ extension PyMethodClosure {
 			}
 		}
 	}
-	func caseItem(_ v: Int) -> CaseItemSyntax {
+	func caseItem(_ v: Int) -> SwitchCaseItemSyntax {
 		.init(pattern: ExpressionPatternSyntax(expression: IntegerLiteralExprSyntax(v) ) )
 	}
 	func switchCaseLabel(_ v: Int) -> SwitchCaseLabelSyntax {
@@ -114,7 +114,6 @@ extension PyMethodClosure {
 			SwitchCaseSyntax(label: .default(.init()), statements: caseFunctionCode(maxArgs: arg_count))
 		)
 		return sc
-		return []
 	}
 	
 	private func caseFunctionCode(maxArgs: Int) -> CodeBlockItemListSyntax {
@@ -183,30 +182,7 @@ extension PyMethodClosure {
 		)
 	}
 	private var catchClauseList: CatchClauseListSyntax {
-		
-		.init {
-			CatchClauseSyntax(catchItem("let err as PythonError")) {
-				if arg_count > 1 {
-					"""
-					switch err {
-					case .call: err.triggerError("wanted \(raw: arg_count) got \\(__nargs__)")
-					default: err.triggerError("hmmmmmm")
-					}
-					"""
-				} else {
-					"""
-					switch err {
-					case .call: err.triggerError("arg type Error")
-					default: err.triggerError("hmmmmmm")
-					}
-					"""
-				}
-			}
-			CatchClauseSyntax(catchItem("let other_error")) {
-				"other_error.pyExceptionError()".codeBlockItem
-			}
-			
-		}
+        .standardPyCatchClauses
 	}
 }
 

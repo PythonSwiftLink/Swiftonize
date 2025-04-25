@@ -16,9 +16,9 @@ extension PyWrap.Function {
 			case .method, .class_method:
 				"__self__"
 			}
-			if flag == .class_method || flag == .static_method {
-				"__type__"
-			}
+//			if flag == .class_method || flag == .static_method {
+//				"__type__"
+//			}
 			if nargs == 0 { "_"}
 			if nargs > 0 { "__arg\(raw: nargs > 1 ? "s" : "")__" }
 			if nargs > 1 { "__nargs__" }
@@ -160,7 +160,16 @@ public extension PyWrap.Function {
 	}
 	
 	var function_header: FunctionDeclSyntax {
-		.init(identifier: .identifier(call_target ?? name), signature: signature)
+        .init(
+            modifiers: self.static ? [.static] : [],
+            name: .identifier(call_target ?? name),
+            signature: signature
+        )
+        
+//        .init(
+//            identifier: .identifier(call_target ?? name),
+//            signature: signature
+//        )
 	}
 	
 	func withCodeLines(_ lines: [String]) -> FunctionDeclSyntax {

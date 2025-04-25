@@ -56,9 +56,10 @@ public class boolArg: _WrapArg, WrapArgProtocol {
 
 extension boolArg: PySendExtactable {
     func function_input(many: Bool) -> String {
-        let _name = many ? "_args_[\(idx)]" : name
+//        let _name = many ? "_args_[\(idx)]" : name
+        let _name = many ? "_args_" : name
         return """
-        try pyCast(from: \(_name) )
+        try pyCast(from: \(_name), index: \(idx) )
         """
     }
     

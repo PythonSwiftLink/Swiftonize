@@ -49,6 +49,10 @@ extension GuardStmtSyntax {
 
 extension SequenceExprSyntax {
 	
+    static func noArgs() -> Self {
+        .init(elements: [])
+    }
+    
 	init(pyDict arg: AnyArg) {
 		self.init(elements: .init(itemsBuilder: {
 			//IdentifierExpr(stringLiteral: arg.name)

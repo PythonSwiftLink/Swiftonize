@@ -16,7 +16,8 @@ struct PyMethods {
 	let custom_title: String?
 	init(cls: PyWrap.Class? = nil, methods: [PyWrap.Function]? = nil, is_public: Bool = false, custom_title: String? = nil) {
 		self.cls = cls
-		self.methods = cls?.functions?.filter({!$0.static}) ?? methods ?? []
+		//self.methods = cls?.functions?.filter({!$0.static}) ?? methods ?? []
+        self.methods = cls?.functions ?? methods ?? []
 		self.is_public = is_public
 		self.custom_title = custom_title
 	}
@@ -57,7 +58,7 @@ struct PyMethods {
 	
 	static func asArrayElement(f: PyWrap.Function) -> ArrayElementSyntax {
 		let maxArgs = f.args.count - f.defaults_name.count
-		let meth_or_func: PyWrap.Function.FunctionFlag = f.class != nil ? .method : .function
+        let meth_or_func: PyWrap.Function.FunctionFlag = f.class != nil ? (f.static ? .static_method : .method) : .function
 		
 		let closure: ClosureExprSyntax = .init(
 			signature: f.getPyMethodDefSignature(flag: meth_or_func, keywords: false),
@@ -101,9 +102,14 @@ extension PyWrap.Function {
 	func getMethodType() -> String {
 		let nargs = args.count
 		if nargs > 1 {
+            if self.static {
+                return "_PyCFunctionFast"
+            }
 			return "PySwiftFunctionFast"
 		}
-		
+        if self.static {
+            return "PyCFunction"
+        }
 		return "PySwiftFunction"
 	}
 	
