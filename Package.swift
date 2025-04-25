@@ -21,7 +21,7 @@ if local {
 		//.package(url: "https://github.com/PythonSwiftLink/PyAst", branch: "master"),
 		.package(url: "https://github.com/PythonSwiftLink/PyAst", from: .init(0, 0, 0)),
         .package(url: "https://github.com/apple/swift-argument-parser", from: .init(1, 2, 0)),
-        .package(url: "https://github.com/PythonSwiftLink/PythonSwiftLink", from: .init(311, 0, 0)),
+        .package(url: "https://github.com/PythonSwiftLink/PySwiftKit", from: .init(311, 0, 0)),
         .package(url: "https://github.com/kylef/PathKit", from: .init(1, 0, 0) ),
 	])
 }
@@ -86,9 +86,9 @@ let package = Package(
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                .product(name: "PySwiftCore", package: "PythonSwiftLink"),
-                .product(name: "PySwiftObject", package: "PythonSwiftLink"),
-                .product(name: "PyDictionary", package: "PythonSwiftLink"),
+                .product(name: "PySwiftCore", package: "PySwiftKit"),
+                .product(name: "PySwiftObject", package: "PySwiftKit"),
+                .product(name: "PyDictionary", package: "PySwiftKit"),
                 "Swiftonizer",
                 //.product(name: "PySwiftObject", package: "PythonSwiftLink"),
                 "PathKit"
