@@ -41,7 +41,7 @@ public struct PyMethodGenerator {
 extension PyMethodGenerator {
 	var f: PyWrap.Function { function }
 	
-	var meth_or_func: PyWrap.Function.FunctionFlag  { cls != nil ? .method : .function }
+    var meth_or_func: PyWrap.Function.FunctionFlag  { cls != nil ? (f.static ? .static_method : .method) : .function }
 	
 //	var closure: ClosureExprSyntax { .init(
 //		signature: f.getPyMethodDefSignature(flag: meth_or_func, keywords: false),
@@ -53,7 +53,7 @@ extension PyMethodGenerator {
 		if f.throws {
 			TryExprSyntax(expression: pyCallDefault(maxArgs: maxArgs))
 		} else {
-			pyCallDefault(maxArgs: maxArgs)
+            pyCallDefault(maxArgs: maxArgs)
 		}
 		
 	}
@@ -195,7 +195,7 @@ extension PyMethodGenerator {
 		}
 		let call = FunctionCallExprSyntax.pyCall(
 			call_target,
-			args: args.compactMap({$0 as! ArgSyntax})
+            args: args.compactMap(\.self)
 		)
 		return call.with(\.rightParen, args.count > 0 ? .rightParenToken(leadingTrivia: .newline) : .rightParenToken() )
 	}
@@ -203,25 +203,31 @@ extension PyMethodGenerator {
 	func pyCallDefault(maxArgs: Int) -> FunctionCallExprSyntax {
 		let args = Array(args[0..<maxArgs])
 		if let wrap_class = self.cls {
+            let memberBase: ExprSyntaxProtocol = if f.static {
+                wrap_class.class_typeExpr
+            } else {
+                TryExprSyntax.unPackPySwiftObject(with: "__self__", as: wrap_class.name)
+            }
 			let src_member = MemberAccessExprSyntax(
-				base: TryExprSyntax.unPackPySwiftObject(with: "__self__", as: wrap_class.name),
-				dot: .periodToken(),
-				name: .identifier(call_target)
+                base: memberBase,
+				//dot: .periodToken(),
+                declName: .init(baseName: .identifier(call_target))
 			)
 			let call = FunctionCallExprSyntax.pyCall(
 				src_member,
-				args: args.compactMap({$0 as? ArgSyntax}),
+                args: args.compactMap(\.self),
 				cls: wrap_class
 			)
 			return call.with(\.rightParen, args.count > 0 ? .rightParenToken(leadingTrivia: .newline) : .rightParenToken() )
 		}
 		let call = FunctionCallExprSyntax.pyCall(
 			call_target,
-			args: args.compactMap({$0 as! ArgSyntax})
+			args: args.compactMap({$0})
 		)
 		return call.with(\.rightParen, args.count > 0 ? .rightParenToken(leadingTrivia: .newline) : .rightParenToken() )
 	}
 	
+   
 	
 	var returnPattern: PatternBindingSyntax {
 		let pattern = PatternSyntax(stringLiteral: "\(call_target)_result")

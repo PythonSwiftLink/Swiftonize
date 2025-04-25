@@ -62,6 +62,17 @@ extension LabeledExprSyntax {
 			expression: TryExprSyntax.unPackPyPointer(with: arg, many: many, type: arg.type.wrapped.string)  //as TryExprSyntax
 		)
 	}
+    //PyWeakref_GetObject
+    static func PyWeakref_GetObject(weak arg: PyWrap.WeakRefArg, many: Bool) -> Self {
+        if arg.no_label {
+            
+            return .init(expression: TryExprSyntax.PyWeakref_GetObject(with: arg, many: many, type: arg.type.wrapped.string) )
+        }
+        return .init(
+            label: arg.name,
+            expression: TryExprSyntax.PyWeakref_GetObject(with: arg, many: many, type: arg.type.wrapped.string)  //as TryExprSyntax
+        )
+    }
 }
 
 

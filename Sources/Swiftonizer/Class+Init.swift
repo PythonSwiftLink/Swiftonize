@@ -20,7 +20,11 @@ class ObjectInitializer {
 			print(args)
 		} else if let __init__ = _cls!.functions?.first(where: { $0.name == "__init__" }) {
 			args = __init__.args
-		}
+        } else if _cls?.new_class ?? false {
+            args = [
+                PyWrap.PyObjectArg(ast: .init(label: "callback"), type: .init(from: .init(id: "object"), type: .object))
+            ]
+        }
 		cls_name = generic_target ?? _cls?.name ?? ""
 	}
 }
@@ -32,26 +36,47 @@ class ObjectInitializer {
 extension ObjectInitializer {
 	
 	var initVars: [VariableDeclSyntax] {
-		args.map { arg in
-			VariableDeclSyntax(.var, name: .init(stringLiteral: arg.optional_name ?? arg.name), type: .init(type: arg._typeSyntax))
-		}
+//        if cls.new_class {
+//            [
+//                VariableDeclSyntax(.var, name: .init(stringLiteral: "callback"), type: .init(type: TypeSyntax(stringLiteral: "PyPointer")))
+//            ]
+//        } else {
+            args.map { arg in
+                VariableDeclSyntax(.var, name: .init(stringLiteral: arg.optional_name ?? arg.name), type: .init(type: arg._typeSyntax))
+            }
+        //}
 	}
 	
 	var codeBlock: SwiftSyntax.CodeBlockItemListSyntax { .init {
-		if cls.options.py_init {
-			
-			DoStmtSyntax(catchClauses: catchClauses) {
-				for initvar in initVars { initvar }
-				"let nkwargs = (kw == nil) ? 0 : PyDict_Size(kw)"
-				if_nkwargs(elseCode: .init {
-					"let nargs = PyTuple_Size(_args_)"
-					GuardStmtSyntax.nargs_kwargs(args.count)
-					handle_args_n_kwargs
-					
-				})
-				setPointer()
-			}
-		} else {
+        if cls.options.py_init {
+            if args.count > 0 {
+                DoStmtSyntax(catchClauses: catchClauses) {
+                    for initvar in initVars { initvar }
+                    "let nkwargs = (kw == nil) ? 0 : PyDict_Size(kw)"
+                    if_nkwargs(elseCode: .init {
+                        "let nargs = PyTuple_Size(_args_)"
+                        GuardStmtSyntax.nargs_kwargs(args.count)
+                        handle_args_n_kwargs
+                        
+                    })
+                    setPointer()
+                }
+            } else {
+                setPointer()
+            }
+        } else if cls.new_class {
+            DoStmtSyntax(catchClauses: catchClauses) {
+                for initvar in initVars { initvar }
+                "let nkwargs = (kw == nil) ? 0 : PyDict_Size(kw)"
+                if_nkwargs(elseCode: .init {
+                    "let nargs = PyTuple_Size(_args_)"
+                    GuardStmtSyntax.nargs_kwargs(args.count)
+                    handle_args_n_kwargs
+                    
+                })
+                setPointer()
+            }
+        } else {
 		"""
 		PyErr_SetString(PyExc_NotImplementedError,"\(raw: cls_name) can only be inited from swift")
 		"""
@@ -91,30 +116,36 @@ extension ObjectInitializer {
 			arrayLiteral: .init(pattern: IdentifierPatternSyntax(identifier: .identifier(label)))
 		)
 	}
-	private var catchClauses: CatchClauseListSyntax { 
-		let arg_count = args.count
-		return .init {
-			CatchClauseSyntax(catchItem("let err as PythonError")) {
-				if arg_count > 1 {
-					"""
-					switch err {
-					case .call: err.triggerError("\(raw: cls_name) __init__ Error")
-					default: err.triggerError("hmmmmmm")
-					}
-					"""
-				} else {
-					"""
-					switch err {
-					case .call: err.triggerError("arg type Error")
-					default: err.triggerError("hmmmmmm")
-					}
-					"""
-				}
-			}
-			CatchClauseSyntax(catchItem("let other_error")) {
-				"other_error.pyExceptionError()"
-			}
-	}}
+//	private var catchClauses: CatchClauseListSyntax { 
+//		let arg_count = args.count
+//		return .init {
+//            CatchClauseSyntax(catchItem("let err as PyStandardException")) {
+//                "setPyException(type: err, message: \(literal: cls_name))"
+//            }
+//			CatchClauseSyntax(catchItem("let err as PythonError")) {
+//				if arg_count > 1 {
+//					"""
+//					switch err {
+//					case .call: err.triggerError("\(raw: cls_name) __init__ Error")
+//					default: err.triggerError("hmmmmmm")
+//					}
+//					"""
+//				} else {
+//					"""
+//					switch err {
+//					case .call: err.triggerError("arg type Error")
+//					default: err.triggerError("hmmmmmm")
+//					}
+//					"""
+//				}
+//			}
+//			CatchClauseSyntax(catchItem("let other_error")) {
+//				"other_error.anyErrorException()"
+//			}
+//	}}
+    private var catchClauses: CatchClauseListSyntax {
+        .standardPyCatchClauses
+    }
 	
 	var handle_args_n_kwargs: CodeBlockItemListSyntax {
 		
@@ -240,6 +271,28 @@ extension ObjectInitializer {
 		
 		//return TryExprSyntax(tryKeyword: .tryKeyword(trailingTrivia: .space), expression: f_exp)
 	}
+    
+    func initNewPySwiftClassThrows() -> TryExprSyntax {
+        let id = IdentifierExprSyntax(identifier: .identifier(cls_name))
+        
+        let tuple = TupleExprElementListSyntax {
+            //TupleExprElementSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
+            for arg in args {
+                //TupleExprElementSyntax(label: arg.label, expression: ExprSyntax(stringLiteral: arg.name))
+                TupleExprElementSyntax(label: "callback", expression: ExprSyntax(stringLiteral: "__arg__"))
+            }
+            
+        }
+        let f_exp = FunctionCallExprSyntax(
+            calledExpression: id,
+            leftParen: .leftParenToken(),
+            argumentList: tuple,
+            rightParen: .rightParenToken()
+        )
+        return .init(expression: f_exp)
+        
+        //return TryExprSyntax(tryKeyword: .tryKeyword(trailingTrivia: .space), expression: f_exp)
+    }
 	
 }
 

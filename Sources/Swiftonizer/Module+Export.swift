@@ -15,7 +15,8 @@ extension PyWrap.Module {
 			"PySwiftObject".import
 			"PythonCore".import
 			"PyUnpack".import
-			"PyEncode".import
+			"PySerializing".import
+            "PyDeserializing".import
 			"PyCallable".import
 			"PyDictionary".import
 			"PyTuples".import

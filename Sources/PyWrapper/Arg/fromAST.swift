@@ -178,7 +178,7 @@ extension AST.Subscript {
 			//return PyWrap.CollectionType(from: ast, type: .list)
 			return PyWrap.CollectionArg(ast: ast_arg, type: PyWrap.CollectionType(from: ast, type: .list))
 		case .memoryview:
-			fatalError(value.id)
+            return PyWrap.MemoryViewArg(ast: ast_arg, sub: ast, type: .memoryview)
 		case .tuple:
 			fatalError(value.id)
 		case .callable, .CallableOnce:
@@ -299,7 +299,8 @@ extension AST.Name {
 			//let o = PyWrap.StringType.fromAST(self, type: t)
 			return PyWrap.StringArg.fromAST(self, type: t, ast_arg: ast_arg)
 		case .bytes:
-			fatalError()
+            
+            fatalError()
 		case .data:
 			let o = PyWrap.DataType(from: self, type: t)
 			return PyWrap.DataArg(ast: ast_arg, type: o)
@@ -324,6 +325,9 @@ extension AST.Name {
 			call.type.once = t == .CallableOnce
 			return call
 		case .optional:
+            print(ast_arg.annotation)
+            //PyWrap.fromAST(<#T##ast: any ExprProtocol##any ExprProtocol#>)
+            //let optionalArg = PyWrap.OptionalArg(ast: <#T##AST.Arg#>, type: <#T##PyWrap.OptionalArg.T#>)
 			fatalError()
 		case .error:
 			guard let name = ast_arg.annotation as? AST.Name else { fatalError("not AST.Name -> \(ast_arg.lineno)")}

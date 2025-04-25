@@ -71,6 +71,27 @@ public extension PyWrap {
 			self.type = CollectionType(from: sub, type: type)
 		}
 	}
+    
+    final class MemoryViewArg: ArgProtocol {
+        public typealias T = MemoryViewType
+        public var ast: AST.Arg
+        public var type: T
+        public var index: Int?
+        
+        public var options: [ArgOption] = []
+        
+        public init(ast: AST.Arg, type: T) {
+            self.ast = ast
+            self.type = type
+        }
+        
+        public init(ast: AST.Arg,sub: AST.Subscript, type: PythonType) {
+            self.ast = ast
+            self.type = MemoryViewType(from: sub, type: type)
+        }
+    }
+    
+    
 	
 	final class CallableArg: ArgProtocol {
 		public typealias T = PyWrap.CallableType
@@ -278,6 +299,20 @@ public extension PyWrap {
 //		
 //		public var no_label: Bool { false }
 //	}
+    
+    final class WeakRefArg: ArgProtocol {
+        public typealias T = PyWrap.WeakRefType
+        public var ast: AST.Arg
+        public var type: T
+        public var index: Int?
+        
+        public var options: [ArgOption] = []
+        
+        public init(ast: AST.Arg, type: T) {
+            self.ast = ast
+            self.type = type
+        }
+    }
 }
 
 

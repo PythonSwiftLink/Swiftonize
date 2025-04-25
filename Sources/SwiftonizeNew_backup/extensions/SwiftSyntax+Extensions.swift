@@ -610,11 +610,13 @@ extension TryExprSyntax {
     static func pyCast(arg: WrapArgProtocol, many: Bool) -> TryExprSyntax {
         let id = IdentifierExprSyntax(identifier: .identifier("pyCast"))
         var label: String {
-            if many { return "__args__[\(arg.idx)]"}
+            //if many { return "__args__[\(arg.idx)]"}
+            if many { return "__args__"}
             return arg.name
         }
         let tuple = TupleExprElementListSyntax {
             "from"._tuplePExprElement(label)
+            "index"._tuplePExprElement("\(\(arg.idx))")
         }
         let f_exp = FunctionCallExprSyntax(
             calledExpression: id,

@@ -6,6 +6,10 @@ import SwiftSyntaxBuilder
 
 
 extension PyWrap.Class {
+    
+    var class_type: TypeSyntax { .init(stringLiteral: name) }
+    var class_typeExpr: TypeExprSyntax { .init(type: class_type) }
+    
 	func codeBlock() throws -> CodeBlockItemListSyntax { try .init {
 		if options.generic_mode {
 //			for typevar in options.generic_typevar?.types ?? [] {
@@ -29,7 +33,7 @@ extension PyWrap.Class {
 	func extensions() throws -> ExtensionDeclSyntax {
 		let bases = bases()
 		return .init(extendedType: TypeSyntax(stringLiteral: name)) {
-			if !new_class, let callbacks = callbacks, callbacks.count > 0 {
+			if !new_class, let callbacks = callbacks {
 				PyCallbacksGenerator(cls: callbacks).code.with(\.leadingTrivia, .newline)
 			}
 			tp_new()
