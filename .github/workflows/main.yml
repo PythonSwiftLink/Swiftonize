@@ -90,7 +90,7 @@ jobs:
       - name: clone tools and update
         run: |
             git clone https://github.com/pythonswiftlink/homebrew-tools
-            cp -f homebrew_formula/* homebrew-tools/Formula/p/
+            cp -f homebrew_formula/* homebrew-tools/Formula/s/
 
       - name: Pushes to another repository
         uses: cpina/github-action-push-to-another-repository@main
