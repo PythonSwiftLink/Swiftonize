@@ -156,7 +156,7 @@ extension ObjectInitializer {
 						SequenceExprSyntax(elements: .init {
 							//IdentifierExpr(stringLiteral: "__nargs__")
 							ExprSyntax(stringLiteral: "nargs")
-							BinaryOperatorExprSyntax(operatorToken: .rightAngleToken(leadingTrivia: .space))
+							BinaryOperatorExprSyntax(operator: .rightAngleToken(leadingTrivia: .space))
 							IntegerLiteralExprSyntax(integerLiteral: 0)
 						})
 					}
@@ -191,7 +191,8 @@ extension ObjectInitializer {
 		let cls_unretained = false
 		//let unmanaged = IdentifierExpr(stringLiteral: "Unmanaged")
 		let unmanaged = ExprSyntax(stringLiteral: "Unmanaged")
-		let _passRetained = MemberAccessExprSyntax(base: unmanaged, dot: .periodToken(), name: .identifier(cls_unretained ? "passUnretained" : "passRetained"))
+//		let _passRetained = MemberAccessExprSyntax(base: unmanaged, dot: .periodToken(), name: .identifier(cls_unretained ? "passUnretained" : "passRetained"))
+        let _passRetained = MemberAccessExprSyntax(base: unmanaged, period: .periodToken(), name: .identifier(cls_unretained ? "passUnretained" : "passRetained"))
 		var initExpr: ExprSyntaxProtocol {
 			if _throws_ {
 				return initPySwiftTargetThrows().with(\.leadingTrivia, .newline)
@@ -209,7 +210,7 @@ extension ObjectInitializer {
 		
 		let toOpaque = FunctionCallExprSyntax(callee: MemberAccessExprSyntax(
 			base: pass,
-			dot: .periodToken(),
+			period: .periodToken(),
 			name: .identifier("toOpaque")
 		))
 		
@@ -224,11 +225,11 @@ extension ObjectInitializer {
 	}
 	
 	func initPySwiftTarget() -> FunctionCallExprSyntax {
-		let id = IdentifierExprSyntax(identifier: .identifier(cls_name))
+        let id = DeclReferenceExprSyntax(baseName: .identifier(cls_name))
 		
-		let tuple = TupleExprElementListSyntax {
+        let tuple = LabeledExprListSyntax {
 			//LabeledExprSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
-			let many = args.count > 1
+			//let many = args.count > 1
 			for arg in args {
 				let arg_name = arg.optional_name ?? arg.name
 				let label = arg.no_label ? nil : arg_name
@@ -243,7 +244,7 @@ extension ObjectInitializer {
 		let f_exp = FunctionCallExprSyntax(
 			calledExpression: id,
 			leftParen: .leftParenToken(),
-			argumentList: tuple,
+			arguments: tuple,
 			rightParen: .rightParenToken()
 		)
 		return f_exp
@@ -252,19 +253,19 @@ extension ObjectInitializer {
 	}
 	
 	func initPySwiftTargetThrows() -> TryExprSyntax {
-		let id = IdentifierExprSyntax(identifier: .identifier(cls_name))
+        let id = DeclReferenceExprSyntax(baseName: .identifier(cls_name))
 		
-		let tuple = TupleExprElementListSyntax {
+        let tuple = LabeledExprListSyntax {
 			//LabeledExprSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
 			for arg in args {
-				//LabeledExprSyntax(label: arg.label, expression: ExprSyntax(stringLiteral: arg.name))
+                LabeledExprSyntax(label: arg.name, expression: ExprSyntax(stringLiteral: arg.name))
 			}
 			
 		}
 		let f_exp = FunctionCallExprSyntax(
 			calledExpression: id,
 			leftParen: .leftParenToken(),
-			argumentList: tuple,
+			arguments: tuple,
 			rightParen: .rightParenToken()
 		)
 		return .init(expression: f_exp)
@@ -273,20 +274,20 @@ extension ObjectInitializer {
 	}
     
     func initNewPySwiftClassThrows() -> TryExprSyntax {
-        let id = IdentifierExprSyntax(identifier: .identifier(cls_name))
+        let id = DeclReferenceExprSyntax(baseName: .identifier(cls_name))
         
-        let tuple = TupleExprElementListSyntax {
+        let tuple = LabeledExprListSyntax {
             //LabeledExprSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
-            for arg in args {
+            //for arg in args {
                 //LabeledExprSyntax(label: arg.label, expression: ExprSyntax(stringLiteral: arg.name))
                 LabeledExprSyntax(label: "callback", expression: ExprSyntax(stringLiteral: "__arg__"))
-            }
+            //}
             
         }
         let f_exp = FunctionCallExprSyntax(
             calledExpression: id,
             leftParen: .leftParenToken(),
-            argumentList: tuple,
+            arguments: tuple,
             rightParen: .rightParenToken()
         )
         return .init(expression: f_exp)

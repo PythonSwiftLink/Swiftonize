@@ -150,7 +150,8 @@ public extension PyWrap.Function {
 	}
 	
 	var signature: FunctionSignatureSyntax {
-		.init(input: args.parameterClause, output: returnClause)
+		//.init(input: args.parameterClause, output: returnClause)
+        .init(parameterClause: args.parameterClause, returnClause: returnClause)
 	}
 	
 	var csignature: ClosureSignatureSyntax {
@@ -181,7 +182,7 @@ public extension PyWrap.Function {
 	}
 	
 	func withCodeLines(_ lines: [String]) -> ClosureExprSyntax {
-		var header = ClosureExprSyntax(signature: csignature, statements: lines.codeBlockList)
+		let header = ClosureExprSyntax(signature: csignature, statements: lines.codeBlockList)
 		//header.statements = lines.codeBlockList
 		return header
 	}

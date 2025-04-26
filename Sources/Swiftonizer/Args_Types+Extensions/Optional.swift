@@ -8,7 +8,7 @@ extension PyWrap.OptionalArg: ArgSyntax {
 	public func callTupleElement(many: Bool) -> SwiftSyntax.LabeledExprSyntax {
 		
 		switch type.wrapped {
-		case let other as PyWrap.OtherType:
+		case  _ as PyWrap.OtherType:
 			return .pyUnpack(optional: self, many: many)
 		default:
 			return .optionalPyCast(arg: self, many: many)

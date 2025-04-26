@@ -100,7 +100,7 @@ extension PyWrap.Class {
 }
 
 
-fileprivate extension PyWrap.Class {
+extension PyWrap.Class {
 	
 	
 	

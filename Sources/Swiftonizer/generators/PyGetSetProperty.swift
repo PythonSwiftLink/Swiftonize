@@ -124,11 +124,11 @@ struct PyGetSetProperty {
 	var setter: ClosureExprSyntax {
 		//let closure = ClosureExprSyntax(stringLiteral: "{ s, v, clossure in }")
 		let closure: ClosureExprSyntax = ExprSyntax(stringLiteral: "{ s, v, clossure in }").as(ClosureExprSyntax.self)!
-		if let tname = property.target_name {
-			
-		}
-		let line = "UnPackPySwiftObject(with: s, as: \(cls.name).self).\(property.target_name ?? property.name) = \(setter_assign)"
-		
+//		if let tname = property.target_name {
+//			
+//		}
+//		let line = "UnPackPySwiftObject(with: s, as: \(cls.name).self).\(property.target_name ?? property.name) = \(setter_assign)"
+//		
 		//        if property.arg_type is optionalArg { line += "optionalPyCast(from: v)"}
 		//        else { line += "try pyCast(from: v)" }
 		
@@ -177,7 +177,7 @@ struct PyGetSetProperty {
 		return .init(
 			calledExpression: exp,
 			leftParen: .leftParenToken(trailingTrivia: .newline),//.withTrailingTrivia(.newline ),
-			argumentList: .init {
+			arguments: .init {
 				LabeledExprSyntax(
 					label: "pySwift",
 					expression: StringLiteralExprSyntax(content: property.name )

@@ -60,15 +60,15 @@ extension PyWrap.Class {
 
 extension PyWrap.Class.Callbacks {
 	func bases() -> [WrapClassBase] {
-		if let bases = cls?.ast?.decorator_list.contains(where: { deco in
+		if cls?.ast?.decorator_list.contains(where: { deco in
 			if let call = deco as? AST.Call {
 				return (call._func as? AST.Name)?.id == "bases"
 			}
 			return false
-		}) {
+        }) ?? false {
 			for deco in cls?.ast?.decorator_list ?? [] {
 				if let call = deco as? AST.Call, (call._func as! AST.Name).id == "bases" {
-					return call.args.compactMap({$0 as! AST.Name}).compactMap({
+					return call.args.map({$0 as! AST.Name}).compactMap({
 						WrapClassBase(rawValue: $0.id)
 					})
 				}

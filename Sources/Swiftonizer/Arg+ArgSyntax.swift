@@ -20,9 +20,9 @@ extension LabeledExprSyntax {
 	
 	static func optionalPyCast(arg: any ArgProtocol, many: Bool) -> Self {
 		
-		let id = IdentifierExprSyntax(identifier: .identifier("optionalPyCast"))
+		let id = DeclReferenceExprSyntax(baseName: .identifier("optionalPyCast"))
 		var label: String {
-			if many { return "__args__[\(arg.index)]"}
+			if many { return "__args__[\(arg.index ?? 0)]"}
 			return arg.name
 		}
 		let tuple = LabeledExprListSyntax {
@@ -31,7 +31,7 @@ extension LabeledExprSyntax {
 		let f_exp = FunctionCallExprSyntax(
 			calledExpression: id,
 			leftParen: .leftParenToken(),
-			argumentList: tuple,
+			arguments: tuple,
 			rightParen: .rightParenToken()
 		)
 		if arg.no_label {

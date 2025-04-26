@@ -3,7 +3,7 @@ import PyAst
 
 
 
-extension AST.Name: CustomDebugStringConvertible, CustomStringConvertible {
+extension PyAst.AST.Name: Swift.CustomDebugStringConvertible, Swift.CustomStringConvertible {
 	public var debugDescription: String {
 		id
 	}
@@ -11,8 +11,8 @@ extension AST.Name: CustomDebugStringConvertible, CustomStringConvertible {
 	public var description: String { id }
 }
 
-extension AST.Arg: CustomStringConvertible {
-	public var description: String { (annotation as? CustomStringConvertible)?.description ?? "\(annotation)" }
+extension PyAst.AST.Arg: Swift.CustomStringConvertible {
+    public var description: String { (annotation as? CustomStringConvertible)?.description ?? "\(annotation?.name ?? "")" }
 }
 public extension PyWrap {
 	
@@ -62,7 +62,7 @@ public extension PyWrap {
 			let filtered = ast.args.args.filter({$0.arg != "self"})
 			self.args = filtered.enumerated().compactMap({ i, arg in
 				if let annotation = arg.annotation {
-					var out: AnyArg = PyWrap.fromAST(annotation, ast_arg: arg)
+					let out: AnyArg = PyWrap.fromAST(annotation, ast_arg: arg)
 					out.index = i
 					//if no_labels_all { out.options.append(.no_label)}
 					return out
@@ -127,17 +127,17 @@ public extension PyWrap {
 							}
 						}
 					case .arg_alias:
-						for kw in call.keywords {
-							guard
-								let key = kw.arg,
-								let const = kw.value as? AST.Constant
-							else { fatalError() }
-							if let arg = args.first(where: {$0.name == key}) { 
-								//if let value =  const.value {
-								//arg.ast.arg = const.value
-								arg.name
-								//}
-							}
+						for _ in call.keywords {
+//							guard
+//								let key = kw.arg
+//								//let const = kw.value as? AST.Constant
+//							else { fatalError() }
+//							if let arg = args.first(where: {$0.name == key}) { 
+//								//if let value =  const.value {
+//								//arg.ast.arg = const.value
+//								//arg.name
+//								//}
+//							}
 							
 						}
 					case .no_protocol: break
@@ -204,12 +204,12 @@ extension PyWrap.Function {
 				}
 			case .arg_alias:
 				guard let value = kw.value as? AST.Dict else { fatalError() }
-				for (i,label_key) in value.keys.enumerated() {
-					if let label_key = label_key as? AST.Constant, let label = label_key.value {
-						if let arg = args.first(where: {$0.name == label}) {
-							//arg.name =
-						}
-					}
+                for (_,_) in value.keys.enumerated() {
+                //                    if let label_key = label_key as? AST.Constant, let label = label_key.value {
+                ////                        if let arg = args.first(where: {$0.name == label}) {
+                ////                    		//arg.name =
+////						}
+//					}
 				}
 			case .no_protocol: break
 			case .none: continue
@@ -240,7 +240,7 @@ extension PyWrap.Function {
 		if call.keywords.isEmpty { return ["*"] }
 		if call.args.isEmpty { return ["*"] }
 		fatalError()
-		return ["*"]
+		//return ["*"]
 		
 	}
 }

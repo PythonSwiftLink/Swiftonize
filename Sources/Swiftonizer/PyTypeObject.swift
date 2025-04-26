@@ -12,7 +12,7 @@ func TPBaseType(t: String) -> ExprSyntax {
 		return .init(stringLiteral: ".PyUnicode")
 	default: return .init(stringLiteral: "\(t).PyType")
 	}
-	return .init(nilOrExpression: nil)
+	//return .init(nilOrExpression: nil)
 }
 
 fileprivate extension String {
