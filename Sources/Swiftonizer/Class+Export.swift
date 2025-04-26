@@ -128,7 +128,9 @@ fileprivate extension PyWrap.Class {
 			//if debug_mode { ExprSyntax(stringLiteral: #"print("tp_init - <\#(title)>")"#) }
 			//createTP_Init(cls: self, args: init_function?._args_ ?? []).code
 			ObjectInitializer(_cls: self).codeBlock
-			"return 1"
+            if options.py_init || functions?.contains(where: {$0.name == "__init__"}) ?? false {
+                "return 0"
+            }
 		})
 		
 	}

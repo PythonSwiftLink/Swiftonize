@@ -1,7 +1,0 @@
-//
-//  WrapArgProtocol.swift
-//
-
-import Foundation
-
-

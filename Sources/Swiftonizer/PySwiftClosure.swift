@@ -51,7 +51,7 @@ extension PyMethodClosure {
 	private func doCatchCase() -> DoStmtSyntax {
 		var do_stmt = DoStmtSyntax {
 			CodeBlockItemListSyntax {
-				GuardStmtSyntax(conditions: [], body: .init(statements: ""))
+				GuardStmtSyntax(conditions: [], body: .init(statements: "abc"))
 				//_guard.codeBlockItem
 				guard_stmt
 					.with(\.trailingTrivia, .newline)
@@ -154,15 +154,21 @@ extension PyMethodClosure {
 	
 	public var output: CodeBlockItemListSyntax { 
 		.init {
-			if function.class != nil || args.count > 0 {
+            if function.class != nil && args.count > 0 {
 				if defaults_count > 0 {
 					doCatchCase().with(\.trailingTrivia, .newline)
 					//ReturnStmtSyntax(stringLiteral: "return nil")
 					"return nil"
 				} else {
-					doCatch.with(\.trailingTrivia, .newline)
+					//doCatch.with(\.trailingTrivia, .newline)
+                    if function.throws {
+                        doCatch.with(\.trailingTrivia, .tab)
+                    } else {
+                        doCatch.with(\.trailingTrivia, .newline)
+                    }
 					//ReturnStmtSyntax(stringLiteral: "return nil")
 					"return nil"
+                    
 				}
 			} else {
 				//functionCode.with(\.trailingTrivia, .newline)

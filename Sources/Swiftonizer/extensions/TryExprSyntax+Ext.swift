@@ -86,10 +86,16 @@ extension TryExprSyntax {
             if many { return "__args__"}
 			return arg.name
 		}
-		let tuple = LabeledExprListSyntax {
-			"from"._tuplePExprElement(label)
-            "index"._tuplePExprElement("\(arg.index ?? 0)")
-		}
+        let tuple = if many {
+            LabeledExprListSyntax {
+                "from"._tuplePExprElement(label)
+                "index"._tuplePExprElement("\(arg.index ?? 0)")
+            }
+        } else {
+            LabeledExprListSyntax {
+                "from"._tuplePExprElement(label)
+            }
+        }
 		let f_exp = FunctionCallExprSyntax(
             calledExpression: id,
             leftParen: .leftParenToken(),

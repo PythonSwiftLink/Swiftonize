@@ -21,6 +21,7 @@ extension CatchClauseListSyntax {
             CatchClauseSyntax(catchItem("let err as PyStandardException")) {
                 //"setPyException(type: err, message: \(literal: function.name))"
                 "err.pyExceptionError()"
+                
             }
             CatchClauseSyntax(catchItem("let err as PyException")) {
                 "err.pyExceptionError()"

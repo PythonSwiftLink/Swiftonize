@@ -60,9 +60,12 @@ extension ObjectInitializer {
                         
                     })
                     setPointer()
+                    "return 0"
                 }
+                "return -1"
             } else {
                 setPointer()
+                //"return 0"
             }
         } else if cls.new_class {
             DoStmtSyntax(catchClauses: catchClauses) {
@@ -75,7 +78,9 @@ extension ObjectInitializer {
                     
                 })
                 setPointer()
+                "return 0"
             }
+            "return -1"
         } else {
 		"""
 		PyErr_SetString(PyExc_NotImplementedError,"\(raw: cls_name) can only be inited from swift")
