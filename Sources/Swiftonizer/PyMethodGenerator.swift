@@ -195,7 +195,7 @@ extension PyMethodGenerator {
 		}
 		let call = FunctionCallExprSyntax.pyCall(
 			call_target,
-            args: args.compactMap(\.self)
+            args: args
 		)
 		return call.with(\.rightParen, args.count > 0 ? .rightParenToken(leadingTrivia: .newline) : .rightParenToken() )
 	}
@@ -222,7 +222,7 @@ extension PyMethodGenerator {
 		}
 		let call = FunctionCallExprSyntax.pyCall(
 			call_target,
-			args: args.compactMap({$0})
+			args: args
 		)
 		return call.with(\.rightParen, args.count > 0 ? .rightParenToken(leadingTrivia: .newline) : .rightParenToken() )
 	}
