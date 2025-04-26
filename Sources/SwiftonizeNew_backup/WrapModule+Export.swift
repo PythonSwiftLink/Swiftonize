@@ -135,9 +135,9 @@ extension WrapModule {
 			
 //            _func = FunctionCallExprSyntax(
 //                callee: IdentifierExprSyntax(stringLiteral: "PyModuleDefHandler")) {
-//                    TupleExprElementSyntax(label: "name", expression: .init(StringLiteralExprSyntax(stringLiteral: "\"\(filename)\"")))
+//                    LabeledExprSyntax(label: "name", expression: .init(StringLiteralExprSyntax(stringLiteral: "\"\(filename)\"")))
 //                        .with(\.leadingTrivia, .newline)
-//                    TupleExprElementSyntax(label: "methods", expression: ExprSyntax(stringLiteral: "\(filename)_module_functions"))
+//                    LabeledExprSyntax(label: "methods", expression: ExprSyntax(stringLiteral: "\(filename)_module_functions"))
 //                        .with(\.leadingTrivia, .newline)
 //                    
 //                }
@@ -153,9 +153,9 @@ extension WrapModule {
 			}
 //             _func = FunctionCallExprSyntax(
 //                callee: IdentifierExprSyntax(stringLiteral: "PyModuleDefHandler")) {
-//                    TupleExprElementSyntax(label: "name", expression: .init(StringLiteralExprSyntax(stringLiteral: "\"\(filename)\"")))
+//                    LabeledExprSyntax(label: "name", expression: .init(StringLiteralExprSyntax(stringLiteral: "\"\(filename)\"")))
 //                        .with(\.leadingTrivia, .newline)
-//                    TupleExprElementSyntax(label: "methods", expression: methods)
+//                    LabeledExprSyntax(label: "methods", expression: methods)
 //                        .with(\.leadingTrivia, .newline)
 //                    
 //                }
@@ -207,8 +207,8 @@ extension WrapModule {
 		}
 //        let f_expr = FunctionCallExprSyntax(
 //            callee: IdentifierExprSyntax(stringLiteral: "PyModule_Create2")) {
-//                TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: "\(filename)_module.module"))
-//                TupleExprElementSyntax(expression: IntegerLiteralExprSyntax(integerLiteral: 3))
+//                LabeledExprSyntax(expression: ExprSyntax(stringLiteral: "\(filename)_module.module"))
+//                LabeledExprSyntax(expression: IntegerLiteralExprSyntax(integerLiteral: 3))
 //            }
         
         let initializer = InitializerClauseSyntax(value: f_expr)
@@ -253,8 +253,8 @@ extension WrapModule {
 		}
 //		let f_expr = FunctionCallExprSyntax(
 //			callee: IdentifierExprSyntax(stringLiteral: "PyModule_Create2")) {
-//				TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: "\(filename)_module.module"))
-//				TupleExprElementSyntax(expression: IntegerLiteralExprSyntax(integerLiteral: 3))
+//				LabeledExprSyntax(expression: ExprSyntax(stringLiteral: "\(filename)_module.module"))
+//				LabeledExprSyntax(expression: IntegerLiteralExprSyntax(integerLiteral: 3))
 //			}
 //		
 		let initializer = InitializerClauseSyntax(value: f_expr)

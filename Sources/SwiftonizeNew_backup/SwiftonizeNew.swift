@@ -217,7 +217,7 @@ extension WrapClass {
 //			calledExpression: exp,
 //			leftParen: .leftParenToken(),
 //			argumentList: .init {
-//				TupleExprElementSyntax(
+//				LabeledExprSyntax(
 //					label: "methods",
 //					expression: PySequenceMethods(cls: self).output
 //				)

@@ -24,18 +24,18 @@ extension WrapClass {
 				leftParen: .leftParenToken(trailingTrivia: .newline),//.with(\.leadingTrivia, .newline),
 				argumentList: .init {
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						label: "__len__",
 						expression: length_expr
 					).with(\.leadingTrivia, .newline)
 					
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						label: "__getitem__",
 						expression: get_item_expr
 					).with(\.leadingTrivia, .newline)
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						label: "__setitem__",
 						expression: set_item_expr
 					).with(\.leadingTrivia, .newline)

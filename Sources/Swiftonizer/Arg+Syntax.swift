@@ -17,7 +17,7 @@ public protocol ArgSyntax {
 	
 	//var typeAnnotation: TypeAnnotationSyntax { get }
 	
-	func callTupleElement(many: Bool) -> TupleExprElementSyntax
+	func callTupleElement(many: Bool) -> LabeledExprSyntax
 	
 	func extractDecl(many: Bool) -> VariableDeclSyntax?
 }
@@ -31,7 +31,7 @@ public protocol ArgTypeSyntax {
 	
 	//func expression(many: Bool) -> ExprSyntax
 	
-	//func callTupleElement(many: Bool, label: String?) -> TupleExprElementSyntax
+	//func callTupleElement(many: Bool, label: String?) -> LabeledExprSyntax
 	
 	//func extractDecl(many: Bool) -> VariableDeclSyntax?
 }
@@ -49,7 +49,7 @@ public protocol ArgTypeSyntax {
 //		(type as! ArgTypeSyntax).typeAnnotation
 //	}
 //	
-//	public func callTupleElement(many: Bool, label: String?) -> SwiftSyntax.TupleExprElementSyntax {
+//	public func callTupleElement(many: Bool, label: String?) -> SwiftSyntax.LabeledExprSyntax {
 //		(type as! ArgTypeSyntax).callTupleElement(many: many, label: name)
 //	}
 //	

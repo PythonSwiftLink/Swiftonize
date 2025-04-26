@@ -349,7 +349,7 @@ public class GenericPyCall {
     
     var handleReturn: VariableDeclSyntax {
         let tryExpr = TryExprSyntax(expression: FunctionCallExprSyntax(callee: ExprSyntax(stringLiteral: "R"), argumentList: {
-			TupleExprElementSyntax(label: "object", expression: ExprSyntax(stringLiteral: "result"))
+			LabeledExprSyntax(label: "object", expression: ExprSyntax(stringLiteral: "result"))
         }))
         let initializer = InitializerClauseSyntax(value: tryExpr)
 		return .init(.let, name: .init(stringLiteral: "rtn"), initializer: initializer)
@@ -382,48 +382,48 @@ fileprivate extension FunctionCallExprSyntax {
     
     static func noArg( src: String) -> Self {
 //        return .init(callee: IdentifierExpr(stringLiteral: "PyObject_CallNoArgs")) {
-//            TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: src))
+//            LabeledExprSyntax(expression: ExprSyntax(stringLiteral: src))
 //        }
 		return .init(callee: ExprSyntax(stringLiteral: "PyObject_CallNoArgs")) {
-			TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: src))
+			LabeledExprSyntax(expression: ExprSyntax(stringLiteral: src))
 		}
     }
     
     static func oneArg( src: String) -> Self {
 //        return .init(callee: IdentifierExpr(stringLiteral: "PyObject_CallOneArg")) {
-//            TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: src))
-//            TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: "arg"))
+//            LabeledExprSyntax(expression: ExprSyntax(stringLiteral: src))
+//            LabeledExprSyntax(expression: ExprSyntax(stringLiteral: "arg"))
 //        }
 		return .init(callee: ExprSyntax(stringLiteral: "PyObject_CallOneArg")) {
-			TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: src))
-			TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: "__arg__"))
+			LabeledExprSyntax(expression: ExprSyntax(stringLiteral: src))
+			LabeledExprSyntax(expression: ExprSyntax(stringLiteral: "__arg__"))
 		}
     }
     
     static func vectorCall(_ i: Int, src: String) -> Self {
         
         return .init(callee: ExprSyntax(stringLiteral: "PyObject_Vectorcall")) {
-            TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: src))
-            TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: "__args__"))
-            TupleExprElementSyntax(expression: ExprSyntax(literal: i))
-            TupleExprElementSyntax(expression: NilLiteralExprSyntax())
+            LabeledExprSyntax(expression: ExprSyntax(stringLiteral: src))
+            LabeledExprSyntax(expression: ExprSyntax(stringLiteral: "__args__"))
+            LabeledExprSyntax(expression: ExprSyntax(literal: i))
+            LabeledExprSyntax(expression: NilLiteralExprSyntax())
         }
     }
     
     static func Py_DecRef(_ label: String) -> Self {
 		return .init(callee: ExprSyntax(stringLiteral: "Py_DecRef")) {
-			TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: label) )
+			LabeledExprSyntax(expression: ExprSyntax(stringLiteral: label) )
 		}
 //        return .init(callee: IdentifierExpr(stringLiteral: "Py_DecRef")) {
-//            TupleExprElementSyntax(expression: SubscriptExpr(stringLiteral: label) )
+//            LabeledExprSyntax(expression: SubscriptExpr(stringLiteral: label) )
 //        }
     }
     static func _Py_DecRef(_ label: String) -> Self {
 		return .init(callee: ExprSyntax(stringLiteral: "Py_DecRef")) {
-			TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: label) )
+			LabeledExprSyntax(expression: ExprSyntax(stringLiteral: label) )
 		}
 //        return .init(callee: IdentifierExpr(stringLiteral: "Py_DecRef")) {
-//            TupleExprElementSyntax(expression: IdentifierExpr(stringLiteral: label) )
+//            LabeledExprSyntax(expression: IdentifierExpr(stringLiteral: label) )
 //        }
     }
 }
