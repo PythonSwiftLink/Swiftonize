@@ -37,8 +37,8 @@ struct PyGetSetProperty {
 		if property.name == "py_callback" {
 			line += "?._pycall"
 		}
-		if property.prop_type is PyWrap.OptionalType || property.name == "py_callback" { line = "optionalPyPointer( \(line) )"}
-		
+//		if property.prop_type is PyWrap.OptionalType || property.name == "py_callback" { line = "optionalPyPointer( \(line) )"}
+        if property.prop_type is PyWrap.OptionalType || property.name == "py_callback" { line = "\(line).pyPointer"}
 		else {
 			if !(property.prop_type is PyWrap.PyObjectType) {
 				line += ".pyPointer"

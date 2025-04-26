@@ -125,12 +125,21 @@ fileprivate extension PyWrap.Class {
 		
 		let closure = ExprSyntax(stringLiteral: "{ __self__, _args_, kw -> Int32 in }").as(ClosureExprSyntax.self)!
 		return closure.with(\.statements, .init {
-			//if debug_mode { ExprSyntax(stringLiteral: #"print("tp_init - <\#(title)>")"#) }
-			//createTP_Init(cls: self, args: init_function?._args_ ?? []).code
 			ObjectInitializer(_cls: self).codeBlock
-            if options.py_init || functions?.contains(where: {$0.name == "__init__"}) ?? false {
-                "return 0"
+            
+            if options.py_init {
+                if let init_func, init_func.args.isEmpty {
+                    "return 0"
+                }
+            } else if let __init__ = functions?.first(where: {$0.name == "__init__"}) {
+                if __init__.args.isEmpty {
+                    "return 0"
+                }
             }
+//            
+//            if (options.py_init || functions?.contains(where: {$0.name == "__init__"}) ?? false) {
+//                "return 0"
+//            }
 		})
 		
 	}
