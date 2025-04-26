@@ -83,8 +83,8 @@ public class NewClassGenerator {
 	
 	
 	var _init: InitializerDeclSyntax {
-		let sig = FunctionSignatureSyntax(input: .init(
-			parameterList: .init(itemsBuilder: {
+        let sig = FunctionSignatureSyntax(parameterClause: .init(
+			parameters: .init(itemsBuilder: {
 				.init(
 					firstName: .identifier("callback"),
 					colon: .colonToken(),

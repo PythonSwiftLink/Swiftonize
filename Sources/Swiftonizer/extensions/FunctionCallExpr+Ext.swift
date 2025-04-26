@@ -15,12 +15,17 @@ typealias FCallExpr = FunctionCallExprSyntax
 extension ExprSyntaxProtocol where Self == MemberAccessExprSyntax {
 	static func getClassPointer(_ label: String) -> MemberAccessExprSyntax {
 		
-		let output = MemberAccessExprSyntax(
-			//            base: .init(stringLiteral: "__self__"),
-			base: ExprSyntax(stringLiteral: "__self__"),
-			dot: .periodToken(),
-			name: "get\(raw: label)Pointer"
-		)
+//		let output = MemberAccessExprSyntax(
+//			//            base: .init(stringLiteral: "__self__"),
+//			base: ExprSyntax(stringLiteral: "__self__"),
+//			dot: .periodToken(),
+//			name: "get\(raw: label)Pointer"
+//		)
+        let output = MemberAccessExprSyntax(
+            base: ExprSyntax(stringLiteral: "__self__"),
+            period: .periodToken(),
+            name: "get\(raw: label)Pointer"
+        )
 		return output
 	}
 }
@@ -32,14 +37,15 @@ extension FunctionCallExprSyntax {
 			
 			calledExpression: .getClassPointer(label),
 			leftParen: .leftParenToken(),
-			argumentList: .init([]),
+            arguments: .init([]),
 			rightParen: .rightParenToken()
 		)
+       
 	}
 	
 	static func pyCall<S: ExprSyntaxProtocol>(_ src: S, args: [ArgSyntax], cls: PyWrap.Class? = nil) -> FunctionCallExprSyntax {
 		let many = args.count > 1
-		let tuple = TupleExprElementListSyntax {
+		let tuple = LabeledExprListSyntax {
 			for arg in args {
 				
 				//(arg as! WrapArgSyntax).callTupleElement(many: many)//.with(\.leadingTrivia, .newline)
@@ -51,7 +57,7 @@ extension FunctionCallExprSyntax {
 		return .init(
 			calledExpression: src,
 			leftParen: .leftParenToken(),
-			argumentList: tuple,
+			arguments: tuple,
 			rightParen: .rightParenToken()
 			//trailingTrivia: .newline
 		)
@@ -76,7 +82,7 @@ extension FunctionCallExprSyntax {
 		return .init(
 			calledExpression: label.expr,
 			leftParen: .leftParenToken(),
-			argumentList: tuple,
+			arguments: tuple,
 			rightParen: .rightParenToken()
 		)
 		

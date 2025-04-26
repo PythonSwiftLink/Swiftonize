@@ -58,7 +58,7 @@ extension String {
 			elements: .init {
 				//IdentifierExprSyntax(stringLiteral: "__nargs__")
 				ExprSyntax(stringLiteral: "__nargs__")
-				BinaryOperatorExprSyntax(operatorToken: .leftAngleToken())
+				BinaryOperatorExprSyntax(operator: .leftAngleToken())
 				//IntegerLiteralExprSyntax(stringLiteral: self)
 				ExprSyntax(stringLiteral: self)
 			}
@@ -85,7 +85,7 @@ extension String {
 	}
 	
 	
-	var closureParameter: ClosureParamSyntax {
+	var closureParameter: ClosureShorthandParameterSyntax {
 		.init(name: .identifier(self))
 	}
 	
@@ -106,11 +106,11 @@ extension Array where Element == String {
 	}
 	
 	var closureSignature: ClosureSignatureSyntax {
-		.init(input: .simpleInput(closureInputList) )
+		.init(parameterClause: .simpleInput(closureInputList) )
 	}
 	
-	var closureInputList: ClosureParamListSyntax {
-		var list = ClosureParamListSyntax {
+	var closureInputList: ClosureShorthandParameterListSyntax {
+		var list = ClosureShorthandParameterListSyntax {
 			for par in self {
 				par.closureParameter
 			}

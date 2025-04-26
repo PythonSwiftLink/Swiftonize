@@ -57,7 +57,7 @@ extension PyWrap.CallableType: ArgTypeSyntax {
 	}
 	
 	public var typeSyntax: SwiftSyntax.TypeSyntax {
-		let _input = input as! ArgTypeSyntax
+		//let _input = input as! ArgTypeSyntax
 		
 		return .init(
 			FunctionTypeSyntax(

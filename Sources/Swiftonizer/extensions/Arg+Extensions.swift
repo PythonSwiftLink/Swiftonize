@@ -30,19 +30,19 @@ extension Array where Element == AnyArg {
 		return .init {
 			
 		}
-		return .init {
-			for par in self {
-				par.clossureParameter
-			}
-		}
+//		return .init {
+//			for par in self {
+//				par.clossureParameter
+//			}
+//		}
 	}
 	
 	var closureParameterClause: ClosureParameterClauseSyntax {
 		.init(parameters: cParameterList)
 	}
 	
-	var parameterClause: ParameterClauseSyntax {
-		.init(parameterList: parameterList)
+	var parameterClause: FunctionParameterClauseSyntax {
+		.init(parameters: parameterList)
 	}
 	var argConditions: [ConditionElementSyntax] {
 		switch count {

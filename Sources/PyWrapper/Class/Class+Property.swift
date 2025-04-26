@@ -21,9 +21,9 @@ public protocol ClassProperty {
 }
 
 extension ClassProperty {
-	public var lineno: Int { stmt.lineno ?? -1}
+	public var lineno: Int { stmt.lineno}
 	
-	public var col_offset: Int { stmt.lineno ?? -1}
+	public var col_offset: Int { stmt.lineno}
 	
 	public var end_lineno: Int? { stmt.end_lineno }
 	
@@ -152,7 +152,7 @@ extension PyWrap.Class.Property {
 //					return true
 //				}).first ?? false
 				if let arg = ast.args.first {
-					type = PyWrap.fromAST(any_ast: ast.args.first!)
+					type = PyWrap.fromAST(any_ast: arg)
 				} else {
 					type = PyWrap.PyObjectType()
 				}

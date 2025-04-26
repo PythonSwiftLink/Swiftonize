@@ -59,7 +59,7 @@ class PythonHandler {
     
     
     func start(stdlib: String, app_packages: [String], debug: Bool) {
-        var ret = 0
+        //var ret = 0
         
       
         if debug { DEBUG_PRINT("Configuring isolated Python...") }

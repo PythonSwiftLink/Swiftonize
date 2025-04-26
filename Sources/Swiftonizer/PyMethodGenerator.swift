@@ -183,7 +183,7 @@ extension PyMethodGenerator {
 		if let wrap_class = self.cls {
 			let src_member = MemberAccessExprSyntax(
 				base: TryExprSyntax.unPackPySwiftObject(with: "__self__", as: wrap_class.name),
-				dot: .periodToken(),
+				period: .periodToken(),
 				name: call_targetToken
 			)
 			let call = FunctionCallExprSyntax.pyCall(

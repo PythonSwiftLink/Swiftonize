@@ -8,7 +8,7 @@ extension PyWrap.WeakRefArg: ArgSyntax {
     public func callTupleElement(many: Bool) -> SwiftSyntax.LabeledExprSyntax {
         
         switch type.wrapped {
-        case let other as PyWrap.OtherType:
+        case _ as PyWrap.OtherType:
             return .PyWeakref_GetObject(weak: self, many: many)
             
         default:

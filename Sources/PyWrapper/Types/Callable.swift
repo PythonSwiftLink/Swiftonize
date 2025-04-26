@@ -68,7 +68,7 @@ public extension PyWrap {
 		}
 		
 		
-		return TupleType<AST.Tuple>()
+		//return TupleType<AST.Tuple>()
 	}
 	
 	struct CallableType: TypeProtocol {

@@ -45,7 +45,7 @@ public extension PyWrap {
 	
 	static func collectionElement(from ast: AST.Tuple, dims: inout Int) -> any TypeProtocol {
 		var ast = ast
-		var elts = ast.elts
+        let elts = ast.elts
 		if elts.count > 1 {
 			if let last = elts.last, last.type == .Constant {
 				

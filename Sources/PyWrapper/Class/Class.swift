@@ -165,7 +165,7 @@ public extension PyWrap {
 								for (i, arg) in call.args.enumerated() {
 									switch i {
 									case 0:
-										options.py_init = (arg as! AST.Constant).boolValue ?? true
+										options.py_init = (arg as! AST.Constant).boolValue 
 									default: break
 									}
 								}

@@ -91,7 +91,7 @@ extension PyWrap.Class {
 
 fileprivate extension PyWrap.Class {
 	
-	fileprivate func baseTypeCode() -> CodeBlockItemListSyntax { .init {
+    func baseTypeCode() -> CodeBlockItemListSyntax { .init {
 //		"""
 //		fileprivate var \(raw: name)_Mapping = {
 //			var mapping = PyMappingMethods()
@@ -112,7 +112,7 @@ fileprivate extension PyWrap.Class {
 		"""
 	}}
 	
-	fileprivate func pyTypeObject() -> VariableDeclSyntax {
+	func pyTypeObject() -> VariableDeclSyntax {
 		return .init(
 			modifiers: [ .init(name: .keyword(.static))], .var,
 			name: .init(stringLiteral: "pyTypeObject"),
@@ -121,7 +121,7 @@ fileprivate extension PyWrap.Class {
 		).with(\.trailingTrivia, .newlines(2))
 	}
 	
-	fileprivate var create_tp_init: ClosureExprSyntax {
+	var create_tp_init: ClosureExprSyntax {
 		
 		let closure = ExprSyntax(stringLiteral: "{ __self__, _args_, kw -> Int32 in }").as(ClosureExprSyntax.self)!
 		return closure.with(\.statements, .init {
@@ -133,7 +133,7 @@ fileprivate extension PyWrap.Class {
 		
 	}
 	
-	fileprivate func tp_init() -> VariableDeclSyntax {
+	func tp_init() -> VariableDeclSyntax {
 		
 		return .init(
 			modifiers: [ .init(name: .keyword(.static))], .var,
@@ -145,7 +145,7 @@ fileprivate extension PyWrap.Class {
 	
 	
 	
-	fileprivate func tp_new() -> VariableDeclSyntax {
+	func tp_new() -> VariableDeclSyntax {
 		return .init(
 			modifiers: [ .init(name: .keyword(.static))], .var,
 //			modifiers: [.init(name: .keyword(.fileprivate)), .init(name: .keyword(.static))], .var,
@@ -159,7 +159,7 @@ fileprivate extension PyWrap.Class {
 		).with(\.leadingTrivia, .newlines(2)).with(\.trailingTrivia, .newlines(2))
 	}
 	
-	fileprivate func tp_dealloc(target: String? = nil) -> VariableDeclSyntax {
+	func tp_dealloc(target: String? = nil) -> VariableDeclSyntax {
 		
 		return .init(
 			modifiers: [ .init(name: .keyword(.static))], .var,
@@ -175,7 +175,7 @@ fileprivate extension PyWrap.Class {
 		)
 	}
 	
-	fileprivate func tp_str(target: String? = nil) -> VariableDeclSyntax {
+	func tp_str(target: String? = nil) -> VariableDeclSyntax {
 		return .init(
 			modifiers: [ .init(name: .keyword(.static))], .var,
 			name: .init(stringLiteral: "tp_str"),
@@ -188,7 +188,7 @@ fileprivate extension PyWrap.Class {
 		)
 	}
 	
-	fileprivate func tp_repr() -> VariableDeclSyntax {
+	func tp_repr() -> VariableDeclSyntax {
 		return .init(
 			modifiers: [.init(name: .keyword(.static))], .var,
 			name: .init(stringLiteral: "tp_repr"),
@@ -202,7 +202,7 @@ fileprivate extension PyWrap.Class {
 	}
 	
 	
-	fileprivate func tp_hash() -> VariableDeclSyntax {
+	func tp_hash() -> VariableDeclSyntax {
 		let expr = ExprSyntax(stringLiteral: """
 			{ __self__ in
 			return UnPackPySwiftObject(with: __self__, as: \(name).self).__hash__()
@@ -219,7 +219,7 @@ fileprivate extension PyWrap.Class {
 	
 	
 	
-	fileprivate var createPyClassExtension: FunctionDeclSyntax {
+	var createPyClassExtension: FunctionDeclSyntax {
 		try! .init(
   """
   public static func asPyPointer(_ target: \(raw: name)) -> PyPointer {
@@ -231,7 +231,7 @@ fileprivate extension PyWrap.Class {
 		).with(\.trailingTrivia, .newlines(2))
 	}
 	
-	fileprivate var createPyObjectClassExtension: FunctionDeclSyntax {
+	var createPyObjectClassExtension: FunctionDeclSyntax {
 		try! .init("""
   public static func asPythonObject(_ target: \(raw: name)) -> PythonObject {
   let new = PySwiftObject_New(\(raw: name).PyType)!
@@ -241,7 +241,7 @@ fileprivate extension PyWrap.Class {
   """).with(\.trailingTrivia, .newlines(2))
 	}
 	
-	fileprivate var createPyClassUnRetainedExtension: FunctionDeclSyntax {
+	var createPyClassUnRetainedExtension: FunctionDeclSyntax {
 		try! .init("""
   public static func asPyPointer(unretained target: \(raw: name)) -> PyPointer {
   let new = PySwiftObject_New(\(raw: name).PyType)
@@ -250,7 +250,7 @@ fileprivate extension PyWrap.Class {
   }
   """).with(\.trailingTrivia, .newlines(2))
 	}
-	fileprivate var createPyObjectClassUnretainedExtension: FunctionDeclSyntax {
+	var createPyObjectClassUnretainedExtension: FunctionDeclSyntax {
 		try! .init("""
   public static func asPythonObject(unretained target: \(raw: name)) -> PythonObject {
   let new = PySwiftObject_New(\(raw: name).PyType)!
@@ -260,7 +260,7 @@ fileprivate extension PyWrap.Class {
   """)//.with(\.trailingTrivia, .newlines(2))
 	}
 	
-	fileprivate var createPyTypePointer: DeclSyntax {
+	var createPyTypePointer: DeclSyntax {
 		DeclSyntax(stringLiteral: """
   public static let PyType: UnsafeMutablePointer<PyTypeObject> = {
   let t: UnsafeMutablePointer<PyTypeObject> = .init(&pyTypeObject)
@@ -275,7 +275,7 @@ fileprivate extension PyWrap.Class {
 	
 	
 	
-	fileprivate func pyGetSets() -> VariableDeclSyntax {
+	func pyGetSets() -> VariableDeclSyntax {
 		let methods: ArrayElementListSyntax = .init {
 			if let properties = self.properties {
 				for property in properties {
@@ -411,7 +411,7 @@ public extension PyWrap.Class {
 	}
 	
 	var pyProtocol: ProtocolDeclSyntax? {
-		let bases = bases()
+//		let bases = bases()
 		
 //		let _user_functions = functions.filter({!$0.has_option(option: .callback) && !$0.has_option(option: .no_protocol)})
 //		let clsMethods = pyClassMehthods.filter({$0 != .__init__})
@@ -422,12 +422,12 @@ public extension PyWrap.Class {
 //		if  !(callbacks_count == 0 && !new_class) && _user_functions.isEmpty && init_function == nil {
 //			if bases.isEmpty { return nil }
 //		}
-		let filtered_functions = functions?.filter({ f in
-			false
-		})
+//		let filtered_functions = functions?.filter({ f in
+//			false
+//		})
 		
-		let protocolList = MemberDeclListSyntax {
-			if let callbacks = callbacks {
+		let protocolList = MemberBlockItemListSyntax {
+			if let _ = callbacks {
 				"var py_callback: \(raw: name).PyCallback? { get set }"
 			}
 			for f in functions ?? [] {
@@ -437,7 +437,7 @@ public extension PyWrap.Class {
 //				base_method
 //			}
 		}
-		let base_methods = getBaseMethods()
+		//let base_methods = getBaseMethods()
 		
 		let _protocol = ProtocolDeclSyntax(
 			modifiers: [.init(name: .keyword(.public))],

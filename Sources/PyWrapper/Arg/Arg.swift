@@ -22,14 +22,7 @@ public protocol ArgProtocol: AnyObject {
 
 public typealias AnyArg = any ArgProtocol
 
-func playtest() {
-	let int: AnyArg = PyWrap.IntegerArg<Int32>.init(ast: .init(label: "test"), type: .init(from: .init(id: "test"), type: .int32))
-	let string: AnyArg = PyWrap.StringArg(ast: .init(label: "b"), type: .init(ast: .init(id: "b"), py_type: .str))
-	let fake = JSONDecoder()
-	let sub = try! fake.decode(AST.Subscript.self, from: .init())
-	//let collect: AnyArg = PyWrap.CollectionArg<PyWrap.IntegerType<Int32>>.init(ast: .init(label: "c"), type: .init(from: sub, type: .list))
-	
-}
+
 
 
 public extension PyWrap {

@@ -32,7 +32,7 @@ public struct PythonCall {
 	
 	var call_target: String {
 		if let call_target = function.call_target { return call_target }
-		return function.name ?? "ErrorName"
+		return function.name
 	}
 	
 	var name: String {

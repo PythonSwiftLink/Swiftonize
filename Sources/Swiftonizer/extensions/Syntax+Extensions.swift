@@ -207,7 +207,7 @@ func countCompare(_ label: String,_ op: TokenKind, _ count: Int) -> ConditionEle
 		elements: .init {
 			//            IdentifierExprSyntax(stringLiteral: label)
 			ExprSyntax(stringLiteral: label)
-			BinaryOperatorExprSyntax(operatorToken: .init(op, presence: .present))
+			BinaryOperatorExprSyntax(operator: .init(op, presence: .present))
 			//IntegerLiteralExprSyntax(stringLiteral: String(count))
 			IntegerLiteralExprSyntax(integerLiteral: count)
 		}
@@ -219,7 +219,7 @@ func countCompare(_ label: String,_ op: String, _ count: Int) -> ConditionElemen
 		elements: .init {
 			//            IdentifierExprSyntax(stringLiteral: label)
 			ExprSyntax(stringLiteral: label)
-			BinaryOperatorExprSyntax(operatorToken: .identifier(op))
+			BinaryOperatorExprSyntax(operator: .identifier(op))
 			//IntegerLiteralExprSyntax(stringLiteral: String(count))
 			IntegerLiteralExprSyntax(integerLiteral: count)
 		}

@@ -15,11 +15,11 @@ public extension PyWrap {
 	static func asAnyArg(arg ast: AST.Arg) -> AnyArg? {
 		let arg_name = ast.arg
 		if arg_name == "self" { return nil }
-		if let annotation = ast.annotation {
-			
-			//return .init(type: fromAST(annotation), ast: ast, index: index)
-			//return
-		}
+//		if let annotation = ast.annotation {
+//			
+//			//return .init(type: fromAST(annotation), ast: ast, index: index)
+//			//return
+//		}
 		
 		fatalError()
 	}
@@ -85,7 +85,7 @@ public extension PyWrap {
 				switch right.type {
 				case .Constant:
 					
-					guard let r_const = (right as? AST.Constant)!.value else {
+					guard let _ = (right as? AST.Constant)!.value else {
 						//return PyWrap.OptionalType(expr: binOp.left)
 						return OptionalArg(ast: ast_arg, type: OptionalType(expr: binOp.left))
 					}
@@ -143,7 +143,7 @@ public extension PyWrap {
 				switch right.type {
 				case .Constant:
 					
-					guard let r_const = (right as? AST.Constant)!.value else {
+					guard let _ = (right as? AST.Constant)!.value else {
 						return PyWrap.OptionalType(expr: binOp.left)
 					}
 					
@@ -201,7 +201,7 @@ extension AST.Subscript {
 			fatalError()
 		}
 		
-		let t = value.asPyType()
+		//let t = value.asPyType()
 		switch value.asPySubscriptType() {
 			
 		case .list, .sequence, .array, .Array:
@@ -325,7 +325,7 @@ extension AST.Name {
 			call.type.once = t == .CallableOnce
 			return call
 		case .optional:
-            print(ast_arg.annotation)
+            print(ast_arg.annotation?.name ?? "")
             //PyWrap.fromAST(<#T##ast: any ExprProtocol##any ExprProtocol#>)
             //let optionalArg = PyWrap.OptionalArg(ast: <#T##AST.Arg#>, type: <#T##PyWrap.OptionalArg.T#>)
 			fatalError()

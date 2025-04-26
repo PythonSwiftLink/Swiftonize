@@ -88,8 +88,8 @@ extension PyMethodClosure {
 			}
 	}
 	
-	private var switchcase: SwitchExprSyntax { 
-		return .init(expression: "__nargs__".expr) {
+	private var switchcase: SwitchExprSyntax {
+		return .init(subject: "__nargs__".expr) {
 			for c in sCases {
 				c
 			}

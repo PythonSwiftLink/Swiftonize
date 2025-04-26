@@ -81,19 +81,19 @@ extension PyWrap.Module {
 	fileprivate var createPyInitExt: FunctionDeclSyntax {
 		
 		
-		let sig = FunctionSignatureSyntax(
-			input: .init(parameterList: .init([])),
-			output: .init(returnType: OptionalTypeSyntax(wrappedType: TypeSyntax(stringLiteral: "PyPointer")))
+        let sig = FunctionSignatureSyntax(
+            parameterClause: .init(parameters: .init([])),
+            returnClause: .init(type: OptionalTypeSyntax(wrappedType: TypeSyntax(stringLiteral: "PyPointer")))
 		)
 		let f_expr = FunctionCallExprSyntax(name: "PyModule_Create2") {
 			LabeledExprSyntax(expression: ExprSyntax(stringLiteral: ".init(&\(filename)_module)"))
 			LabeledExprSyntax(expression: IntegerLiteralExprSyntax(integerLiteral: 3))
 		}
 		let initializer = InitializerClauseSyntax(value: f_expr)
-		
+        //return .init(modifiers: <#T##DeclModifierListSyntax#>, name: <#T##TokenSyntax#>, signature: <#T##FunctionSignatureSyntax#>)
 		return .init(
 			modifiers: [.init(name: .keyword(.public))],
-			identifier: .identifier("PyInit_\(filename)"),
+			name: .identifier("PyInit_\(filename)"),
 			signature: sig) {
 				let pattern = PatternSyntax(stringLiteral: "m")
 				let con = ConditionElementListSyntax {

@@ -57,7 +57,7 @@ struct PyMethods {
 	}
 	
 	static func asArrayElement(f: PyWrap.Function) -> ArrayElementSyntax {
-		let maxArgs = f.args.count - f.defaults_name.count
+		//let maxArgs = f.args.count - f.defaults_name.count
         let meth_or_func: PyWrap.Function.FunctionFlag = f.class != nil ? (f.static ? .static_method : .method) : .function
 		
 		let closure: ClosureExprSyntax = .init(

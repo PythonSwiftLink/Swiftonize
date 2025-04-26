@@ -84,7 +84,7 @@ public extension PyWrap {
 //            if slice.type == .Tuple {
 //                element = PyWrap.collectionElement(from: slice as! AST.Tuple, dims: &dims)
 //            } else {
-                self.element = PyWrap.fromAST(any_ast: ast.slice)
+                self.element = PyWrap.fromAST(any_ast: slice)
 //            }
         }
 //        init(py_type: PythonType, ast: AST.Subscript, wrapped: E) {
