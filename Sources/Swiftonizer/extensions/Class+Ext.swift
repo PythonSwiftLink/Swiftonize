@@ -17,7 +17,7 @@ extension PyWrap.Class {
 		
 		if let bases = ast.decorator_list.first(name: "bases") {
 			if let call = bases as? AST.Call {
-				output += call.args.compactMap({$0 as! AST.Name}).compactMap {
+				output += call.args.map({$0 as! AST.Name}).compactMap {
 					WrapClassBase(rawValue: $0.id)
 				}
 				

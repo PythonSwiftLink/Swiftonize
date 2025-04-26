@@ -178,16 +178,16 @@ struct PyGetSetProperty {
 			calledExpression: exp,
 			leftParen: .leftParenToken(trailingTrivia: .newline),//.withTrailingTrivia(.newline ),
 			argumentList: .init {
-				TupleExprElementSyntax(
+				LabeledExprSyntax(
 					label: "pySwift",
 					expression: StringLiteralExprSyntax(content: property.name )
 				).with(\.leadingTrivia, .newline)
-				TupleExprElementSyntax(
+				LabeledExprSyntax(
 					label: "getter",
 					expression: getter//.init( getter )
 				).with(\.leadingTrivia, .newline)
 				if property.property_type == .GetSet {
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						label: "setter",
 						expression: setter//.init( setter )
 					).with(\.leadingTrivia, .newline)

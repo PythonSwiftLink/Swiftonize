@@ -102,7 +102,7 @@ extension WrapClass {
             for p in properties {
                 let prop = PyGetSetProperty(_property: p, _cls: self)
 
-                TupleExprElementSyntax(expression: prop.callExpr).with(\.leadingTrivia, .newline)
+                LabeledExprSyntax(expression: prop.callExpr).with(\.leadingTrivia, .newline)
             }
             if callbacks.count > 0 && !new_class {
                 let prop = WrapClassProperty(
@@ -114,7 +114,7 @@ extension WrapClass {
                     _property: prop,
                     _cls: self
                 )
-                TupleExprElementSyntax(expression: cb_getset.callExpr).with(\.leadingTrivia, .newline)
+                LabeledExprSyntax(expression: cb_getset.callExpr).with(\.leadingTrivia, .newline)
             }
             
         }
@@ -139,7 +139,7 @@ extension WrapClass {
             calledExpression: exp,
             leftParen: .leftParenToken(trailingTrivia: .newline),
             argumentList: .init {
-//                TupleExprElementSyntax(
+//                LabeledExprSyntax(
 //                    label: "name",
 //                    expression: .init( StringLiteralExprSyntax(content: _title) )
 //                ).with(\.leadingTrivia, .newline)
@@ -148,31 +148,31 @@ extension WrapClass {
 					expression: StringLiteralExprSyntax(content: _title)
 				).with(\.leadingTrivia, .newline)
 				
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "functions",
                     expression: pyTypeFunctions
                 ).with(\.leadingTrivia, .newline)
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "methods",
                     //expression: .init(fromProtocol: send_functions.count == 0 ? NilLiteralExprSyntax() : _pyMethodDefHandler )
 					expression: ExprSyntax(fromProtocol: send_functions.count == 0 ? NilLiteralExprSyntax() : _pyMethodDefHandler)
                 ).with(\.leadingTrivia, .newline)
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "getsets",
                     expression: ExprSyntax(fromProtocol: prop_check ? NilLiteralExprSyntax() : pyGetSets )
 					//expression: ExprSyntax(nilOrExpression: prop_check ? nil : pyGetSets)
                 ).with(\.leadingTrivia, .newline)
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "sequence",
                     //expression: ExprSyntax(fromProtocol: pySequenceMethods.count == 0 ? NilLiteralExprSyntax() : pySequenceMethodsExpr )
 					expression: ExprSyntax.init(nilOrExpression: pySequenceMethods.count == 0 ? nil : pySequenceMethodsExpr )
                 ).with(\.leadingTrivia, .newline)
-				TupleExprElementSyntax(
+				LabeledExprSyntax(
 					label: "mapping",
 					//expression: ExprSyntax(fromProtocol: pySequenceMethods.count == 0 ? NilLiteralExprSyntax() : pySequenceMethodsExpr )
 					expression: ExprSyntax.init(nilOrExpression: !bases.contains(where: {$0 == .MutableMapping}) ? nil : pyMappingMethodsExpr )
 				).with(\.leadingTrivia, .newline)
-//                TupleExprElementSyntax(
+//                LabeledExprSyntax(
 //                    label: "buffer",
 //                    expression: ExprSyntax(fromProtocol: !self.pyClassMehthods.contains(where: {$0 == .__buffer__}) ? NilLiteralExprSyntax() : pyBufferExpr )
 //                ).with(\.leadingTrivia, .newline)
@@ -218,51 +218,51 @@ extension WrapClass {
             calledExpression: exp,
 			leftParen: .leftParenToken(trailingTrivia: .newline),//.withTrailingTrivia(.newline ),
             argumentList: .init {
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "tp_init",
                     expression: py_type_funcs.export(.tp_init)
                 ).with(\.leadingTrivia, .newline)
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "tp_new",
                     expression: py_type_funcs.export(.tp_new)
                 ).with(\.leadingTrivia, .newline)
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "tp_dealloc",
 					expression: self.unretained ? .init(NilLiteralExprSyntax()) : py_type_funcs.export(.tp_dealloc)
                 ).with(\.leadingTrivia, .newline)
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "tp_getattr",
                     expression: py_type_funcs.export(.tp_getattr)
                 ).with(\.leadingTrivia, .newline)
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "tp_setattr",
                     expression: py_type_funcs.export(.tp_setattr)
                 ).with(\.leadingTrivia, .newline)
-//                TupleExprElementSyntax(
+//                LabeledExprSyntax(
 //                    label: "tp_as_number",
 //                    expression: py_type_funcs.export(.tp_as_number)
 //                ).with(\.leadingTrivia, .newline)
-//                TupleExprElementSyntax(
+//                LabeledExprSyntax(
 //                    label: "tp_as_sequence",
 //                    expression: py_type_funcs.export(.tp_as_sequence)
 //                ).with(\.leadingTrivia, .newline)
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "tp_call",
                     expression: py_type_funcs.export(.tp_call)
                 ).with(\.leadingTrivia, .newline)
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "tp_str",
                     expression: py_type_funcs.export(.tp_str)
                 ).with(\.leadingTrivia, .newline)
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "tp_repr",
                     expression: py_type_funcs.export(.tp_repr)
                 ).with(\.leadingTrivia, .newline)
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "tp_hash",
                     expression: py_type_funcs.export(.tp_hash)
                 ).with(\.leadingTrivia, .newline)
-//                TupleExprElementSyntax(
+//                LabeledExprSyntax(
 //                    label: "tp_as_buffer",
 //                    expression: py_type_funcs.export(.tp_as_buffer)
 //                ).with(\.leadingTrivia, .newline)
@@ -306,7 +306,7 @@ extension WrapClass {
             calledExpression: exp,
             leftParen: .leftParenToken(),
             argumentList: .init {
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "methods",
 					expression: GenPySequenceMethods(cls: self).output
                 )
@@ -324,7 +324,7 @@ extension WrapClass {
 //			calledExpression: exp,
 //			leftParen: .leftParenToken(),
 //			argumentList: .init {
-//				TupleExprElementSyntax(
+//				LabeledExprSyntax(
 //					label: "mapping",
 //					expression: WrapClass.PyMappingMethods(cls: self).output
 //				)
@@ -372,43 +372,43 @@ extension WrapClass {
 			leftParen: .leftParenToken(leadingTrivia: .newline),//.with(\.leadingTrivia, .newline),
             argumentList: .init {
                 
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "length",
                     expression: length_expr
                 ).with(\.leadingTrivia, .newline)
                 
                 
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "concat",
                     expression: concat_expr
                 ).with(\.leadingTrivia, .newline)
                 
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "repeat_",
                     expression: repeat_expr
                 ).with(\.leadingTrivia, .newline)
                 
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "get_item",
                     expression: get_item_expr
                 ).with(\.leadingTrivia, .newline)
                 
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "set_item",
                     expression: set_item_expr
                 ).with(\.leadingTrivia, .newline)
                 
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "contains",
                     expression: contains_expr
                 ).with(\.leadingTrivia, .newline)
                 
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "inplace_concat",
                     expression: inplace_concat_expr
                 ).with(\.leadingTrivia, .newline)
                 
-                TupleExprElementSyntax(
+                LabeledExprSyntax(
                     label: "inplace_repeat",
                     expression: inplace_repeat_expr
                 ).with(\.leadingTrivia, .newline).with(\.leadingTrivia, .newline)

@@ -31,43 +31,43 @@ extension WrapClass {
 				leftParen: .leftParenToken(trailingTrivia: .newline),//.with(\.leadingTrivia, .newline),
 				argumentList: .init {
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						label: "length",
 						expression: length_expr
 					).with(\.leadingTrivia, .newline)
 					
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						label: "concat",
 						expression: concat_expr
 					).with(\.leadingTrivia, .newline)
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						label: "repeat_",
 						expression: repeat_expr
 					).with(\.leadingTrivia, .newline)
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						label: "get_item",
 						expression: get_item_expr
 					).with(\.leadingTrivia, .newline)
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						label: "set_item",
 						expression: set_item_expr
 					).with(\.leadingTrivia, .newline)
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						label: "contains",
 						expression: contains_expr
 					).with(\.leadingTrivia, .newline)
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						label: "inplace_concat",
 						expression: inplace_concat_expr
 					).with(\.leadingTrivia, .newline)
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						label: "inplace_repeat",
 						expression: inplace_repeat_expr
 					).with(\.leadingTrivia, .newline)//.with(\.leadingTrivia, .newline)

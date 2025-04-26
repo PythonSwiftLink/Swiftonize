@@ -35,12 +35,12 @@ extension String {
 
 
 extension String {
-	func tuplePExprElement(_ label: String) -> TupleExprElementSyntax {
+	func tuplePExprElement(_ label: String) -> LabeledExprSyntax {
 		//.init(label: self, expression: ExprSyntax(stringLiteral: "\"\(label)\""))
 		.init(label: self, expression: label.makeLiteralSyntax() )
 	}
 	
-	func _tuplePExprElement(_ label: String) -> TupleExprElementSyntax {
+	func _tuplePExprElement(_ label: String) -> LabeledExprSyntax {
 		.init(label: self, expression: label.expr)
 	}
 	

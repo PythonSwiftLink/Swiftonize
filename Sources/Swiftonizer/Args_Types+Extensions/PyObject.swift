@@ -4,7 +4,7 @@ import SwiftSyntaxBuilder
 import PyWrapper
 
 extension PyWrap.PyObjectArg: ArgSyntax {
-	public func callTupleElement(many: Bool) -> SwiftSyntax.TupleExprElementSyntax {
+	public func callTupleElement(many: Bool) -> SwiftSyntax.LabeledExprSyntax {
 		if no_label { return .init(expression: (many ? "__args__[\(index ?? 0)]!" : name).expr) }
 		return .init(label: name, expression: (many ? "__args__[\(index ?? 0)]!" : name).expr)
 	}

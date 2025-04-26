@@ -6,7 +6,7 @@ import PyWrapper
 
 
 extension PyWrap.MemoryViewArg: ArgSyntax {
-    public func callTupleElement(many: Bool) -> SwiftSyntax.TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> SwiftSyntax.LabeledExprSyntax {
         switch type.element.py_type {
         case .other:
             let other = type.element as! PyWrap.OtherType
@@ -47,7 +47,7 @@ extension PyWrap.MemoryViewType: ArgTypeSyntax {
         .init(type: typeSyntax)
     }
     
-    public func callTupleElement(many: Bool, label: String?) -> SwiftSyntax.TupleExprElementSyntax {
+    public func callTupleElement(many: Bool, label: String?) -> SwiftSyntax.LabeledExprSyntax {
         //        switch wrapped {
         //        case let other as PyWrap.OtherType:
         //            return .init(

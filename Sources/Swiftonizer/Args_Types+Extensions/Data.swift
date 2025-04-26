@@ -4,7 +4,7 @@ import SwiftSyntaxBuilder
 import PyWrapper
 
 extension PyWrap.DataArg: ArgSyntax {
-	public func callTupleElement(many: Bool) -> SwiftSyntax.TupleExprElementSyntax {
+	public func callTupleElement(many: Bool) -> SwiftSyntax.LabeledExprSyntax {
 		.pyCast(arg: self, many: many)
 	}
 	

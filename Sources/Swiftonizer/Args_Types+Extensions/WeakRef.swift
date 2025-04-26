@@ -5,7 +5,7 @@ import PyWrapper
 
 
 extension PyWrap.WeakRefArg: ArgSyntax {
-    public func callTupleElement(many: Bool) -> SwiftSyntax.TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> SwiftSyntax.LabeledExprSyntax {
         
         switch type.wrapped {
         case let other as PyWrap.OtherType:

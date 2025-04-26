@@ -4,7 +4,7 @@ import SwiftSyntaxBuilder
 import PyWrapper
 
 extension PyWrap.BoolArg: ArgSyntax {
-	public func callTupleElement(many: Bool) -> SwiftSyntax.TupleExprElementSyntax {
+	public func callTupleElement(many: Bool) -> SwiftSyntax.LabeledExprSyntax {
 		.pyCast(arg: self, many: many)
 	}
 	
@@ -27,7 +27,7 @@ extension PyWrap.BoolType: ArgTypeSyntax {
 		.init(type: typeSyntax)
 	}
 	
-	public func callTupleElement(many: Bool, label: String?) -> SwiftSyntax.TupleExprElementSyntax {
+	public func callTupleElement(many: Bool, label: String?) -> SwiftSyntax.LabeledExprSyntax {
 		fatalError()
 	}
 	

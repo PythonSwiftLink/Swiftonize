@@ -4,7 +4,7 @@ import SwiftSyntaxBuilder
 import PyWrapper
 
 extension PyWrap.CallableArg: ArgSyntax {
-	public func callTupleElement(many: Bool) -> SwiftSyntax.TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> SwiftSyntax.LabeledExprSyntax {
 		if no_label { return .init(expression: "_\(name)".expr) }
 		return .init(label: name, expression: "_\(name)".expr)
 	}

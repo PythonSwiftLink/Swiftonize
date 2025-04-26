@@ -25,7 +25,7 @@ extension WrapClass {
 				leftParen: .leftParenToken(leadingTrivia: .newline),
 				argumentList: .init {
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						leadingTrivia: .newline,
 						label: "am_await",
 						expression: am_await_expr
@@ -34,19 +34,19 @@ extension WrapClass {
 					//.with(\.leadingTrivia, .newline)
 					
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						leadingTrivia: .newline,
 						label: "am_aiter",
 						expression: am_aiter_expr
 					)
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						leadingTrivia: .newline,
 						label: "am_anext",
 						expression: am_anext_expr
 					)
 					
-					TupleExprElementSyntax(
+					LabeledExprSyntax(
 						leadingTrivia: .newline,
 						label: "am_send",
 						expression: am_send_expr
