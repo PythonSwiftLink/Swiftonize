@@ -25,8 +25,8 @@ jobs:
       
     steps:
       - uses: actions/checkout@v4
-      - name: Build x86_64    
-        run: swift build -c release --disable-sandbox --arch x86_64 --product Swiftonize
+      #- name: Build x86_64    
+       # run: swift build -c release --disable-sandbox --arch x86_64 --product Swiftonize
       
       - name: Build arm64    
         run: swift build -c release --disable-sandbox --arch arm64 --product Swiftonize
