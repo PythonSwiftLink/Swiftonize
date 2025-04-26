@@ -13,8 +13,8 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   mainjob1:
-    runs-on: macos-13
-    #runs-on: macos-latest
+    #runs-on: macos-13
+    runs-on: macos-14
     #runs-on: self-hosted
     outputs:
       sha: ${{ steps.shasum.outputs.var }}
