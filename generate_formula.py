@@ -13,7 +13,6 @@ sha = sys.argv[2]
 
 template0 = """
 class Swiftonize < Formula
-  depends_on "xcodegen"
   desc ""
   homepage ""
 
@@ -34,7 +33,6 @@ end
 
 template0 = """
 class Swiftonize{version_name} < Formula
-  depends_on "xcodegen"
   desc ""
   homepage ""
 
