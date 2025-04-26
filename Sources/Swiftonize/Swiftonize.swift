@@ -31,7 +31,7 @@ struct Swiftonize: AsyncParsableCommand {
 }
 
 //extension PathKit.Path: @retroactive ExpressibleByArgument {
-extension PathKit.Path: ExpressibleByArgument {
+extension PathKit.Path: ArgumentParser.ExpressibleByArgument {
     public init?(argument: String) {
         self.init(argument)
     }
