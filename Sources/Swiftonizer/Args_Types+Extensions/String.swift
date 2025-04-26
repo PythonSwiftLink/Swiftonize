@@ -5,7 +5,7 @@ import PyWrapper
 
 
 extension PyWrap.StringArg: ArgSyntax {
-	public func callTupleElement(many: Bool) -> SwiftSyntax.TupleExprElementSyntax {
+	public func callTupleElement(many: Bool) -> SwiftSyntax.LabeledExprSyntax {
 		.pyCast(arg: self, many: many)
 	}
 	
@@ -50,7 +50,7 @@ extension PyWrap.StringType: ArgTypeSyntax {
 		.init(type: typeSyntax)
 	}
 	
-	public func callTupleElement(many: Bool, label: String?) -> SwiftSyntax.TupleExprElementSyntax {
+	public func callTupleElement(many: Bool, label: String?) -> SwiftSyntax.LabeledExprSyntax {
 		fatalError()
 	}
 	

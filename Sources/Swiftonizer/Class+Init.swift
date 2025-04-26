@@ -227,13 +227,13 @@ extension ObjectInitializer {
 		let id = IdentifierExprSyntax(identifier: .identifier(cls_name))
 		
 		let tuple = TupleExprElementListSyntax {
-			//TupleExprElementSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
+			//LabeledExprSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
 			let many = args.count > 1
 			for arg in args {
 				let arg_name = arg.optional_name ?? arg.name
 				let label = arg.no_label ? nil : arg_name
 				
-				TupleExprElementSyntax(label: label, expression: ExprSyntax(stringLiteral: arg_name))
+				LabeledExprSyntax(label: label, expression: ExprSyntax(stringLiteral: arg_name))
 //				if let _arg = arg as? ArgSyntax {
 //					_arg.callTupleElement(many: many)
 //				}
@@ -255,9 +255,9 @@ extension ObjectInitializer {
 		let id = IdentifierExprSyntax(identifier: .identifier(cls_name))
 		
 		let tuple = TupleExprElementListSyntax {
-			//TupleExprElementSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
+			//LabeledExprSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
 			for arg in args {
-				//TupleExprElementSyntax(label: arg.label, expression: ExprSyntax(stringLiteral: arg.name))
+				//LabeledExprSyntax(label: arg.label, expression: ExprSyntax(stringLiteral: arg.name))
 			}
 			
 		}
@@ -276,10 +276,10 @@ extension ObjectInitializer {
         let id = IdentifierExprSyntax(identifier: .identifier(cls_name))
         
         let tuple = TupleExprElementListSyntax {
-            //TupleExprElementSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
+            //LabeledExprSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
             for arg in args {
-                //TupleExprElementSyntax(label: arg.label, expression: ExprSyntax(stringLiteral: arg.name))
-                TupleExprElementSyntax(label: "callback", expression: ExprSyntax(stringLiteral: "__arg__"))
+                //LabeledExprSyntax(label: arg.label, expression: ExprSyntax(stringLiteral: arg.name))
+                LabeledExprSyntax(label: "callback", expression: ExprSyntax(stringLiteral: "__arg__"))
             }
             
         }

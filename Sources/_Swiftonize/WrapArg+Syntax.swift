@@ -17,7 +17,7 @@ public protocol WrapArgSyntax {
     
     var typeAnnotation: TypeAnnotationSyntax { get }
     
-    func callTupleElement(many: Bool) -> TupleExprElementSyntax
+    func callTupleElement(many: Bool) -> LabeledExprSyntax
     
     func extractDecl(many: Bool) -> VariableDeclSyntax?
 }
@@ -31,7 +31,7 @@ extension intArg: WrapArgSyntax {
     
     public var typeAnnotation: TypeAnnotationSyntax { type.annotation }
     
-    public func callTupleElement(many: Bool) -> TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> LabeledExprSyntax {
         return .pyCast(arg: self, many: many)
     }
     
@@ -47,7 +47,7 @@ extension boolArg: WrapArgSyntax {
         
         public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
         
-    public func callTupleElement(many: Bool) -> TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> LabeledExprSyntax {
             return .pyCast(arg: self, many: many)
         }
     public func extractDecl(many: Bool) -> VariableDeclSyntax? {
@@ -62,7 +62,7 @@ extension dataArg: WrapArgSyntax {
         
         public var typeAnnotation: TypeAnnotationSyntax { type.annotation }
         
-    public func callTupleElement(many: Bool) -> TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> LabeledExprSyntax {
             return .pyCast(arg: self, many: many)
         }
         
@@ -78,7 +78,7 @@ extension floatArg: WrapArgSyntax {
         
         public var typeAnnotation: TypeAnnotationSyntax { type.annotation }
         
-    public func callTupleElement(many: Bool) -> TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> LabeledExprSyntax {
             return .pyCast(arg: self, many: many)
         }
         
@@ -94,7 +94,7 @@ extension strArg: WrapArgSyntax {
         
         public var typeAnnotation: TypeAnnotationSyntax { type.annotation }
         
-    public func callTupleElement(many: Bool) -> TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> LabeledExprSyntax {
             return .pyCast(arg: self, many: many)
         }
         
@@ -110,7 +110,7 @@ extension objectArg: WrapArgSyntax {
     
     public var typeAnnotation: TypeAnnotationSyntax { type.annotation }
     
-    public func callTupleElement(many: Bool) -> TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> LabeledExprSyntax {
         return .init(label: label, expression: ExprSyntax(stringLiteral: many ? "_args_[\(idx)]!" : name))
     }
     
@@ -126,7 +126,7 @@ extension otherArg: WrapArgSyntax {
     
     public var typeAnnotation: TypeAnnotationSyntax { .init(type: typeSyntax) }
     
-    public func callTupleElement(many: Bool) -> TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> LabeledExprSyntax {
         return .pyUnpack(with: self, many: many)
     }
     
@@ -143,7 +143,7 @@ extension optionalArg: WrapArgSyntax {
     
     public var typeAnnotation: TypeAnnotationSyntax { .init(type: typeSyntax) }
     
-    public func callTupleElement(many: Bool) -> TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> LabeledExprSyntax {
         
         switch wrapped {
         case let other as otherArg:
@@ -186,7 +186,7 @@ extension collectionArg: WrapArgSyntax {
     
     public var typeExpr: TypeExprSyntax { .init(type: typeSyntax) }
     
-    public func callTupleElement(many: Bool) -> TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> LabeledExprSyntax {
         switch element {
         case let other as otherArg:
             return .init(
@@ -249,7 +249,7 @@ extension callableArg: WrapArgSyntax {
             .formatted().description)
     }
     
-    public func callTupleElement(many: Bool) -> TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> LabeledExprSyntax {
         return .init(
             label: label,
             expression: exprSyntax
@@ -274,7 +274,7 @@ extension objectStrEnumArg: WrapArgSyntax {
         
         public var typeAnnotation: TypeAnnotationSyntax { type.annotation }
         
-    public func callTupleElement(many: Bool) -> TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> LabeledExprSyntax {
             return .pyCast(arg: self, many: many)
         }
         
@@ -290,7 +290,7 @@ extension jsonDataArg: WrapArgSyntax {
         
         public var typeAnnotation: TypeAnnotationSyntax { type.annotation }
         
-    public func callTupleElement(many: Bool) -> TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> LabeledExprSyntax {
             return .pyCast(arg: self, many: many)
         }
         
@@ -306,7 +306,7 @@ extension intEnumArg: WrapArgSyntax {
         
         public var typeAnnotation: TypeAnnotationSyntax { type.annotation }
         
-    public func callTupleElement(many: Bool) -> TupleExprElementSyntax {
+    public func callTupleElement(many: Bool) -> LabeledExprSyntax {
             return .pyCast(arg: self, many: many)
         }
         

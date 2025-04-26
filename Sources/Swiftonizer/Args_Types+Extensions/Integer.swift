@@ -5,7 +5,7 @@ import PyWrapper
 
 
 extension PyWrap.IntegerArg: ArgSyntax {
-	public func callTupleElement(many: Bool) -> SwiftSyntax.TupleExprElementSyntax {
+	public func callTupleElement(many: Bool) -> SwiftSyntax.LabeledExprSyntax {
 		if no_label { return .init(expression: TryExprSyntax.pyCast(arg: self, many: many)) }
 		return .init(label: name, expression: TryExprSyntax.pyCast(arg: self, many: many))
 	}
@@ -29,7 +29,7 @@ extension PyWrap.IntegerType: ArgTypeSyntax {
 		.init(type: typeSyntax)
 	}
 	
-	public func callTupleElement(many: Bool, label: String?) -> SwiftSyntax.TupleExprElementSyntax {
+	public func callTupleElement(many: Bool, label: String?) -> SwiftSyntax.LabeledExprSyntax {
 		fatalError()
 	}
 	

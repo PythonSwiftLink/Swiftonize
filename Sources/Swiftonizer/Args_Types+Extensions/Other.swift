@@ -6,7 +6,7 @@ import PyWrapper
 
 
 extension PyWrap.OtherArg: ArgSyntax {
-	public func callTupleElement(many: Bool) -> SwiftSyntax.TupleExprElementSyntax {
+	public func callTupleElement(many: Bool) -> SwiftSyntax.LabeledExprSyntax {
 		.pyUnpack(with: self, many: many)
 	}
 	

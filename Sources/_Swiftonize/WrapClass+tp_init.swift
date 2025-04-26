@@ -189,9 +189,9 @@ class createTP_Init {
 		let id = IdentifierExprSyntax(identifier: .identifier(cls.title))
         
         let tuple = TupleExprElementListSyntax {
-            //TupleExprElementSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
+            //LabeledExprSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
             for arg in args {
-                TupleExprElementSyntax(label: arg.label, expression: ExprSyntax(stringLiteral: arg.name))
+                LabeledExprSyntax(label: arg.label, expression: ExprSyntax(stringLiteral: arg.name))
             }
             
         }
@@ -210,9 +210,9 @@ class createTP_Init {
 		let id = IdentifierExprSyntax(identifier: .identifier(cls.title))
 		
 		let tuple = TupleExprElementListSyntax {
-			//TupleExprElementSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
+			//LabeledExprSyntax(label: "with", expression: .init(IdentifierExprSyntax(stringLiteral: src)))
 			for arg in args {
-				TupleExprElementSyntax(label: arg.label, expression: ExprSyntax(stringLiteral: arg.name))
+				LabeledExprSyntax(label: arg.label, expression: ExprSyntax(stringLiteral: arg.name))
 			}
 			
 		}
@@ -428,8 +428,8 @@ fileprivate extension FunctionCallExprSyntax {
 			LabeledExprSyntax(expression: StringLiteralExprSyntax(content: "\(string)"))
 		}
 //        return .init(callee: IdentifierExpr(unicodeScalarLiteral: "PyErr_SetString") ) {
-//            TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: "PyExc_IndexError"))
-//            TupleExprElementSyntax(expression: StringLiteralExprSyntax(stringLiteral: #""\#(string)""#))
+//            LabeledExprSyntax(expression: ExprSyntax(stringLiteral: "PyExc_IndexError"))
+//            LabeledExprSyntax(expression: StringLiteralExprSyntax(stringLiteral: #""\#(string)""#))
 //        }
     }
     
@@ -440,8 +440,8 @@ fileprivate extension FunctionCallExprSyntax {
 			LabeledExprSyntax(expression: StringLiteralExprSyntax(content: "\(key)"))
 		}
 //        return .init(callee: IdentifierExpr(unicodeScalarLiteral: "PyDict_GetItem") ) {
-//            TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: o))
-//            TupleExprElementSyntax(expression: StringLiteralExprSyntax(stringLiteral: #""\#(key)""#))
+//            LabeledExprSyntax(expression: ExprSyntax(stringLiteral: o))
+//            LabeledExprSyntax(expression: StringLiteralExprSyntax(stringLiteral: #""\#(key)""#))
 //        }
     }
     
@@ -453,8 +453,8 @@ fileprivate extension FunctionCallExprSyntax {
 			LabeledExprSyntax(expression: IntegerLiteralExprSyntax(key) )
 		}
 //        return .init(callee: IdentifierExpr(unicodeScalarLiteral: "PyTuple_GetItem") ) {
-//            TupleExprElementSyntax(expression: ExprSyntax(stringLiteral: o))
-//            TupleExprElementSyntax(expression: IntegerLiteralExprSyntax(integerLiteral: key))
+//            LabeledExprSyntax(expression: ExprSyntax(stringLiteral: o))
+//            LabeledExprSyntax(expression: IntegerLiteralExprSyntax(integerLiteral: key))
 //        }
     }
     
