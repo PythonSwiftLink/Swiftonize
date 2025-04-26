@@ -14,8 +14,8 @@ import PyAst
 public func test(file: URL, dst: URL) throws {
 	let module = try PyWrap.parse(file: file)
 	var type_vars = [AnyArg]()
-	var ast_classes: [any Stmt] = module.classes.map(generateAstClass)
-	var class_names: [String] = module.classes.map(\.name)
+	let ast_classes: [any Stmt] = module.classes.map(generateAstClass)
+	let class_names: [String] = module.classes.map(\.name)
 	for cls in module.classes {
 		for function in cls.functions ?? [] {
 			for arg in function.args {
@@ -45,7 +45,7 @@ public func test(file: URL, dst: URL) throws {
 	for type_var in type_vars {
 		_type_vars.append(type_var.type.string)
 	}
-	var ast_module = AstExportModule(body: ast_classes, type_vars: _type_vars)
+	let ast_module = AstExportModule(body: ast_classes, type_vars: _type_vars)
 	
 	//var dst = file.deletingLastPathComponent()
 	//try dst.append(component: file.lastPathComponent.replacingOccurrences(of: ".py", with: ".json"))
@@ -294,7 +294,7 @@ private func transformClassBody(_ base: Stmt) -> (any Stmt)? {
 					
 					//var arg = AST.Arg(label: "value")
 					//arg.annotation = AST.Name.Object
-					var args = AST.Arguments(
+					let args = AST.Arguments(
 						args: [
 							.init(label: "self")
 						],
@@ -320,7 +320,7 @@ private func transformClassBody(_ base: Stmt) -> (any Stmt)? {
 						col_offset: 0
 					)
 				}
-				return nil
+				//return nil
 			}
 		default:
 			print(base.type)
